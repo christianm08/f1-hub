@@ -38,21 +38,23 @@ export default function Standings() {
       rowClass: i === 0 ? "leader" : undefined,
       left: <span className="mpos">{s.positionText}</span>,
       title: (
-        <span className="row" style={{ gap: 10 }}>
+        <Link to={`/piloti/${s.Driver.driverId}?season=${season}`} className="mtitle">
           <DriverPhoto
             driverId={s.Driver.driverId}
             wikiUrl={s.Driver.url}
             name={`${s.Driver.givenName} ${s.Driver.familyName}`}
-            size={38}
+            size={44}
             tint={teamColor(s.Constructors[0]?.constructorId ?? "")}
             historic={parseInt(season, 10) < 2000}
           />
-          <Link to={`/piloti/${s.Driver.driverId}?season=${season}`}>
-            <FlagIcon code={nationalityCode(s.Driver.nationality)} />
-            <b>{s.Driver.code ?? s.Driver.familyName}</b>{" "}
-            <span className="muted">{s.Driver.givenName} {s.Driver.familyName}</span>
-          </Link>
-        </span>
+          <span className="mtitle-text">
+            <span className="mtitle-line1">
+              <FlagIcon code={nationalityCode(s.Driver.nationality)} />
+              <span>{s.Driver.code ?? s.Driver.familyName}</span>
+            </span>
+            <span className="mtitle-line2">{s.Driver.givenName} {s.Driver.familyName}</span>
+          </span>
+        </Link>
       ),
       subtitle: s.Constructors[0]?.name,
       value: s.points,
@@ -69,12 +71,19 @@ export default function Standings() {
       rowClass: i === 0 ? "leader" : undefined,
       left: <span className="mpos">{s.positionText}</span>,
       title: (
-        <Link to={`/team/${s.Constructor.constructorId}?season=${season}`} className="row" style={{ gap: 10 }}>
-          <TeamLogo constructorId={s.Constructor.constructorId} name={s.Constructor.name} size={34} tint={teamColor(s.Constructor.constructorId)} />
-          <b>{s.Constructor.name}</b>
+        <Link to={`/team/${s.Constructor.constructorId}?season=${season}`} className="mtitle">
+          <span className="mtitle-media">
+            <TeamLogo constructorId={s.Constructor.constructorId} name={s.Constructor.name} size={40} tint={teamColor(s.Constructor.constructorId)} />
+          </span>
+          <span className="mtitle-text">
+            <span className="mtitle-line1">
+              <FlagIcon code={nationalityCode(s.Constructor.nationality)} />
+              <span>{s.Constructor.name}</span>
+            </span>
+          </span>
         </Link>
       ),
-      subtitle: s.Constructor.nationality,
+      subtitle: undefined,
       value: s.points,
       details: (
         <MDetails items={[{ label: t("wins"), value: s.wins }]} />

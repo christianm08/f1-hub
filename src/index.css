@@ -866,6 +866,19 @@ table.tower-tbl { width: 100%; border-collapse: collapse; min-width: 640px; font
   flex: 0 0 auto; margin-left: auto; font-weight: 800; font-size: 1rem;
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
+
+/* mobile row title with media: photo/logo stays left of the text (never above),
+   text never clipped — used by standings rows */
+.mtable-title-text > a.mtitle {
+  display: flex; align-items: center; gap: 12px; min-width: 0;
+  text-decoration: none; color: inherit;
+}
+.mtitle .dphoto, .mtitle-media { flex: none; }
+.mtitle-text { min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.mtitle-line1 { display: flex; align-items: center; gap: 7px; font-weight: 800; font-size: 0.95rem; line-height: 1.25; }
+.mtitle-line1 .flag-round { margin-right: 0; }
+.mtitle-line2 { font-size: 0.8rem; color: var(--text-2); font-weight: 400; line-height: 1.3; }
+.mtable-title-text:has(> .mtitle) { white-space: normal; overflow: visible; text-overflow: clip; }
 .mtable-expand {
   flex: 0 0 auto; width: 44px; height: 44px; margin: -6px -4px -6px 0;
   display: grid; place-items: center; background: none; border: none;
