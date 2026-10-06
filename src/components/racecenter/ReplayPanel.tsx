@@ -20,6 +20,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, History, Info, Pause, Play } from "lucide-react";
 import { useRaceCenterSession } from "../../api/openf1live";
+import { formatGap } from "../../api/openf1";
 import type { LocationPoint } from "../../api/openf1model";
 import { fitLocationsToPath, resolveTrack } from "./mapFit";
 import { ErrorState, Skeleton } from "../ui";
@@ -46,7 +47,7 @@ export function ReplayPanel({ sessionKey, onSelectDriver }: PanelProps) {
   const {
     info, state, location, drivers, timing, raceControl, pits, overtakes,
     dataQuality, error, refresh,
-  } = useRaceCenterSession(sessionKey, {});
+  } = useRaceCenterSession(sessionKey, { locationWindowMin: 12 });
 
   const [tMs, setTMs] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -308,7 +309,7 @@ export function ReplayPanel({ sessionKey, onSelectDriver }: PanelProps) {
                     {d?.acronym ?? `#${r.number}`}
                   </span>
                   <span className="rcx-tower-name">{d?.fullName ?? ""}</span>
-                  <span className="rcx-tower-gap">{r.gapToLeader ?? "—"}</span>
+                  <span className="rcx-tower-gap">{formatGap(r.gapToLeader)}</span>
                 </div>
               );
             })}

@@ -1,10 +1,10 @@
 /* Race Center core — shared helpers. Owned by the race-center core agent. */
 import { useEffect, useState } from "react";
-import { formatLapTime } from "../../api/openf1";
+import { formatGap, formatLapTime } from "../../api/openf1";
 import type { DriverEntry } from "../../api/openf1model";
 import "./core.css";
 
-export { formatLapTime };
+export { formatGap, formatLapTime };
 
 /** Compound -> single letter badge class (index.css `.tyre` classes, reused). */
 export const TYRE_LETTER: Record<string, string> = {

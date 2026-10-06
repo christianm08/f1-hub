@@ -7,7 +7,7 @@ import type { DriverEntry, TimingRow } from "../../api/openf1model";
 import type { DictKey } from "../../i18n/dict";
 import { useSettings } from "../../store/settings";
 import { Skeleton } from "../ui";
-import { TYRE_LETTER, formatLapTime, useIsMobile } from "./core-shared";
+import { TYRE_LETTER, formatGap, formatLapTime, useIsMobile } from "./core-shared";
 import "./core.css";
 
 interface RowProps {
@@ -66,7 +66,7 @@ const TowerRow = memo(function TowerRow({ row, driver, sessionBest, selected, on
         {driver?.fullName && <span className="fname">{driver.fullName}</span>}
         {statusBadge(row, t)}
       </td>
-      <td className="rc-mono">{row.position === 1 ? <span className="rc-gap-leader">{t("rc_leader")}</span> : (row.gapToLeader ?? "n/d")}</td>
+      <td className="rc-mono">{row.position === 1 ? <span className="rc-gap-leader">{t("rc_leader")}</span> : formatGap(row.gapToLeader)}</td>
       <td className="rc-mono r">{row.interval ?? "n/d"}</td>
       <td className="rc-mono r">{row.lastLap != null ? formatLapTime(row.lastLap) : "n/d"}</td>
       <td className={`rc-mono r ${bestCls}`}>{row.bestLap != null ? formatLapTime(row.bestLap) : "n/d"}</td>
@@ -115,7 +115,7 @@ const MobileRow = memo(function MobileRow({ row, driver, selected, onSelect, t }
             {TYRE_LETTER[row.compound] ?? "?"}
           </i>
         )}
-        <span className="rc-mono">{row.position === 1 ? t("rc_leader") : (row.gapToLeader ?? "n/d")}</span>
+        <span className="rc-mono">{row.position === 1 ? t("rc_leader") : formatGap(row.gapToLeader)}</span>
       </span>
     </div>
   );

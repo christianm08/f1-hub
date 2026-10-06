@@ -24,8 +24,12 @@ const STR = {
     rcx_map_toggle_positions: "Posizioni",
     rcx_map_drs_open: "DRS aperto",
     rcx_map_click_hint: "Tocca una vettura per selezionarla",
+    rcx_map_play: "Riproduci",
+    rcx_map_pause: "Pausa",
     rcx_map_interp_note:
       "Posizioni reali OpenF1. Tra un campione e l'altro viene applicata una interpolazione lineare (smoothing dei dati reali, non simulazione).",
+    rcx_map_window_note:
+      "Finestra di 12 minuti a fine sessione (i dati di posizione storici sono disponibili in finestre limitate).",
 
     rcx_tel_title: "Telemetria",
     rcx_tel_driver: "Pilota",
@@ -106,8 +110,12 @@ const STR = {
     rcx_map_toggle_positions: "Positions",
     rcx_map_drs_open: "DRS open",
     rcx_map_click_hint: "Tap a car to select it",
+    rcx_map_play: "Play",
+    rcx_map_pause: "Pause",
     rcx_map_interp_note:
       "Real OpenF1 positions. Linear interpolation is applied between samples (smoothing of real data, not simulation).",
+    rcx_map_window_note:
+      "12-minute window near session end (historic position data is only available in limited windows).",
 
     rcx_tel_title: "Telemetry",
     rcx_tel_driver: "Driver",

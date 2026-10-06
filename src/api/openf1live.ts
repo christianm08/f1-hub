@@ -174,11 +174,53 @@ const has = (channels: ChannelName[], name: ChannelName) => channels.includes(na
 export class RestPollingProvider implements LiveDataProvider {
   readonly name = "rest-polling";
   liveCapable = true;
+  /**
+   * Minutes of per-driver location to load for completed sessions (0 = off).
+   * The location endpoint rejects unbounded multi-driver queries
+   * ("Failed to retrieve information… too much data"), so replay location
+   * is always fetched per-driver inside a bounded window near session end.
+   * Set from UseRaceCenterOptions.locationWindowMin by the hook.
+   */
+  locationWindowMin = 0;
 
   private async resolveStartingGrid(session: OFSession, o?: FetchOpts): Promise<OFStartingGrid[]> {
     const quali = await findSessionByName(session.meeting_key, "Qualifying", o).catch(() => null);
     if (!quali) return [];
     return openf1.startingGrid(quali.session_key, o);
+  }
+
+  /** Per-driver location inside [end-32min, end-8min]: cars are on track there
+   * (date_end is the scheduled end; the real finish is often earlier, so we
+   * avoid the parked-cars tail while staying inside the action). */
+  private async loadLocationWindow(
+    sessionKey: number,
+    session: OFSession,
+    drivers: OFDriver[],
+    o?: FetchOpts,
+  ): Promise<OFLocation[]> {
+    const w = this.locationWindowMin;
+    if (!w || w <= 0 || drivers.length === 0) return [];
+    const endMs = Date.parse(session.date_end);
+    if (!Number.isFinite(endMs)) return [];
+    const fmt = (ms: number) => new Date(ms).toISOString().slice(0, 19);
+    const from = fmt(endMs - (w + 8) * 60 * 1000);
+    const to = fmt(endMs - 8 * 60 * 1000);
+    const out: OFLocation[] = [];
+    const CONCURRENCY = 4; // stay well under the 25 req/min self-imposed budget
+    const nums = drivers.map((d) => d.driver_number);
+    for (let i = 0; i < nums.length; i += CONCURRENCY) {
+      if (o?.signal?.aborted) break;
+      const batch = nums.slice(i, i + CONCURRENCY);
+      const res = await Promise.all(
+        batch.map((n) =>
+          openf1
+            .location(sessionKey, { driver_number: n, "date>": from, "date<": to }, o)
+            .catch(() => [] as OFLocation[]),
+        ),
+      );
+      for (const r of res) out.push(...r);
+    }
+    return out;
   }
 
   async loadReplayBundle(sessionKey: number, signal?: AbortSignal): Promise<SessionBundle> {
@@ -196,7 +238,6 @@ export class RestPollingProvider implements LiveDataProvider {
       raceControl,
       weather,
       teamRadio,
-      location,
       sessionResult,
       overtakes,
       startingGrid,
@@ -210,11 +251,12 @@ export class RestPollingProvider implements LiveDataProvider {
       openf1.raceControl(sessionKey, {}, o),
       openf1.weather(sessionKey, o),
       openf1.teamRadio(sessionKey, undefined, o),
-      openf1.location(sessionKey, {}, o),
       openf1.sessionResult(sessionKey, o),
       openf1.overtakes(sessionKey, {}, o),
       this.resolveStartingGrid(session, o),
     ]);
+    // Windowed per-driver location (the unbounded query is rejected by the API).
+    const location = await this.loadLocationWindow(sessionKey, session, drivers, o);
     return {
       session,
       drivers,
@@ -283,15 +325,15 @@ export class RestPollingProvider implements LiveDataProvider {
     const jobs: Promise<void>[] = [];
     // Delta-window channels (fresh, unpersisted — URLs are unique per poll).
     if (has(channels, "position"))
-      jobs.push(openf1.positions(sessionKey, { "date>=": sinceIso }, live).then((r) => void (out.positions = r)));
+      jobs.push(openf1.positions(sessionKey, { "date>": sinceIso }, live).then((r) => void (out.positions = r)));
     if (has(channels, "intervals"))
-      jobs.push(openf1.intervals(sessionKey, { "date>=": sinceIso }, live).then((r) => void (out.intervals = r)));
+      jobs.push(openf1.intervals(sessionKey, { "date>": sinceIso }, live).then((r) => void (out.intervals = r)));
     if (has(channels, "raceControl"))
-      jobs.push(openf1.raceControl(sessionKey, { "date>=": sinceIso }, live).then((r) => void (out.raceControl = r)));
+      jobs.push(openf1.raceControl(sessionKey, { "date>": sinceIso }, live).then((r) => void (out.raceControl = r)));
     if (has(channels, "location"))
-      jobs.push(openf1.location(sessionKey, { "date>=": sinceIso }, live).then((r) => void (out.location = r)));
+      jobs.push(openf1.location(sessionKey, { "date>": sinceIso }, live).then((r) => void (out.location = r)));
     if (has(channels, "carData"))
-      jobs.push(openf1.carData(sessionKey, { "date>=": sinceIso }, live).then((r) => void (out.carData = r)));
+      jobs.push(openf1.carData(sessionKey, { "date>": sinceIso }, live).then((r) => void (out.carData = r)));
     // Small, cache-backed channels (repeated polls within TTL are free).
     if (has(channels, "pits")) jobs.push(openf1.pits(sessionKey, cached).then((r) => void (out.pits = r)));
     if (has(channels, "stints")) jobs.push(openf1.stints(sessionKey, cached).then((r) => void (out.stints = r)));
@@ -317,6 +359,13 @@ export interface UseRaceCenterOptions {
   enableTelemetry?: boolean;
   /** Poll location for the track map (live only). */
   enableLocation?: boolean;
+  /**
+   * Completed sessions: load per-driver location for an N-minute window near
+   * the end ([end-(N+8)min, end-8min]). The location endpoint rejects
+   * unbounded multi-driver queries, so replay maps are always windowed.
+   * 0 = off (default).
+   */
+  locationWindowMin?: number;
   /** Optional Jolpica-side driver name/acronym overrides. */
   driverAliases?: DriverAliasMap;
 }
@@ -463,10 +512,13 @@ function timingRowsEqual(a: TimingRow[], b: TimingRow[]): boolean {
  * plan requirement (see `needsSubscription` state).
  */
 export function useRaceCenterSession(sessionKey: number | null, options: UseRaceCenterOptions = {}): RaceCenterData {
-  const { enableTelemetry = false, enableLocation = false, driverAliases } = options;
+  const { enableTelemetry = false, enableLocation = false, locationWindowMin = 0, driverAliases } = options;
 
   const providerRef = useRef<LiveDataProvider | null>(null);
   if (providerRef.current === null) providerRef.current = new RestPollingProvider();
+  if (providerRef.current instanceof RestPollingProvider) {
+    providerRef.current.locationWindowMin = locationWindowMin;
+  }
 
   const [data, setData] = useState<RaceCenterData>(() => initialData());
   const [nonce, setNonce] = useState(0);

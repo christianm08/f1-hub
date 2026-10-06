@@ -16,6 +16,14 @@
  *   Historical data starts at 2023: `meetings?year=2022` returns 404.
  *   For seasons before 2023 use Jolpica (src/api/jolpica.ts) only.
  *
+ * FILTER OPERATORS — CRITICAL QUIRK (curl-verified 2026-10-06)
+ *   The docs write `date>=2023-01-01`, but the server splits the query on the
+ *   FIRST `=`: the filter key must be `date>` (single char), NOT `date>=`.
+ *   Sending `date%3E%3D=value` (key = "date>=") silently returns
+ *   {"detail":"No results found."}; sending `date%3E=value` (key = "date>")
+ *   works. ALWAYS use the single-char keys "date>" / "date<" in code —
+ *   never "date>=" / "date<=".
+ *
  * LIVE vs REPLAY
  *   The free plan does NOT serve data inside the live window
  *   [session_start - 30min, session_end + 30min] — that window is reserved for

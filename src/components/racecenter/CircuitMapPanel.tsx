@@ -20,7 +20,7 @@
  * ========================================================================== */
 
 import { useEffect, useMemo, useState } from "react";
-import { Info, ListOrdered, Map as MapIcon } from "lucide-react";
+import { Info, ListOrdered, Map as MapIcon, Pause, Play } from "lucide-react";
 import {
   LIVE_SUBSCRIPTION_MESSAGE_EN,
   LIVE_SUBSCRIPTION_MESSAGE_IT,
@@ -76,13 +76,16 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
     telemetryAvailable,
     error,
     refresh,
-  } = useRaceCenterSession(sessionKey, { enableLocation: true });
+  } = useRaceCenterSession(sessionKey, { enableLocation: true, locationWindowMin: 12 });
 
   const [nowMs, setNowMs] = useState(() => Date.now());
   const [selected, setSelected] = useState<number | null>(null);
   const [showPositions, setShowPositions] = useState(true);
+  const [replayPlaying, setReplayPlaying] = useState(true);
+  /** Virtual cursor (ms epoch) for completed sessions; live mode trails real time. */
+  const [cursorMs, setCursorMs] = useState<number | null>(null);
 
-  // Throttled animation clock (~10 fps is plenty for multi-second samples).
+  // Throttled wall-clock (~10 fps is plenty for multi-second samples).
   useEffect(() => {
     let raf = 0;
     let last = 0;
@@ -131,7 +134,23 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
 
   const dots = useMemo(() => {
     if (!fit) return [];
-    const tNow = nowMs - TRAIL_MS;
+    // Live: trail real time by 5s and interpolate between measured samples.
+    // Replay (completed session): the virtual cursor loops through the
+    // sampled window — the samples are real, only the clock is virtual.
+    let tNow: number | null;
+    if (info?.isLive) {
+      tNow = nowMs - TRAIL_MS;
+    } else {
+      tNow = cursorMs;
+      if (tNow == null) {
+        let s0 = Infinity;
+        for (const pts of byDriver.values()) {
+          if (pts.length && pts[0].t < s0) s0 = pts[0].t;
+        }
+        tNow = Number.isFinite(s0) ? s0 : null;
+      }
+    }
+    if (tNow == null) return [];
     const out: Array<{ num: number; x: number; y: number }> = [];
     for (const [num, pts] of byDriver) {
       const p = posAt(pts, tNow);
@@ -140,7 +159,38 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
       out.push({ num, x: s.x, y: s.y });
     }
     return out;
-  }, [fit, byDriver, nowMs]);
+  }, [fit, byDriver, nowMs, cursorMs, info?.isLive]);
+
+  // Replay virtual clock: advance ~20x through the sampled window, looping.
+  // Pause freezes the cursor where it is.
+  useEffect(() => {
+    if (info?.isLive || !replayPlaying) return;
+    let s0 = Infinity;
+    let s1 = -Infinity;
+    for (const pts of byDriver.values()) {
+      if (!pts.length) continue;
+      if (pts[0].t < s0) s0 = pts[0].t;
+      const last = pts[pts.length - 1].t;
+      if (last > s1) s1 = last;
+    }
+    if (!(s1 > s0)) return;
+    setCursorMs((cur) => (cur == null || cur < s0 || cur > s1 ? s0 : cur));
+    const SPEED = 20; // 12-min window -> ~36 s per loop
+    let raf = 0;
+    let last = performance.now();
+    const loop = (ts: number) => {
+      const dt = ts - last;
+      last = ts;
+      setCursorMs((cur) => {
+        const c = cur ?? s0;
+        const next = c + dt * SPEED;
+        return next > s1 ? s0 + ((next - s0) % (s1 - s0)) : next;
+      });
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [info?.isLive, byDriver, replayPlaying]);
 
   if (state === "loading" || state === "idle") {
     return (
@@ -202,6 +252,18 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
         <h2 className="rcx-title"><MapIcon aria-hidden="true" />{t("rcx_map_title")}</h2>
         <div className="rcx-head-actions">
           {info?.isLive && <span className="badge live"><span className="dot" aria-hidden="true" />LIVE</span>}
+          {!info?.isLive && (
+            <button
+              type="button"
+              className="rcx-toggle"
+              aria-pressed={replayPlaying}
+              onClick={() => setReplayPlaying((v) => !v)}
+              aria-label={replayPlaying ? t("rcx_map_pause") : t("rcx_map_play")}
+            >
+              {replayPlaying ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
+              {replayPlaying ? t("rcx_map_pause") : t("rcx_map_play")}
+            </button>
+          )}
           <button
             type="button"
             className="rcx-toggle"
@@ -271,6 +333,7 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
         <span className="rcx-caption">{dots.length} / {drivers.length}</span>
       </div>
       <p className="rcx-caption">{t("rcx_map_interp_note")}</p>
+      {!info?.isLive && <p className="rcx-caption">{t("rcx_map_window_note")}</p>}
     </section>
   );
 }

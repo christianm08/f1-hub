@@ -7,7 +7,7 @@ import { User, X } from "lucide-react";
 import type { DriverEntry, LapEntry, PitView, StintView, TimingRow } from "../../api/openf1model";
 import { useSettings } from "../../store/settings";
 import { Sparkline } from "../charts";
-import { TYRE_LETTER, compoundClass, compoundShort, formatLapTime, useDriverMap } from "./core-shared";
+import { TYRE_LETTER, compoundClass, compoundShort, formatGap, formatLapTime, useDriverMap } from "./core-shared";
 import "./core.css";
 
 interface Props {
@@ -77,7 +77,7 @@ export function DriverPanel({ number, onClose, timing, drivers, laps, stints, pi
       </div>
       <div className="rc-dp-body">
         <div className="rc-kv">
-          <div className="cell"><div className="k">{t("gap")}</div><div className="v">{row?.gapToLeader ?? "n/d"}</div></div>
+          <div className="cell"><div className="k">{t("gap")}</div><div className="v">{formatGap(row?.gapToLeader)}</div></div>
           <div className="cell"><div className="k">{t("rc_int_short")}</div><div className="v">{row?.interval ?? "n/d"}</div></div>
           <div className="cell"><div className="k">{t("rc_last_short")}</div><div className="v">{row?.lastLap != null ? formatLapTime(row.lastLap) : "n/d"}</div></div>
           <div className="cell"><div className="k">{t("rc_best_short")}</div><div className="v">{row?.bestLap != null ? formatLapTime(row.bestLap) : "n/d"}</div></div>
