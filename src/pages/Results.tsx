@@ -2,12 +2,13 @@
    + practice best laps via OpenF1 (recent seasons only, honest fallback). */
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { Timer } from "lucide-react";
 import { jolpica, raceStatus, type RaceInfo, type RaceResult, type QualiResult } from "../api/jolpica";
 import { openf1, formatLapTime, type OFDriver } from "../api/openf1";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, PageHeader, SkeletonCard, gapText } from "../components/ui";
-import { teamColor } from "../data/meta";
+import { nationalityCode, teamColor } from "../data/meta";
 
 const MIN_SEASON = "2014";
 type SessionKind = "race" | "qualifying" | "sprint" | "practice";
@@ -142,18 +143,23 @@ function ResultsTable({ data }: { data: SessionData }) {
 
   if (data.kind === "practice") {
     if (!data.rows || data.rows.length === 0) {
-      return <EmptyState icon="⏱️" title={t("empty_title")} body={t("not_available")} />;
+      return <EmptyState icon={<Timer aria-hidden="true" />} title={t("empty_title")} body={t("not_available")} />;
     }
     return (
       <div className="tbl-wrap"><table className="tbl">
-        <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>{t("best_lap")}</th></tr></thead>
+        <thead><tr>
+          <th>{t("position")}</th>
+          <th>{t("driver")}</th>
+          <th>{t("team")}</th>
+          <th className="num">{t("best_lap")}</th>
+        </tr></thead>
         <tbody>
           {data.rows.map((r, i) => (
-            <tr key={r.acronym}>
+            <tr key={r.acronym} className={i === 0 ? "leader" : ""}>
               <td className="pos num">{i + 1}</td>
               <td><b>{r.acronym}</b></td>
-              <td><span className="team-dot" style={{ background: r.color }} />{r.team}</td>
-              <td className="num">{formatLapTime(r.lap)}</td>
+              <td><span className="team-cell"><span className="team-dot" style={{ background: r.color }} aria-hidden="true" />{r.team}</span></td>
+              <td className="num mono">{formatLapTime(r.lap)}</td>
             </tr>
           ))}
         </tbody>
@@ -165,16 +171,29 @@ function ResultsTable({ data }: { data: SessionData }) {
     if (data.rows.length === 0) return <EmptyState title={t("empty_title")} body={t("empty_body")} />;
     return (
       <div className="tbl-wrap"><table className="tbl">
-        <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>Q1</th><th>Q2</th><th>Q3</th></tr></thead>
+        <thead><tr>
+          <th>{t("position")}</th>
+          <th>{t("driver")}</th>
+          <th>{t("team")}</th>
+          <th className="num">Q1</th>
+          <th className="num">Q2</th>
+          <th className="num">Q3</th>
+        </tr></thead>
         <tbody>
-          {data.rows.map((r) => (
-            <tr key={r.Driver.driverId}>
+          {data.rows.map((r, i) => (
+            <tr key={r.Driver.driverId} className={i === 0 ? "leader" : ""}>
               <td className="pos num">{r.positionText}</td>
-              <td><Link to={`/piloti/${r.Driver.driverId}`}><b>{r.Driver.code ?? r.Driver.familyName}</b></Link></td>
-              <td><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} />{r.Constructor.name}</td>
-              <td className="num">{r.Q1 ?? "—"}</td>
-              <td className="num">{r.Q2 ?? "—"}</td>
-              <td className="num">{r.Q3 ?? "—"}</td>
+              <td>
+                <Link to={`/piloti/${r.Driver.driverId}`}>
+                  <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
+                  <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
+                  <span className="muted small">{r.Driver.givenName} {r.Driver.familyName}</span>
+                </Link>
+              </td>
+              <td><span className="team-cell"><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} aria-hidden="true" />{r.Constructor.name}</span></td>
+              <td className="num mono">{r.Q1 ?? "—"}</td>
+              <td className="num mono">{r.Q2 ?? "—"}</td>
+              <td className="num mono">{r.Q3 ?? "—"}</td>
             </tr>
           ))}
         </tbody>
@@ -185,15 +204,28 @@ function ResultsTable({ data }: { data: SessionData }) {
   if (data.rows.length === 0) return <EmptyState title={t("empty_title")} body={t("empty_body")} />;
   return (
     <div className="tbl-wrap"><table className="tbl">
-      <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>{t("time_gap")}</th><th>{t("points")}</th><th>{t("status")}</th></tr></thead>
+      <thead><tr>
+        <th>{t("position")}</th>
+        <th>{t("driver")}</th>
+        <th>{t("team")}</th>
+        <th className="num">{t("time_gap")}</th>
+        <th className="num">{t("points")}</th>
+        <th>{t("status")}</th>
+      </tr></thead>
       <tbody>
-        {data.rows.map((r) => (
-          <tr key={r.Driver.driverId}>
+        {data.rows.map((r, i) => (
+          <tr key={r.Driver.driverId} className={i === 0 ? "leader" : ""}>
             <td className="pos num">{r.positionText}</td>
-            <td><Link to={`/piloti/${r.Driver.driverId}`}><b>{r.Driver.code ?? r.Driver.familyName}</b> <span className="muted small">{r.Driver.givenName} {r.Driver.familyName}</span></Link></td>
-            <td><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} />{r.Constructor.name}</td>
-            <td className="num">{gapText(r)}</td>
-            <td className="num">{r.points}</td>
+            <td>
+              <Link to={`/piloti/${r.Driver.driverId}`}>
+                <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
+                <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
+                <span className="muted small">{r.Driver.givenName} {r.Driver.familyName}</span>
+              </Link>
+            </td>
+            <td><span className="team-cell"><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} aria-hidden="true" />{r.Constructor.name}</span></td>
+            <td className="num mono">{gapText(r)}</td>
+            <td className="num"><b>{r.points}</b></td>
             <td className="small muted">{r.status}</td>
           </tr>
         ))}

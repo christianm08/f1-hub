@@ -1,5 +1,6 @@
 /* Shared UI primitives: skeletons, states, countdown, badges, favorites, toasts. */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { AlertTriangle, CheckCircle2, Flag, Heart } from "lucide-react";
 import { useSettings, type FavItem } from "../store/settings";
 
 export function Skeleton({ h = 20, w }: { h?: number; w?: string | number }) {
@@ -22,7 +23,7 @@ export function ErrorState({ onRetry, message }: { onRetry: () => void; message?
   const { t } = useSettings();
   return (
     <div className="state" role="alert">
-      <div className="big" aria-hidden="true">⚠️</div>
+      <div className="state-icon error" aria-hidden="true"><AlertTriangle /></div>
       <h3>{t("error_title")}</h3>
       <p>{message ?? t("error_body")}</p>
       <button className="btn primary" onClick={onRetry}>{t("retry")}</button>
@@ -30,17 +31,17 @@ export function ErrorState({ onRetry, message }: { onRetry: () => void; message?
   );
 }
 
-export function EmptyState({ icon = "🏁", title, body }: { icon?: string; title: string; body?: string }) {
+export function EmptyState({ icon, title, body }: { icon?: ReactNode; title: string; body?: string }) {
   return (
     <div className="state">
-      <div className="big" aria-hidden="true">{icon}</div>
+      <div className="state-icon" aria-hidden="true">{icon ?? <Flag />}</div>
       <h3>{title}</h3>
       {body && <p>{body}</p>}
     </div>
   );
 }
 
-export function Badge({ kind, children }: { kind?: "live" | "accent" | "done" | "warn"; children: ReactNode }) {
+export function Badge({ kind, children }: { kind?: "live" | "accent" | "done" | "warn" | "info"; children: ReactNode }) {
   return (
     <span className={`badge${kind ? " " + kind : ""}`}>
       {kind === "live" && <span className="dot" aria-hidden="true" />}
@@ -120,7 +121,7 @@ export function FavButton({ item }: { item: FavItem }) {
         push(added ? t("added_fav") : t("removed_fav"));
       }}
     >
-      <span aria-hidden="true">{active ? "❤️" : "🤍"}</span>
+      <Heart aria-hidden="true" />
     </button>
   );
 }
@@ -141,7 +142,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="toast-wrap" aria-live="polite">
         {items.map((i) => (
-          <div className="toast" key={i.id}>{i.msg}</div>
+          <div className="toast" key={i.id}><CheckCircle2 aria-hidden="true" />{i.msg}</div>
         ))}
       </div>
     </ToastCtx.Provider>

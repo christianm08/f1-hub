@@ -1,12 +1,13 @@
 /* Home: next GP hero + countdown, live state, favorites, standings, last results, news. */
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { ArrowRight, ArrowUpRight, Car, Flag, Heart, MapPin, Newspaper, Trophy } from "lucide-react";
 import { jolpica, nextSession, raceStatus, sessionDateTime, type RaceInfo } from "../api/jolpica";
 import { fetchNews, type NewsItem } from "../api/news";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
-import { Badge, CountdownCells, EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, fmtDateTime } from "../components/ui";
-import { countryFlag, nationalityFlag, teamColor } from "../data/meta";
+import { Badge, CountdownCells, EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, fmtDateTime, gapText } from "../components/ui";
+import { countryCode, nationalityCode, teamColor } from "../data/meta";
 
 interface HomeData {
   races: RaceInfo[];
@@ -58,8 +59,12 @@ export default function Home() {
         <Link to="/live" className="hero" style={{ display: "block", marginBottom: 18 }} aria-label={t("view_race_center")}>
           <Badge kind="live">{t("live_now")}</Badge>
           <h2 style={{ marginTop: 10 }}>{liveRace.raceName}</h2>
-          <p className="meta">{countryFlag(liveRace.Circuit.Location.country)} {liveRace.Circuit.Location.locality}, {liveRace.Circuit.Location.country}</p>
-          <span className="btn primary" style={{ marginTop: 12 }}>{t("view_race_center")} →</span>
+          <p className="meta">
+            <MapPin aria-hidden="true" />
+            <span className="nat">{countryCode(liveRace.Circuit.Location.country)}</span>
+            {liveRace.Circuit.Location.locality}, {liveRace.Circuit.Location.country}
+          </p>
+          <span className="btn primary" style={{ marginTop: 12 }}>{t("view_race_center")} <ArrowRight size={15} aria-hidden="true" /></span>
         </Link>
       ) : next ? (
         <div className="hero" style={{ marginBottom: 18 }}>
@@ -69,13 +74,17 @@ export default function Home() {
           </div>
           <h2 style={{ marginTop: 10 }}>{next.race.raceName}</h2>
           <p className="meta">
-            {countryFlag(next.race.Circuit.Location.country)} {next.race.Circuit.Location.locality}, {next.race.Circuit.Location.country}
+            <MapPin aria-hidden="true" />
+            <span className="nat">{countryCode(next.race.Circuit.Location.country)}</span>
+            {next.race.Circuit.Location.locality}, {next.race.Circuit.Location.country}
             {" · "}{fmtDateTime(sessionDateTime(next.race.date, next.race.time), lang)}
           </p>
           <p className="meta" style={{ marginTop: 8 }}>{t("next_session")}: <b style={{ color: "#fff" }}>{next.label}</b></p>
           <CountdownCells target={next.date} />
           <div className="row" style={{ marginTop: 4 }}>
-            <Link className="btn primary small" to={`/gara/${next.race.season}/${next.race.round}`}>{t("view_details")}</Link>
+            <Link className="btn primary small" to={`/gara/${next.race.season}/${next.race.round}`}>
+              {t("view_details")} <ArrowRight size={15} aria-hidden="true" />
+            </Link>
             <Link className="btn small ghost" to="/calendario" style={{ color: "#fff", borderColor: "rgba(255,255,255,.25)" }}>{t("view_calendar")}</Link>
           </div>
         </div>
@@ -83,7 +92,7 @@ export default function Home() {
 
       {favorites.length > 0 && (
         <>
-          <h2 className="section-title">❤️ {t("favorites")}</h2>
+          <h2 className="section-title"><Heart aria-hidden="true" /> {t("favorites")}</h2>
           <div className="grid grid-3">
             {favorites.map((f) => (
               <Link key={`${f.kind}:${f.id}`} className="card" to={f.kind === "driver" ? `/piloti/${f.id}` : f.kind === "team" ? `/team/${f.id}` : "/circuiti"}>
@@ -100,7 +109,10 @@ export default function Home() {
 
       <div className="grid grid-2">
         <div>
-          <h2 className="section-title">🏆 {t("driver_standings")}</h2>
+          <div className="section-head">
+            <h2 className="section-title"><Trophy aria-hidden="true" /> {t("driver_standings")}</h2>
+            <Link to="/classifiche" className="btn ghost small">{t("view_details")} <ArrowRight size={15} aria-hidden="true" /></Link>
+          </div>
           <div className="card" style={{ padding: "6px 16px" }}>
             {data.standings.slice(0, 5).map((s, i) => (
               <Link key={s.Driver.driverId} to={`/piloti/${s.Driver.driverId}`} className="driver-row">
@@ -109,17 +121,21 @@ export default function Home() {
                   {s.Driver.code ?? s.Driver.familyName.slice(0, 3).toUpperCase()}
                 </span>
                 <span>
-                  <b style={{ display: "block", fontSize: "0.92rem" }}>{nationalityFlag(s.Driver.nationality)} {s.Driver.givenName} {s.Driver.familyName}</b>
+                  <b style={{ display: "block", fontSize: "0.92rem" }}>
+                    <span className="nat">{nationalityCode(s.Driver.nationality)}</span> {s.Driver.givenName} {s.Driver.familyName}
+                  </b>
                   <span className="small muted">{s.Constructors[0]?.name}</span>
                 </span>
                 <b className="num" style={{ marginLeft: "auto" }}>{s.points}</b>
               </Link>
             ))}
           </div>
-          <Link to="/classifiche" className="btn ghost small mt">{t("view_details")} →</Link>
         </div>
         <div>
-          <h2 className="section-title">🏎️ {t("constructor_standings")}</h2>
+          <div className="section-head">
+            <h2 className="section-title"><Car aria-hidden="true" /> {t("constructor_standings")}</h2>
+            <Link to="/classifiche" className="btn ghost small">{t("view_details")} <ArrowRight size={15} aria-hidden="true" /></Link>
+          </div>
           <div className="card" style={{ padding: "6px 16px" }}>
             {data.cstands.slice(0, 5).map((s, i) => (
               <Link key={s.Constructor.constructorId} to={`/team/${s.Constructor.constructorId}`} className="driver-row">
@@ -132,24 +148,30 @@ export default function Home() {
               </Link>
             ))}
           </div>
-          <Link to="/classifiche" className="btn ghost small mt">{t("view_details")} →</Link>
         </div>
       </div>
 
       {data.lastResults && (
         <>
-          <h2 className="section-title">🏁 {t("latest_results")}: {data.lastResults.race.raceName}</h2>
+          <div className="section-head">
+            <h2 className="section-title"><Flag aria-hidden="true" /> {t("latest_results")}: {data.lastResults.race.raceName}</h2>
+            <Link to="/risultati" className="btn ghost small">{t("view_details")} <ArrowRight size={15} aria-hidden="true" /></Link>
+          </div>
           <div className="tbl-wrap">
             <table className="tbl">
-              <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>{t("time_gap")}</th><th>{t("points")}</th></tr></thead>
+              <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>{t("time_gap")}</th><th className="num">{t("points")}</th></tr></thead>
               <tbody>
                 {data.lastResults.rows.slice(0, 5).map((r) => (
-                  <tr key={r.Driver.driverId}>
+                  <tr key={r.Driver.driverId} className={r.positionText === "1" ? "leader" : ""}>
                     <td className="pos num">{r.positionText}</td>
-                    <td><Link to={`/piloti/${r.Driver.driverId}`}><b>{r.Driver.code ?? r.Driver.familyName}</b></Link></td>
-                    <td><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} />{r.Constructor.name}</td>
-                    <td className="num">{r.positionText === "1" ? (r.Time?.time ?? "—") : (r.Time?.time ?? r.status)}</td>
-                    <td className="num">{r.points}</td>
+                    <td>
+                      <Link to={`/piloti/${r.Driver.driverId}`}>
+                        <span className="nat">{nationalityCode(r.Driver.nationality)}</span> <b>{r.Driver.code ?? r.Driver.familyName}</b>
+                      </Link>
+                    </td>
+                    <td><span className="team-cell"><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} aria-hidden="true" />{r.Constructor.name}</span></td>
+                    <td className="num mono">{gapText(r)}</td>
+                    <td className="num"><b>{r.points}</b></td>
                   </tr>
                 ))}
               </tbody>
@@ -158,20 +180,23 @@ export default function Home() {
         </>
       )}
 
-      <div className="spread" style={{ marginTop: 26 }}>
-        <h2 className="section-title" style={{ margin: 0 }}>📰 {t("latest_news")}</h2>
-        <Link to="/news" className="btn ghost small">{t("view_details")} →</Link>
+      <div className="section-head" style={{ marginTop: 26 }}>
+        <h2 className="section-title"><Newspaper aria-hidden="true" /> {t("latest_news")}</h2>
+        <Link to="/news" className="btn ghost small">{t("view_details")} <ArrowRight size={15} aria-hidden="true" /></Link>
       </div>
       {data.news.length === 0 ? (
-        <EmptyState title={t("empty_title")} body={t("empty_body")} />
+        <EmptyState icon={<Newspaper aria-hidden="true" />} title={t("empty_title")} body={t("empty_body")} />
       ) : (
         <div className="grid grid-2" style={{ marginTop: 12 }}>
           {data.news.map((n) => (
             <a key={n.id} className="card news-card" href={n.link} target="_blank" rel="noopener noreferrer">
-              <span className="cat">{n.source}</span>
+              <span className="cat"><Newspaper aria-hidden="true" />{n.source}</span>
               <h3>{n.title}</h3>
               <p>{n.excerpt}</p>
-              <span className="src"><span>{new Date(n.pubDate).toLocaleDateString(lang === "it" ? "it-IT" : "en-GB")}</span><span>{t("read_original")} ↗</span></span>
+              <span className="src">
+                <span>{new Date(n.pubDate).toLocaleDateString(lang === "it" ? "it-IT" : "en-GB")}</span>
+                <span>{t("read_original")} <ArrowUpRight size={13} aria-hidden="true" /></span>
+              </span>
             </a>
           ))}
         </div>

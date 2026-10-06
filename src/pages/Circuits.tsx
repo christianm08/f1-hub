@@ -1,10 +1,11 @@
 /* Circuits: cards with info; layout placeholder (no licit free source for track SVGs). */
 import { useMemo } from "react";
+import { ArrowUpRight, Info, Route, Trophy } from "lucide-react";
 import { jolpica, raceStatus, type RaceInfo } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
-import { countryFlag } from "../data/meta";
+import { countryCode } from "../data/meta";
 
 interface CircuitsData {
   races: RaceInfo[];
@@ -60,25 +61,36 @@ export default function Circuits() {
                 <h3 style={{ margin: 0, fontSize: "1.02rem" }}>{c.circuitName}</h3>
                 <FavButton item={{ kind: "circuit", id: c.circuitId, label: c.circuitName }} />
               </div>
-              <p className="muted small"><span className="flag" aria-hidden="true">{countryFlag(c.Location.country)}</span>{c.Location.locality}, {c.Location.country}</p>
-              <div className="circuit-ph" aria-label={t("circuit")}>🗺️<br />{t("circuit_info")}</div>
+              <p className="muted small" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span className="nat">{countryCode(c.Location.country)}</span>
+                <span>{c.Location.locality}, {c.Location.country}</span>
+              </p>
+              <div className="circuit-ph" aria-label={t("circuit")}><Route aria-hidden="true" />{t("circuit_info")}</div>
               <dl className="kv mt">
                 <dt>{t("winner")} ({lang === "it" ? "recente" : "latest"})</dt>
-                <dd>{data.winners[c.circuitId] ?? t("not_available")}</dd>
+                <dd>
+                  <Trophy size={14} aria-hidden="true" style={{ color: "var(--gold)", verticalAlign: "-2px", marginRight: 6 }} />
+                  {data.winners[c.circuitId] ?? t("not_available")}
+                </dd>
                 <dt>Lat/Long</dt>
-                <dd className="num">{c.Location.lat}, {c.Location.long}</dd>
+                <dd className="mono num">{c.Location.lat}, {c.Location.long}</dd>
                 <dt>{t("length")}</dt>
                 <dd>{t("not_available")}</dd>
               </dl>
-              <a className="btn ghost small mt" href={c.url} target="_blank" rel="noopener noreferrer">Wikipedia ↗</a>
+              <a className="btn ghost small mt" href={c.url} target="_blank" rel="noopener noreferrer">
+                Wikipedia <ArrowUpRight size={13} aria-hidden="true" />
+              </a>
             </div>
           );
         })}
       </div>
-      <p className="small muted mt">
-        {lang === "it"
-          ? "Lunghezza, curve e record sul giro non sono forniti dall'API: mostrati solo quando disponibili da fonte ufficiale."
-          : "Length, corners and lap records aren't provided by the API: shown only when available from an official source."}
+      <p className="small muted mt row" style={{ alignItems: "flex-start" }}>
+        <Info size={14} aria-hidden="true" style={{ color: "var(--text-3)", flex: "0 0 auto", marginTop: 2 }} />
+        <span>
+          {lang === "it"
+            ? "Lunghezza, curve e record sul giro non sono forniti dall'API: mostrati solo quando disponibili da fonte ufficiale."
+            : "Length, corners and lap records aren't provided by the API: shown only when available from an official source."}
+        </span>
       </p>
     </div>
   );

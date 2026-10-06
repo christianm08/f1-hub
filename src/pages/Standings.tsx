@@ -1,11 +1,12 @@
 /* Standings: drivers + constructors with season selector (API-supported seasons only). */
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Car, Trophy } from "lucide-react";
 import { jolpica } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, PageHeader, SkeletonCard } from "../components/ui";
-import { nationalityFlag, teamColor } from "../data/meta";
+import { nationalityCode, teamColor } from "../data/meta";
 
 const MIN_SEASON = "2014";
 
@@ -38,15 +39,27 @@ export default function Standings() {
     return (
       <div className="grid grid-2">
         <div>
-          <h2 className="section-title" style={{ marginTop: 0 }}>🏆 {t("driver_standings")}</h2>
+          <h2 className="section-title" style={{ marginTop: 0 }}><Trophy aria-hidden="true" /> {t("driver_standings")}</h2>
           <div className="tbl-wrap"><table className="tbl">
-            <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>{t("points")}</th><th>{t("wins")}</th></tr></thead>
+            <thead><tr>
+              <th>{t("position")}</th>
+              <th>{t("driver")}</th>
+              <th>{t("team")}</th>
+              <th className="num">{t("points")}</th>
+              <th className="num">{t("wins")}</th>
+            </tr></thead>
             <tbody>
               {drivers.map((s, i) => (
                 <tr key={s.Driver.driverId} className={i === 0 ? "leader" : ""}>
                   <td className="pos num">{s.positionText}</td>
-                  <td><Link to={`/piloti/${s.Driver.driverId}`}><b>{s.Driver.code ?? s.Driver.familyName}</b> <span className="muted small">{s.Driver.givenName} {s.Driver.familyName}</span></Link></td>
-                  <td><span className="team-dot" style={{ background: teamColor(s.Constructors[0]?.constructorId ?? "") }} />{s.Constructors[0]?.name}</td>
+                  <td>
+                    <Link to={`/piloti/${s.Driver.driverId}`}>
+                      <span className="nat">{nationalityCode(s.Driver.nationality)}</span>{" "}
+                      <b>{s.Driver.code ?? s.Driver.familyName}</b>{" "}
+                      <span className="muted small">{s.Driver.givenName} {s.Driver.familyName}</span>
+                    </Link>
+                  </td>
+                  <td><span className="team-cell"><span className="team-dot" style={{ background: teamColor(s.Constructors[0]?.constructorId ?? "") }} aria-hidden="true" />{s.Constructors[0]?.name}</span></td>
                   <td className="num"><b>{s.points}</b></td>
                   <td className="num">{s.wins}</td>
                 </tr>
@@ -55,14 +68,25 @@ export default function Standings() {
           </table></div>
         </div>
         <div>
-          <h2 className="section-title" style={{ marginTop: 0 }}>🏎️ {t("constructor_standings")}</h2>
+          <h2 className="section-title" style={{ marginTop: 0 }}><Car aria-hidden="true" /> {t("constructor_standings")}</h2>
           <div className="tbl-wrap"><table className="tbl">
-            <thead><tr><th>{t("position")}</th><th>{t("team")}</th><th>{t("points")}</th><th>{t("wins")}</th></tr></thead>
+            <thead><tr>
+              <th>{t("position")}</th>
+              <th>{t("team")}</th>
+              <th className="num">{t("points")}</th>
+              <th className="num">{t("wins")}</th>
+            </tr></thead>
             <tbody>
               {constructors.map((s, i) => (
                 <tr key={s.Constructor.constructorId} className={i === 0 ? "leader" : ""}>
                   <td className="pos num">{s.positionText}</td>
-                  <td><Link to={`/team/${s.Constructor.constructorId}`}><span className="team-dot" style={{ background: teamColor(s.Constructor.constructorId) }} /><b>{s.Constructor.name}</b></Link> <span className="muted small">{nationalityFlag(s.Constructor.nationality)}</span></td>
+                  <td>
+                    <Link to={`/team/${s.Constructor.constructorId}`}>
+                      <span className="team-dot" style={{ background: teamColor(s.Constructor.constructorId) }} aria-hidden="true" />
+                      <b>{s.Constructor.name}</b>
+                    </Link>{" "}
+                    <span className="nat">{nationalityCode(s.Constructor.nationality)}</span>
+                  </td>
                   <td className="num"><b>{s.points}</b></td>
                   <td className="num">{s.wins}</td>
                 </tr>

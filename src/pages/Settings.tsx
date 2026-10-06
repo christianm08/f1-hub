@@ -1,5 +1,6 @@
 /* Settings: theme, language, default season, units, favourites, refresh, notifications (UI only). */
 import { useEffect, useState } from "react";
+import { Bell, CalendarDays, Database, Heart, Info, Palette, RefreshCw, X } from "lucide-react";
 import { jolpica, type ConstructorRef, type DriverRef } from "../api/jolpica";
 import { clearCache } from "../api/client";
 import { useSettings } from "../store/settings";
@@ -8,6 +9,15 @@ import { Badge, PageHeader } from "../components/ui";
 const MIN_SEASON = "2014";
 
 const NOTIF_KEYS = ["notif_quali", "notif_race", "notif_results", "notif_news", "notif_driver", "notif_team"] as const;
+
+function CardTitle({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <h3 className="card-title">
+      <span className="settings-ico" aria-hidden="true">{icon}</span>
+      <span>{children}</span>
+    </h3>
+  );
+}
 
 export default function Settings() {
   const {
@@ -41,7 +51,7 @@ export default function Settings() {
 
       <div className="grid grid-2">
         <div className="card">
-          <h3 style={{ marginTop: 0 }}>{t("settings_theme")} / {t("settings_language")}</h3>
+          <CardTitle icon={<Palette />}>{t("settings_theme")} / {t("settings_language")}</CardTitle>
           <div className="field">
             <label htmlFor="s-theme">{t("settings_theme")}</label>
             <select id="s-theme" value={theme} onChange={(e) => setTheme(e.target.value as "dark" | "light")}>
@@ -66,7 +76,7 @@ export default function Settings() {
         </div>
 
         <div className="card">
-          <h3 style={{ marginTop: 0 }}>{t("settings_season")}</h3>
+          <CardTitle icon={<CalendarDays />}>{t("settings_season")}</CardTitle>
           <div className="field">
             <label htmlFor="s-season">{t("settings_season")}</label>
             <select id="s-season" value={season} onChange={(e) => setSeason(e.target.value)}>
@@ -94,7 +104,7 @@ export default function Settings() {
         </div>
 
         <div className="card">
-          <h3 style={{ marginTop: 0 }}>{t("settings_notifications")}</h3>
+          <CardTitle icon={<Bell />}>{t("settings_notifications")}</CardTitle>
           <p className="small muted">{t("settings_notifications_sub")}</p>
           {NOTIF_KEYS.map((key) => (
             <label key={key} className="switch-row">
@@ -110,20 +120,25 @@ export default function Settings() {
         </div>
 
         <div className="card">
-          <h3 style={{ marginTop: 0 }}>⭐ {t("favorites")}</h3>
+          <CardTitle icon={<Heart />}>{t("favorites")}</CardTitle>
           {favorites.length === 0 ? (
             <p className="muted small">{t("no_favorites")}</p>
           ) : (
             favorites.map((f) => (
               <div key={`${f.kind}-${f.id}`} className="spread" style={{ padding: "6px 0" }}>
-                <span><Badge>{f.kind}</Badge> {f.label}</span>
-                <button className="btn ghost small" onClick={() => toggleFav(f)} aria-label={t("removed_fav")}>✕</button>
+                <span className="row"><Badge>{f.kind}</Badge><span>{f.label}</span></span>
+                <button className="btn ghost small danger-ghost" onClick={() => toggleFav(f)} aria-label={t("removed_fav")}>
+                  <X size={14} aria-hidden="true" />
+                </button>
               </div>
             ))
           )}
           <div className="mt">
             <label className="switch-row">
-              <span>{t("settings_autorefresh")}<br /><span className="small muted">{t("settings_autorefresh_sub")}</span></span>
+              <span className="row">
+                <span className="settings-ico neutral" aria-hidden="true"><RefreshCw /></span>
+                <span>{t("settings_autorefresh")}<br /><span className="small muted">{t("settings_autorefresh_sub")}</span></span>
+              </span>
               <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} aria-label={t("settings_autorefresh")} />
             </label>
           </div>
@@ -132,12 +147,12 @@ export default function Settings() {
 
       <div className="grid grid-2 mt">
         <div className="card">
-          <h3 style={{ marginTop: 0 }}>{t("settings_cache")}</h3>
+          <CardTitle icon={<Database />}>{t("settings_cache")}</CardTitle>
           <button className="btn" onClick={onClearCache}>{t("clear_cache")}</button>
-          {cacheMsg && <p className="small" style={{ color: "var(--ok)", margin: "8px 0 0" }}>{cacheMsg}</p>}
+          {cacheMsg && <p className="small" style={{ color: "var(--live)", margin: "8px 0 0" }}>{cacheMsg}</p>}
         </div>
         <div className="card">
-          <h3 style={{ marginTop: 0 }}>{t("settings_about")}</h3>
+          <CardTitle icon={<Info />}>{t("settings_about")}</CardTitle>
           <p className="small muted" style={{ marginBottom: 0 }}>{t("about_text")}</p>
         </div>
       </div>

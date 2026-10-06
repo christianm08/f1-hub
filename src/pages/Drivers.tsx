@@ -4,7 +4,7 @@ import { jolpica } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
-import { initials, nationalityFlag, teamColor } from "../data/meta";
+import { initials, nationalityCode, teamColor } from "../data/meta";
 
 export default function Drivers() {
   const { t, season } = useSettings();
@@ -41,7 +41,10 @@ export default function Drivers() {
                 <span className="avatar-init" style={{ background: color }}>{initials(`${d.givenName} ${d.familyName}`)}</span>
                 <FavButton item={{ kind: "driver", id: d.driverId, label: `${d.givenName} ${d.familyName}` }} />
               </div>
-              <h3 style={{ margin: "10px 0 2px" }}>{nationalityFlag(d.nationality)} {d.givenName} {d.familyName}</h3>
+              <h3 className="card-title" style={{ margin: "12px 0 4px" }}>
+                <span className="nat">{nationalityCode(d.nationality)}</span>
+                <span>{d.givenName} {d.familyName}</span>
+              </h3>
               <p className="muted small" style={{ margin: 0 }}>#{d.permanentNumber ?? "–"} · {s?.Constructors[0]?.name ?? "–"}</p>
               <div className="spread mt">
                 <span className="badge">{s ? `P${s.position}` : "–"}</span>

@@ -27,13 +27,17 @@ src/
 │   └── news.ts     # aggregazione RSS via rss2json (solo titolo, estratto, fonte, data, link)
 ├── i18n/dict.ts    # dizionario IT/EN (default IT)
 ├── store/settings.tsx  # tema, lingua, stagione, unità, preferiti, notifiche (localStorage)
-├── data/meta.ts    # metadati statici fattuali: colori team, bandiere, continenti
+├── data/meta.ts    # metadati statici fattuali: colori team, codici paese/nazionalità (3 lettere), continenti
 ├── hooks/useApi.ts # hook fetch con stati loading/error/retry
 ├── components/     # Layout (nav desktop + bottom nav mobile + ricerca globale),
 │                   # ui (skeleton, error/empty states, badge, countdown, preferiti),
 │                   # charts (SVG puri, nessuna dipendenza)
 └── pages/          # 13 pagine (vedi sotto)
 ```
+
+Design system: `src/index.css` (token CSS: palette dark-first + light mode, scala tipografica Inter,
+spacing, tabelle dashboard, timing screen). Icone: `lucide-react` (zero emoji come icone);
+nazionalità/paesi come chip con codice a 3 lettere (`.nat`).
 
 Routing: `react-router-dom` con `HashRouter` (funziona anche servita da file/CDN statici senza
 rewrite del server). Pagine caricate in lazy per chunk separati.

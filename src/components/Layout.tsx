@@ -1,32 +1,36 @@
 /* App shell: top bar, desktop nav, mobile bottom nav, global search overlay. */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import {
+  Building2, CalendarDays, Flag, Home, Menu, Moon, Newspaper, Radio, Route,
+  Search, Settings, Sun, Trophy, Users, X,
+  type LucideIcon,
+} from "lucide-react";
 import { useSettings } from "../store/settings";
 import { jolpica, type DriverRef, type ConstructorRef, type RaceInfo, type CircuitRef } from "../api/jolpica";
 import { fetchNews, type NewsItem } from "../api/news";
-import { nationalityFlag, countryFlag } from "../data/meta";
 import type { DictKey } from "../i18n/dict";
 
 interface NavItem {
   to: string;
   key: DictKey;
-  icon: string;
+  icon: LucideIcon;
   primary?: boolean;
   menu?: boolean;
 }
 
 const NAV: NavItem[] = [
-  { to: "/", key: "nav_home", icon: "🏠", primary: true },
-  { to: "/calendario", key: "nav_calendar", icon: "📅", primary: true },
-  { to: "/live", key: "nav_live", icon: "🔴", primary: true },
-  { to: "/classifiche", key: "nav_standings", icon: "🏆", primary: true },
-  { to: "/menu", key: "nav_more", icon: "☰", primary: true, menu: true },
-  { to: "/risultati", key: "nav_results", icon: "🏁" },
-  { to: "/piloti", key: "nav_drivers", icon: "👤" },
-  { to: "/team", key: "nav_teams", icon: "🏎️" },
-  { to: "/circuiti", key: "nav_circuits", icon: "🗺️" },
-  { to: "/news", key: "nav_news", icon: "📰" },
-  { to: "/impostazioni", key: "nav_settings", icon: "⚙️" },
+  { to: "/", key: "nav_home", icon: Home, primary: true },
+  { to: "/calendario", key: "nav_calendar", icon: CalendarDays, primary: true },
+  { to: "/live", key: "nav_live", icon: Radio, primary: true },
+  { to: "/classifiche", key: "nav_standings", icon: Trophy, primary: true },
+  { to: "/menu", key: "nav_more", icon: Menu, primary: true, menu: true },
+  { to: "/risultati", key: "nav_results", icon: Flag },
+  { to: "/piloti", key: "nav_drivers", icon: Users },
+  { to: "/team", key: "nav_teams", icon: Building2 },
+  { to: "/circuiti", key: "nav_circuits", icon: Route },
+  { to: "/news", key: "nav_news", icon: Newspaper },
+  { to: "/impostazioni", key: "nav_settings", icon: Settings },
 ];
 
 export function Layout() {
@@ -63,18 +67,21 @@ export function Layout() {
           <nav className="nav-desktop" aria-label="Primary">
             {NAV.filter((n) => !n.menu).map((n) => (
               <NavLink key={n.to} to={n.to} end={n.to === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
+                <n.icon aria-hidden="true" />
                 {t(n.key)}
               </NavLink>
             ))}
           </nav>
           <div className="topbar-actions">
-            <button className="icon-btn" onClick={() => setSearchOpen(true)} aria-label={t("search_placeholder")} title="Ctrl+K">🔍</button>
+            <button className="icon-btn" onClick={() => setSearchOpen(true)} aria-label={t("search_placeholder")} title="Ctrl+K">
+              <Search aria-hidden="true" />
+            </button>
             <button
               className="icon-btn"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               aria-label={theme === "dark" ? t("theme_light") : t("theme_dark")}
             >
-              <span aria-hidden="true">{theme === "dark" ? "☀️" : "🌙"}</span>
+              {theme === "dark" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -82,18 +89,22 @@ export function Layout() {
 
       <main className="main" id="main">
         <Outlet />
+        <footer className="footer">
+          <span className="fbrand"><Flag aria-hidden="true" /> F1 Hub</span>
+          <span>{t("about_text")}</span>
+        </footer>
       </main>
 
       <nav className="bottomnav" aria-label="Primary mobile">
         {NAV.filter((n) => n.primary).map((n) =>
           n.menu ? (
             <button key={n.to} className={`mnav${menuOpen ? " active" : ""}`} onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen} aria-label={t(n.key)}>
-              <span className="ico" aria-hidden="true">{n.icon}</span>
+              {menuOpen ? <X aria-hidden="true" /> : <n.icon aria-hidden="true" />}
               {t(n.key)}
             </button>
           ) : (
             <NavLink key={n.to} to={n.to} end={n.to === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
-              <span className="ico" aria-hidden="true">{n.icon}</span>
+              <n.icon aria-hidden="true" />
               {t(n.key)}
             </NavLink>
           )
@@ -106,7 +117,7 @@ export function Layout() {
             {NAV.filter((n) => !n.primary && !n.menu).map((n) => (
               <div className="search-results" key={n.to} style={{ borderTop: "none" }}>
                 <Link to={n.to} onClick={() => setMenuOpen(false)}>
-                  <span className="ico" aria-hidden="true" style={{ fontSize: "1.2rem" }}>{n.icon}</span>
+                  <span className="search-ico" aria-hidden="true"><n.icon /></span>
                   <b>{t(n.key)}</b>
                 </Link>
               </div>
@@ -122,7 +133,7 @@ export function Layout() {
 
 /* ---------------- global search ---------------- */
 
-interface Hit { kind: string; label: string; sub: string; to: string; icon: string }
+interface Hit { kind: string; label: string; sub: string; to: string; icon: LucideIcon }
 
 function SearchOverlay({ onClose }: { onClose: () => void }) {
   const { t, season } = useSettings();
@@ -153,27 +164,27 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
     for (const d of data.drivers) {
       const label = `${d.givenName} ${d.familyName}`;
       if (label.toLowerCase().includes(query) || (d.code ?? "").toLowerCase() === query) {
-        out.push({ kind: t("nav_drivers"), label, sub: `${nationalityFlag(d.nationality)} ${d.nationality}`, to: `/piloti/${d.driverId}`, icon: "👤" });
+        out.push({ kind: t("nav_drivers"), label, sub: d.nationality, to: `/piloti/${d.driverId}`, icon: Users });
       }
     }
     for (const c of data.teams) {
       if (c.name.toLowerCase().includes(query)) {
-        out.push({ kind: t("nav_teams"), label: c.name, sub: `${nationalityFlag(c.nationality)} ${c.nationality}`, to: `/team/${c.constructorId}`, icon: "🏎️" });
+        out.push({ kind: t("nav_teams"), label: c.name, sub: c.nationality, to: `/team/${c.constructorId}`, icon: Building2 });
       }
     }
     for (const r of data.races) {
       if (r.raceName.toLowerCase().includes(query) || r.Circuit.Location.country.toLowerCase().includes(query)) {
-        out.push({ kind: t("nav_calendar"), label: r.raceName, sub: `${countryFlag(r.Circuit.Location.country)} ${r.Circuit.Location.locality}`, to: `/gara/${r.season}/${r.round}`, icon: "🏁" });
+        out.push({ kind: t("nav_calendar"), label: r.raceName, sub: `${r.Circuit.Location.locality} · ${r.Circuit.Location.country}`, to: `/gara/${r.season}/${r.round}`, icon: Flag });
       }
     }
     for (const c of data.circuits) {
       if (c.circuitName.toLowerCase().includes(query)) {
-        out.push({ kind: t("nav_circuits"), label: c.circuitName, sub: `${countryFlag(c.Location.country)} ${c.Location.locality}`, to: `/circuiti`, icon: "🗺️" });
+        out.push({ kind: t("nav_circuits"), label: c.circuitName, sub: `${c.Location.locality} · ${c.Location.country}`, to: `/circuiti`, icon: Route });
       }
     }
     for (const n of data.news) {
       if (n.title.toLowerCase().includes(query)) {
-        out.push({ kind: t("nav_news"), label: n.title, sub: n.source, to: `/news`, icon: "📰" });
+        out.push({ kind: t("nav_news"), label: n.title, sub: n.source, to: `/news`, icon: Newspaper });
       }
     }
     return out.slice(0, 24);
@@ -205,7 +216,7 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
           )}
           {hits.map((h, i) => (
             <Link key={i} to={h.to} onClick={onClose}>
-              <span aria-hidden="true" style={{ fontSize: "1.2rem" }}>{h.icon}</span>
+              <span className="search-ico" aria-hidden="true"><h.icon /></span>
               <span>
                 <b style={{ display: "block", fontSize: "0.95rem" }}>{h.label}</b>
                 <span className="small muted">{h.sub}</span>

@@ -1,12 +1,13 @@
 /* GP detail: circuit info, weekend schedule, per-session results, standings after the GP. */
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { ArrowUpRight, Car, Flag, Info, MapPin, Route, Timer, Trophy, Wrench, Zap } from "lucide-react";
 import { jolpica, raceSessions, raceStatus, type RaceInfo, type RaceResult, type QualiResult } from "../api/jolpica";
 import { openf1, formatLapTime, type OFDriver } from "../api/openf1";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { Badge, EmptyState, ErrorState, PageHeader, SkeletonCard, fmtDateTime, gapText } from "../components/ui";
-import { countryFlag, nationalityFlag, teamColor } from "../data/meta";
+import { countryCode, nationalityCode, teamColor } from "../data/meta";
 
 type Tab = "info" | "race" | "quali" | "sprint" | "practice" | "standings";
 
@@ -68,6 +69,14 @@ async function loadPractice(season: string, race: RaceInfo) {
   return out;
 }
 
+/** Icon for a weekend session row: fp1/fp2/fp3 -> Wrench, quali -> Timer, sprint -> Zap, race -> Flag. */
+function sessionIcon(key: string) {
+  if (key === "sprint") return <Zap size={14} aria-hidden="true" style={{ color: "var(--warn)" }} />;
+  if (key === "quali") return <Timer size={14} aria-hidden="true" style={{ color: "var(--info)" }} />;
+  if (key === "race") return <Flag size={14} aria-hidden="true" style={{ color: "var(--accent-strong)" }} />;
+  return <Wrench size={14} aria-hidden="true" style={{ color: "var(--text-3)" }} />;
+}
+
 export default function RaceDetail() {
   const { season = "", round = "" } = useParams();
   const { t, lang } = useSettings();
@@ -80,14 +89,14 @@ export default function RaceDetail() {
   );
 
   const tabs = useMemo(() => {
-    const list: { id: Tab; label: string }[] = [
-      { id: "info", label: t("circuit_info") },
-      { id: "race", label: t("race") },
-      { id: "quali", label: t("qualifying") },
+    const list = [
+      { id: "info" as Tab, label: t("circuit_info"), icon: <Info aria-hidden="true" /> },
+      { id: "race" as Tab, label: t("race"), icon: <Flag aria-hidden="true" /> },
+      { id: "quali" as Tab, label: t("qualifying"), icon: <Timer aria-hidden="true" /> },
     ];
-    if (data?.race.Sprint) list.push({ id: "sprint", label: t("sprint") });
-    list.push({ id: "practice", label: t("practice") });
-    if (data && raceStatus(data.race) === "past") list.push({ id: "standings", label: t("standings_after_gp") });
+    if (data?.race.Sprint) list.push({ id: "sprint" as Tab, label: t("sprint"), icon: <Zap aria-hidden="true" /> });
+    list.push({ id: "practice" as Tab, label: t("practice"), icon: <Wrench aria-hidden="true" /> });
+    if (data && raceStatus(data.race) === "past") list.push({ id: "standings" as Tab, label: t("standings_after_gp"), icon: <Trophy aria-hidden="true" /> });
     return list;
   }, [data, t]);
 
@@ -106,14 +115,19 @@ export default function RaceDetail() {
     <div>
       <PageHeader
         title={race.raceName}
-        sub={`${countryFlag(race.Circuit.Location.country)} ${race.Circuit.Location.locality}, ${race.Circuit.Location.country} · ${t("round")} ${race.round}`}
+        sub={`${t("round")} ${race.round}`}
         right={st === "live" ? <Badge kind="live">{t("live_now")}</Badge> : st === "past" ? <Badge kind="done">{t("past")}</Badge> : <Badge kind="accent">{t("upcoming")}</Badge>}
       />
+      <div className="row small muted" style={{ margin: "-6px 0 16px" }}>
+        <MapPin size={14} aria-hidden="true" style={{ color: "var(--text-3)", flex: "0 0 auto" }} />
+        <span className="nat">{countryCode(race.Circuit.Location.country)}</span>
+        <span>{race.Circuit.Location.locality}, {race.Circuit.Location.country}</span>
+      </div>
 
       <div className="tabs" role="tablist" aria-label={race.raceName}>
         {tabs.map((tb) => (
           <button key={tb.id} role="tab" aria-selected={tab === tb.id} className="tab" onClick={() => setTab(tb.id)}>
-            {tb.label}
+            {tb.icon}{tb.label}
           </button>
         ))}
       </div>
@@ -122,20 +136,24 @@ export default function RaceDetail() {
         <div className="grid grid-2">
           <div className="card">
             <h3 style={{ marginTop: 0 }}>{race.Circuit.circuitName}</h3>
-            <div className="circuit-ph" aria-hidden="true">🗺️<br />{t("circuit_info")}</div>
+            <div className="circuit-ph" aria-hidden="true"><Route aria-hidden="true" />{t("circuit_info")}</div>
             <dl className="kv mt">
               <dt>{t("city")}</dt><dd>{race.Circuit.Location.locality}</dd>
               <dt>{t("country")}</dt><dd>{race.Circuit.Location.country}</dd>
               <dt>{t("lap_record")}</dt><dd>{t("not_available")}</dd>
             </dl>
-            <a className="btn ghost small mt" href={race.Circuit.url} target="_blank" rel="noopener noreferrer">Wikipedia ↗</a>
+            <a className="btn ghost small mt" href={race.Circuit.url} target="_blank" rel="noopener noreferrer">
+              Wikipedia <ArrowUpRight size={13} aria-hidden="true" />
+            </a>
           </div>
           <div className="card">
             <h3 style={{ marginTop: 0 }}>{t("weekend_schedule")}</h3>
             {sessions.map((s) => (
               <div key={s.key} className="spread" style={{ padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
-                <b>{s.label}</b>
-                <span className="num small muted">{fmtDateTime(s.date, lang)}</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  {sessionIcon(s.key)}<b>{s.label}</b>
+                </span>
+                <span className="num mono small muted">{fmtDateTime(s.date, lang)}</span>
               </div>
             ))}
           </div>
@@ -149,11 +167,11 @@ export default function RaceDetail() {
               <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>{t("time_gap")}</th><th>{t("points")}</th><th>{t("status")}</th></tr></thead>
               <tbody>
                 {data.results.map((r) => (
-                  <tr key={r.Driver.driverId}>
+                  <tr key={r.Driver.driverId} className={r.positionText === "1" ? "leader" : undefined}>
                     <td className="pos num">{r.positionText}</td>
                     <td><Link to={`/piloti/${r.Driver.driverId}`}><b>{r.Driver.code ?? r.Driver.familyName}</b> <span className="muted small">{r.Driver.givenName} {r.Driver.familyName}</span></Link></td>
                     <td><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} />{r.Constructor.name}</td>
-                    <td className="num">{gapText(r)}</td>
+                    <td className="num mono">{gapText(r)}</td>
                     <td className="num">{r.points}</td>
                     <td className="small muted">{r.status}</td>
                   </tr>
@@ -164,7 +182,7 @@ export default function RaceDetail() {
 
       {tab === "quali" && (
         data.quali.length === 0
-          ? <EmptyState title={t("empty_title")} body={t("empty_body")} />
+          ? <EmptyState icon={<Timer aria-hidden="true" />} title={t("empty_title")} body={t("empty_body")} />
           : <div className="tbl-wrap"><table className="tbl">
               <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>Q1</th><th>Q2</th><th>Q3</th></tr></thead>
               <tbody>
@@ -173,9 +191,9 @@ export default function RaceDetail() {
                     <td className="pos num">{r.positionText}</td>
                     <td><Link to={`/piloti/${r.Driver.driverId}`}><b>{r.Driver.code ?? r.Driver.familyName}</b></Link></td>
                     <td><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} />{r.Constructor.name}</td>
-                    <td className="num">{r.Q1 ?? "—"}</td>
-                    <td className="num">{r.Q2 ?? "—"}</td>
-                    <td className="num">{r.Q3 ?? "—"}</td>
+                    <td className="num mono">{r.Q1 ?? "—"}</td>
+                    <td className="num mono">{r.Q2 ?? "—"}</td>
+                    <td className="num mono">{r.Q3 ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -184,16 +202,16 @@ export default function RaceDetail() {
 
       {tab === "sprint" && (
         data.sprint.length === 0
-          ? <EmptyState title={t("empty_title")} body={t("empty_body")} />
+          ? <EmptyState icon={<Zap aria-hidden="true" />} title={t("empty_title")} body={t("empty_body")} />
           : <div className="tbl-wrap"><table className="tbl">
               <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>{t("time_gap")}</th><th>{t("points")}</th></tr></thead>
               <tbody>
                 {data.sprint.map((r) => (
-                  <tr key={r.Driver.driverId}>
+                  <tr key={r.Driver.driverId} className={r.positionText === "1" ? "leader" : undefined}>
                     <td className="pos num">{r.positionText}</td>
                     <td><b>{r.Driver.code ?? r.Driver.familyName}</b></td>
                     <td><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} />{r.Constructor.name}</td>
-                    <td className="num">{gapText(r)}</td>
+                    <td className="num mono">{gapText(r)}</td>
                     <td className="num">{r.points}</td>
                   </tr>
                 ))}
@@ -213,11 +231,15 @@ export default function RaceDetail() {
                   <p className="muted small">{t("not_available")}</p>
                 ) : (
                   p.best.slice(0, 10).map((b, i) => (
-                    <div key={b.acronym} className="driver-row">
+                    <div
+                      key={b.acronym}
+                      className="driver-row"
+                      style={i === 0 ? { background: "var(--accent-soft)", borderRadius: 8, paddingLeft: 10, paddingRight: 10 } : undefined}
+                    >
                       <b className="num" style={{ width: 24 }}>{i + 1}</b>
                       <b>{b.acronym}</b>
                       <span className="small muted">{b.team}</span>
-                      <span className="num" style={{ marginLeft: "auto" }}>{formatLapTime(b.lap)}</span>
+                      <span className="num mono" style={{ marginLeft: "auto" }}>{formatLapTime(b.lap)}</span>
                     </div>
                   ))
                 )}
@@ -230,14 +252,14 @@ export default function RaceDetail() {
       {tab === "standings" && (
         <div className="grid grid-2">
           <div>
-            <h3 className="section-title" style={{ marginTop: 0 }}>🏆 {t("driver_standings")}</h3>
+            <h3 className="section-title" style={{ marginTop: 0 }}><Trophy aria-hidden="true" /> {t("driver_standings")}</h3>
             <div className="tbl-wrap"><table className="tbl">
               <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("points")}</th></tr></thead>
               <tbody>
                 {data.dStands.map((s, i) => (
                   <tr key={s.Driver.driverId} className={i === 0 ? "leader" : ""}>
                     <td className="pos num">{s.positionText}</td>
-                    <td>{nationalityFlag(s.Driver.nationality)} {s.Driver.givenName} {s.Driver.familyName}</td>
+                    <td><span className="nat">{nationalityCode(s.Driver.nationality)}</span> {s.Driver.givenName} {s.Driver.familyName}</td>
                     <td className="num">{s.points}</td>
                   </tr>
                 ))}
@@ -245,7 +267,7 @@ export default function RaceDetail() {
             </table></div>
           </div>
           <div>
-            <h3 className="section-title" style={{ marginTop: 0 }}>🏎️ {t("constructor_standings")}</h3>
+            <h3 className="section-title" style={{ marginTop: 0 }}><Car aria-hidden="true" /> {t("constructor_standings")}</h3>
             <div className="tbl-wrap"><table className="tbl">
               <thead><tr><th>{t("position")}</th><th>{t("team")}</th><th>{t("points")}</th></tr></thead>
               <tbody>

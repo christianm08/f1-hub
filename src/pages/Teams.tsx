@@ -4,7 +4,7 @@ import { jolpica } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
-import { initials, nationalityFlag, teamColor } from "../data/meta";
+import { initials, nationalityCode, teamColor } from "../data/meta";
 
 export default function Teams() {
   const { t, season } = useSettings();
@@ -41,14 +41,17 @@ export default function Teams() {
                 <span className="avatar-init" style={{ background: color }}>{initials(c.name)}</span>
                 <FavButton item={{ kind: "team", id: c.constructorId, label: c.name }} />
               </div>
-              <h3 style={{ margin: "10px 0 2px" }}>{nationalityFlag(c.nationality)} {c.name}</h3>
+              <h3 className="card-title" style={{ margin: "12px 0 4px" }}>
+                <span className="nat">{nationalityCode(c.nationality)}</span>
+                <span>{c.name}</span>
+              </h3>
               <div className="spread mt">
                 <span className="badge">{s ? `P${s.position}` : "–"}</span>
                 <b className="num">{s ? `${s.points} ${t("points").toLowerCase()}` : ""}</b>
               </div>
               {s && (
                 <p className="small muted" style={{ margin: "8px 0 0" }}>
-                  {t("wins")}: {s.wins}
+                  {t("wins")}: <b className="num">{s.wins}</b>
                 </p>
               )}
             </Link>

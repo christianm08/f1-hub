@@ -1,11 +1,12 @@
 /* Calendar: filterable GP list (month / continent / status) with winners for past races. */
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { CalendarDays, Trophy, Zap } from "lucide-react";
 import { jolpica, raceStatus, type RaceInfo } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { Badge, EmptyState, ErrorState, PageHeader, SkeletonCard, fmtDate } from "../components/ui";
-import { continentOf, countryFlag } from "../data/meta";
+import { continentOf, countryCode } from "../data/meta";
 
 interface CalData {
   races: RaceInfo[];
@@ -68,13 +69,6 @@ export default function Calendar() {
   }
   if (status === "error" || !data) return <div><PageHeader title={t("nav_calendar")} /><ErrorState onRetry={retry} /></div>;
 
-  const statusBadge = (r: RaceInfo) => {
-    const s = raceStatus(r);
-    if (s === "live") return <Badge kind="live">{t("live_now")}</Badge>;
-    if (s === "past") return <Badge kind="done">{t("past")}</Badge>;
-    return <Badge kind="accent">{t("upcoming")}</Badge>;
-  };
-
   return (
     <div>
       <PageHeader title={t("nav_calendar")} sub={`${t("season")} ${season} · ${filtered.length} GP`} />
@@ -112,26 +106,38 @@ export default function Calendar() {
         <EmptyState title={t("empty_title")} body={t("empty_body")} />
       ) : (
         <div className="grid grid-3">
-          {filtered.map((r) => (
-            <Link key={r.round} to={`/gara/${r.season}/${r.round}`} className="card">
-              <div className="spread">
-                <Badge>{t("round")} {r.round}</Badge>
-                {statusBadge(r)}
-              </div>
-              <h3 style={{ margin: "10px 0 4px", fontSize: "1.08rem" }}>{r.raceName}</h3>
-              <p className="muted small" style={{ margin: "0 0 8px" }}>
-                <span className="flag" aria-hidden="true">{countryFlag(r.Circuit.Location.country)}</span>
-                {r.Circuit.Location.locality}, {r.Circuit.Location.country}
-              </p>
-              <div className="spread small">
-                <span className="muted">{fmtDate(new Date(r.date + "T12:00:00Z"), lang)}</span>
-                {r.Sprint && <Badge kind="warn">Sprint</Badge>}
-              </div>
-              {data.winners[r.round] && (
-                <p className="small" style={{ margin: "10px 0 0" }}>🏆 {t("winner")}: <b>{data.winners[r.round]}</b></p>
-              )}
-            </Link>
-          ))}
+          {filtered.map((r) => {
+            const s = raceStatus(r);
+            const gpState = s === "live" ? "is-live" : s === "past" ? "is-past" : "is-next";
+            return (
+              <Link key={r.round} to={`/gara/${r.season}/${r.round}`} className={`card gp-card ${gpState}`}>
+                <div className="spread">
+                  <Badge>{t("round")} {r.round}</Badge>
+                  {s === "live" ? <Badge kind="live">{t("live_now")}</Badge>
+                    : s === "past" ? <Badge kind="done">{t("past")}</Badge>
+                    : <Badge kind="accent">{t("upcoming")}</Badge>}
+                </div>
+                <h3 style={{ margin: "10px 0 4px", fontSize: "1.08rem" }}>{r.raceName}</h3>
+                <p className="muted small" style={{ margin: "0 0 8px", display: "flex", alignItems: "center", gap: 8 }}>
+                  <span className="nat">{countryCode(r.Circuit.Location.country)}</span>
+                  <span>{r.Circuit.Location.locality}, {r.Circuit.Location.country}</span>
+                </p>
+                <div className="spread small" style={{ alignItems: "center" }}>
+                  <span className="muted" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <CalendarDays size={14} aria-hidden="true" style={{ color: "var(--text-3)" }} />
+                    {fmtDate(new Date(r.date + "T12:00:00Z"), lang)}
+                  </span>
+                  {r.Sprint && <Badge kind="warn"><Zap size={13} aria-hidden="true" /> Sprint</Badge>}
+                </div>
+                {data.winners[r.round] && (
+                  <p className="small" style={{ margin: "10px 0 0", display: "flex", alignItems: "center", gap: 6 }}>
+                    <Trophy size={14} aria-hidden="true" style={{ color: "var(--gold)" }} />
+                    <span>{t("winner")}: <b>{data.winners[r.round]}</b></span>
+                  </p>
+                )}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

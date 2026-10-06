@@ -18,36 +18,38 @@ export function teamColor(id: string): string {
   return TEAM_COLORS[id] ?? "#8892a3";
 }
 
-const FLAG_BY_COUNTRY: Record<string, string> = {
-  Australia: "🇦🇺", Austria: "🇦🇹", Azerbaijan: "🇦🇿", Bahrain: "🇧🇭", Belgium: "🇧🇪",
-  Brazil: "🇧🇷", Canada: "🇨🇦", China: "🇨🇳", France: "🇫🇷", Hungary: "🇭🇺",
-  Italy: "🇮🇹", Japan: "🇯🇵", Malaysia: "🇲🇾", Mexico: "🇲🇽", Monaco: "🇲🇨",
-  Netherlands: "🇳🇱", Qatar: "🇶🇦", Russia: "🇷🇺", "Saudi Arabia": "🇸🇦", Singapore: "🇸🇬",
-  Spain: "🇪🇸", Turkey: "🇹🇷", UAE: "🇦🇪", UK: "🇬🇧", USA: "🇺🇸", "United States": "🇺🇸",
-  Germany: "🇩🇪", Portugal: "🇵🇹", "South Africa": "🇿🇦", India: "🇮🇳", Korea: "🇰🇷",
-  Argentina: "🇦🇷", Morocco: "🇲🇦", Switzerland: "🇨🇭", Sweden: "🇸🇪",
-  Finland: "🇫🇮", Denmark: "🇩🇰", Thailand: "🇹🇭", "New Zealand": "🇳🇿", Poland: "🇵🇱",
-  Ireland: "🇮🇪", Colombia: "🇨🇴", Venezuela: "🇻🇪",
-  Chile: "🇨🇱", Uruguay: "🇺🇾", "Czech Republic": "🇨🇿", Rhodesia: "🏁", Liechtenstein: "🇱🇮",
-  East: "🏁",
+const CODE_BY_COUNTRY: Record<string, string> = {
+  Australia: "AUS", Austria: "AUT", Azerbaijan: "AZE", Bahrain: "BHR", Belgium: "BEL",
+  Brazil: "BRA", Canada: "CAN", China: "CHN", France: "FRA", Hungary: "HUN",
+  Italy: "ITA", Japan: "JPN", Malaysia: "MYS", Mexico: "MEX", Monaco: "MON",
+  Netherlands: "NED", Qatar: "QAT", Russia: "RUS", "Saudi Arabia": "KSA", Singapore: "SGP",
+  Spain: "ESP", Turkey: "TUR", UAE: "UAE", UK: "GBR", USA: "USA", "United States": "USA",
+  Germany: "GER", Portugal: "POR", "South Africa": "RSA", India: "IND", Korea: "KOR",
+  Argentina: "ARG", Morocco: "MAR", Switzerland: "SUI", Sweden: "SWE",
+  Finland: "FIN", Denmark: "DEN", Thailand: "THA", "New Zealand": "NZL", Poland: "POL",
+  Ireland: "IRL", Colombia: "COL", Venezuela: "VEN",
+  Chile: "CHI", Uruguay: "URU", "Czech Republic": "CZE", Rhodesia: "RHO", Liechtenstein: "LIE",
+  East: "DDR",
 };
 
-const NAT_FLAG: Record<string, string> = {
-  Italian: "🇮🇹", British: "🇬🇧", German: "🇩🇪", French: "🇫🇷", Dutch: "🇳🇱",
-  Spanish: "🇪🇸", Finnish: "🇫🇮", Brazilian: "🇧🇷", Mexican: "🇲🇽", Australian: "🇦🇺",
-  Japanese: "🇯🇵", Canadian: "🇨🇦", Danish: "🇩🇰", Thai: "🇹🇭", Monegasque: "🇲🇨",
-  "New Zealander": "🇳🇿", American: "🇺🇸", Argentine: "🇦🇷", Chinese: "🇨🇳", Austrian: "🇦🇹",
-  Swiss: "🇨🇭", Swedish: "🇸🇪", Irish: "🇮🇪", Polish: "🇵🇱", Indian: "🇮🇳",
-  Portuguese: "🇵🇹", Belgian: "🇧🇪", Colombian: "🇨🇴", Venezuelan: "🇻🇪", Chilean: "🇨🇱",
-  Russian: "🇷🇺", Indonesian: "🇮🇩", Malaysian: "🇲🇾", "South African": "🇿🇦",
+const NAT_CODE: Record<string, string> = {
+  Italian: "ITA", British: "GBR", German: "GER", French: "FRA", Dutch: "NED",
+  Spanish: "ESP", Finnish: "FIN", Brazilian: "BRA", Mexican: "MEX", Australian: "AUS",
+  Japanese: "JPN", Canadian: "CAN", Danish: "DEN", Thai: "THA", Monegasque: "MON",
+  "New Zealander": "NZL", American: "USA", Argentine: "ARG", Chinese: "CHN", Austrian: "AUT",
+  Swiss: "SUI", Swedish: "SWE", Irish: "IRL", Polish: "POL", Indian: "IND",
+  Portuguese: "POR", Belgian: "BEL", Colombian: "COL", Venezuelan: "VEN", Chilean: "CHI",
+  Russian: "RUS", Indonesian: "INA", Malaysian: "MYS", "South African": "RSA",
 };
 
-export function countryFlag(country: string): string {
-  return FLAG_BY_COUNTRY[country] ?? "🏁";
+/** 3-letter country code, rendered with the `.nat` chip (no emoji flags). */
+export function countryCode(country: string): string {
+  return CODE_BY_COUNTRY[country] ?? "···";
 }
 
-export function nationalityFlag(nationality: string): string {
-  return NAT_FLAG[nationality] ?? "🏁";
+/** 3-letter nationality code, rendered with the `.nat` chip. */
+export function nationalityCode(nationality: string): string {
+  return NAT_CODE[nationality] ?? "···";
 }
 
 const CONTINENT_BY_COUNTRY: Record<string, string> = {
