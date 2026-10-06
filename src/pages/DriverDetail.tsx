@@ -10,7 +10,8 @@ import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, gapText } from "../components/ui";
 import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { Sparkline } from "../components/charts";
-import { countryCode, initials, nationalityCode, teamColor } from "../data/meta";
+import { DriverPhoto } from "../components/DriverPhoto";
+import { countryCode, nationalityCode, teamColor } from "../data/meta";
 
 interface DetailData {
   driver: DriverModel;
@@ -108,7 +109,7 @@ export default function DriverDetail() {
         <div className="card">
           <h3 className="card-title"><User size={17} aria-hidden="true" />{t("driver")}</h3>
           <div className="row">
-            <span className="avatar-init" style={{ background: color }}>{initials(name)}</span>
+            <DriverPhoto wikiUrl={data.driver.wikiUrl} name={name} size={72} tint={color} />
             <div>
               <b style={{ fontSize: "0.98rem" }}>{name}</b>
               <p className="muted small" style={{ margin: "2px 0 0" }}>{data.teamName}</p>

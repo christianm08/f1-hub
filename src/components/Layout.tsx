@@ -92,6 +92,7 @@ export function Layout() {
         <footer className="footer">
           <span className="fbrand"><Flag aria-hidden="true" /> F1 Hub</span>
           <span>{t("about_text")}</span>
+          <span className="fcredit">{t("img_credit_wiki")}</span>
         </footer>
       </main>
 

@@ -9,9 +9,8 @@ import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, PageHeader, SkeletonCard, gapText } from "../components/ui";
 import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
+import { SeasonSelect } from "../components/SeasonSelect";
 import { nationalityCode, teamColor } from "../data/meta";
-
-const MIN_SEASON = "2014";
 type SessionKind = "race" | "qualifying" | "sprint" | "practice";
 
 type SessionData =
@@ -46,14 +45,9 @@ async function loadPracticeBest(season: string, race: RaceInfo, which: 0 | 1 | 2
 export default function Results() {
   const { t, season: defaultSeason } = useSettings();
   const [season, setSeason] = useState(defaultSeason);
-  const [seasons, setSeasons] = useState<string[]>([]);
   const [round, setRound] = useState("");
   const [session, setSession] = useState<SessionKind>("race");
   const [fpIdx, setFpIdx] = useState<0 | 1 | 2>(0);
-
-  useEffect(() => {
-    jolpica.seasons().then((all) => setSeasons(all.filter((s) => s >= MIN_SEASON).reverse())).catch(() => setSeasons([]));
-  }, []);
 
   const schedule = useApi(() => jolpica.schedule(season), [season]);
   const races: RaceInfo[] = schedule.data ?? [];
@@ -91,9 +85,7 @@ export default function Results() {
       <div className="filters" role="group" aria-label="filters">
         <div className="field">
           <label htmlFor="r-season">{t("season")}</label>
-          <select id="r-season" value={season} onChange={(e) => setSeason(e.target.value)}>
-            {seasons.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <SeasonSelect id="r-season" value={season} onChange={setSeason} />
         </div>
         <div className="field">
           <label htmlFor="r-gp">{t("gp")}</label>

@@ -1,0 +1,155 @@
+[
+  {
+    "teamId": "mercedes",
+    "team": "Mercedes",
+    "file": "Mercedes AMG Petronas F1 Logo.svg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/fb/Mercedes_AMG_Petronas_F1_Logo.svg",
+    "license": "PD-textlogo",
+    "width": 512,
+    "height": 160
+  },
+  {
+    "teamId": "red_bull",
+    "team": "Red Bull Racing",
+    "file": "Red Bull Racing - 2005 Logo.png",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Red_Bull_Racing_-_2005_Logo.png",
+    "license": "PD-ineligible",
+    "width": 500,
+    "height": 124
+  },
+  {
+    "teamId": "mclaren",
+    "team": "McLaren",
+    "file": "McLaren 2018 logo.svg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/ec/McLaren_2018_logo.svg",
+    "license": "PD-textlogo",
+    "width": 512,
+    "height": 73
+  },
+  {
+    "teamId": "williams",
+    "team": "Williams",
+    "file": "Atlassian Williams F1 Team logo.svg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/12/Atlassian_Williams_F1_Team_logo.svg",
+    "license": "PD-textlogo",
+    "width": 500,
+    "height": 257
+  },
+  {
+    "teamId": "alpine",
+    "team": "Alpine",
+    "file": "Alpine F1 Team Logo.svg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Alpine_F1_Team_Logo.svg",
+    "license": "PD-textlogo",
+    "width": 482,
+    "height": 442
+  },
+  {
+    "teamId": "haas",
+    "team": "Haas",
+    "file": "MoneyGram Haas F1 Team Logo.svg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/92/MoneyGram_Haas_F1_Team_Logo.svg",
+    "license": "PD-textlogo",
+    "width": 633,
+    "height": 158
+  },
+  {
+    "teamId": "audi",
+    "team": "Audi",
+    "file": "Audi-Logo 2016.svg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/92/Audi-Logo_2016.svg",
+    "license": "PD-textlogo",
+    "width": 1000,
+    "height": 353
+  },
+  {
+    "teamId": "cadillac",
+    "team": "Cadillac",
+    "file": "Cadillac Logo 2021.svg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Cadillac_Logo_2021.svg",
+    "license": "PD-textlogo",
+    "width": 2663,
+    "height": 1090
+  },
+  {
+    "teamId": "lotus",
+    "team": "Lotus",
+    "file": "Lotus F1 Racing Logo.jpg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Lotus_F1_Racing_Logo.jpg",
+    "license": "PD-textlogo",
+    "width": 640,
+    "height": 278
+  },
+  {
+    "teamId": "tyrrell",
+    "team": "Tyrrell",
+    "file": "Tyrrell Racing logo.svg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/7d/Tyrrell_Racing_logo.svg",
+    "license": "PD-textlogo",
+    "width": 220,
+    "height": 59
+  },
+  {
+    "teamId": "benetton",
+    "team": "Benetton",
+    "file": "United Colors of Benetton - logo (Italy, 1996-2011).svg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/59/United_Colors_of_Benetton_-_logo_%28Italy%2C_1996-2011%29.svg",
+    "license": "PD-textlogo",
+    "width": 500,
+    "height": 170
+  },
+  {
+    "teamId": "renault",
+    "team": "Renault",
+    "file": "Renault F1 Team logo 2019.png",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/49/Renault_F1_Team_logo_2019.png",
+    "license": "PD-textlogo",
+    "width": 852,
+    "height": 281
+  },
+  {
+    "teamId": "brawn",
+    "team": "Brawn GP",
+    "file": "Brawn GP logo.svg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/24/Brawn_GP_logo.svg",
+    "license": "PD-textlogo",
+    "width": 470,
+    "height": 78
+  },
+  {
+    "teamId": "minardi",
+    "team": "Minardi",
+    "file": "MinardiF1 logo ico.gif",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/MinardiF1_logo_ico.gif",
+    "license": "PD-textlogo",
+    "width": 230,
+    "height": 60
+  },
+  {
+    "teamId": "toyota",
+    "team": "Toyota",
+    "file": "Panasonic Toyota Racing logo.svg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/0e/Panasonic_Toyota_Racing_logo.svg",
+    "license": "PD-textlogo",
+    "width": 100,
+    "height": 18
+  },
+  {
+    "teamId": "bmw_sauber",
+    "team": "BMW Sauber",
+    "file": "BMW Sauber Logo.svg",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/8e/BMW_Sauber_Logo.svg",
+    "license": "PD-textlogo + PD-shape",
+    "width": 1295,
+    "height": 250
+  },
+  {
+    "teamId": "force_india",
+    "team": "Force India",
+    "file": "Mini Free Logo Force India.png",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Mini_Free_Logo_Force_India.png",
+    "license": "CC0",
+    "width": 50,
+    "height": 36
+  }
+]

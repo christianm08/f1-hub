@@ -1,14 +1,23 @@
 /* Drivers list with standings summary. Data: normalized DriverModel (Jolpica + f1api.dev). */
 import { Link } from "react-router-dom";
 import { loadDriverModels } from "../api/model";
+import { preloadDriverPhotos } from "../api/photos";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
-import { initials, nationalityCode, teamColor } from "../data/meta";
+import { DriverPhoto } from "../components/DriverPhoto";
+import { nationalityCode, teamColor } from "../data/meta";
+import { useEffect } from "react";
 
 export default function Drivers() {
   const { t, season } = useSettings();
   const { status, data, retry } = useApi(() => loadDriverModels(season), [season]);
+
+  useEffect(() => {
+    if (data) {
+      preloadDriverPhotos(data.map((d) => ({ wikiUrl: d.wikiUrl, name: d.fullName })));
+    }
+  }, [data]);
 
   if (status === "loading") {
     return <div><PageHeader title={t("nav_drivers")} /><div className="grid grid-3"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div></div>;
@@ -25,9 +34,9 @@ export default function Drivers() {
         {ordered.map((d) => {
           const color = teamColor(d.teamId ?? "");
           return (
-            <Link key={d.id} to={`/piloti/${d.id}`} className="card">
+            <Link key={d.id} to={`/piloti/${d.id}`} className="card driver-card">
               <div className="spread">
-                <span className="avatar-init" style={{ background: color }}>{initials(d.fullName)}</span>
+                <DriverPhoto wikiUrl={d.wikiUrl} name={d.fullName} size={56} tint={color} />
                 <FavButton item={{ kind: "driver", id: d.id, label: d.fullName }} />
               </div>
               <h3 className="card-title" style={{ margin: "12px 0 4px" }}>

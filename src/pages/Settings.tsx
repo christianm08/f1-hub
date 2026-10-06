@@ -6,8 +6,7 @@ import { clearCache } from "../api/client";
 import { clearModelCache } from "../api/model";
 import { useSettings } from "../store/settings";
 import { Badge, PageHeader } from "../components/ui";
-
-const MIN_SEASON = "2014";
+import { SeasonSelect } from "../components/SeasonSelect";
 
 const NOTIF_KEYS = ["notif_quali", "notif_race", "notif_results", "notif_news", "notif_driver", "notif_team"] as const;
 
@@ -26,14 +25,9 @@ export default function Settings() {
     favorites, toggleFav, favDriverId, setFavDriverId, favTeamId, setFavTeamId,
     autoRefresh, setAutoRefresh, notifPrefs, setNotifPref,
   } = useSettings();
-  const [seasons, setSeasons] = useState<string[]>([]);
   const [drivers, setDrivers] = useState<DriverRef[]>([]);
   const [teams, setTeams] = useState<ConstructorRef[]>([]);
   const [cacheMsg, setCacheMsg] = useState("");
-
-  useEffect(() => {
-    jolpica.seasons().then((all) => setSeasons(all.filter((s) => s >= MIN_SEASON).reverse())).catch(() => setSeasons([]));
-  }, []);
 
   useEffect(() => {
     Promise.all([jolpica.drivers(season).catch(() => []), jolpica.constructors(season).catch(() => [])])
@@ -81,9 +75,7 @@ export default function Settings() {
           <CardTitle icon={<CalendarDays />}>{t("settings_season")}</CardTitle>
           <div className="field">
             <label htmlFor="s-season">{t("settings_season")}</label>
-            <select id="s-season" value={season} onChange={(e) => setSeason(e.target.value)}>
-              {seasons.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <SeasonSelect id="s-season" value={season} onChange={setSeason} />
           </div>
           <div className="field">
             <label htmlFor="s-favd">{t("settings_fav_driver")}</label>

@@ -4,7 +4,8 @@ import { loadTeamModels } from "../api/model";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
-import { initials, nationalityCode, teamColor } from "../data/meta";
+import { TeamLogo } from "../components/TeamLogo";
+import { nationalityCode, teamColor } from "../data/meta";
 
 export default function Teams() {
   const { t, season } = useSettings();
@@ -25,9 +26,9 @@ export default function Teams() {
         {ordered.map((c) => {
           const color = teamColor(c.id);
           return (
-            <Link key={c.id} to={`/team/${c.id}`} className="card">
+            <Link key={c.id} to={`/team/${c.id}`} className="card team-card">
               <div className="spread">
-                <span className="avatar-init" style={{ background: color }}>{initials(c.name)}</span>
+                <TeamLogo constructorId={c.id} name={c.name} size={52} tint={color} />
                 <FavButton item={{ kind: "team", id: c.id, label: c.name }} />
               </div>
               <h3 className="card-title" style={{ margin: "12px 0 4px" }}>

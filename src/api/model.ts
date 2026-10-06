@@ -40,6 +40,8 @@ export interface DriverModel {
   fullName: string;
   /** Jolpica-style nationality label ("Italian") — for nationalityCode(). */
   nationality: string;
+  /** Wikipedia article URL (Jolpica) — used to resolve the portrait photo. */
+  wikiUrl?: string;
   /** 3-letter timing code. */
   code: string;
   number?: string;
@@ -152,6 +154,7 @@ async function buildDriverModels(season: string): Promise<DriverModel[]> {
       familyName: d.familyName,
       fullName,
       nationality: d.nationality || e?.driver.nationality || "",
+      wikiUrl: d.url || undefined,
       code,
       number,
       dateOfBirth,

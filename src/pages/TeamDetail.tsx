@@ -2,7 +2,7 @@
  * Team identity: normalized TeamModel (Jolpica + f1api.dev enrichment). */
 import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
-import { BarChart3, Building2, Flag, Medal, Sigma, Trophy, Users } from "lucide-react";
+import { BarChart3, Building2, CarFront, Flag, Medal, Sigma, Trophy, Users } from "lucide-react";
 import { jolpica, type RaceInfo, type RaceResult } from "../api/jolpica";
 import { loadTeamModels, type TeamModel } from "../api/model";
 import { useApi } from "../hooks/useApi";
@@ -10,7 +10,10 @@ import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
 import { MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { BarList } from "../components/charts";
-import { countryCode, initials, nationalityCode, teamColor } from "../data/meta";
+import { DriverPhoto } from "../components/DriverPhoto";
+import { TeamLogo } from "../components/TeamLogo";
+import { CarImage } from "../components/CarImage";
+import { countryCode, nationalityCode, teamColor } from "../data/meta";
 
 interface DetailData {
   team: TeamModel;
@@ -35,7 +38,7 @@ export default function TeamDetail() {
   const stats = useMemo(() => {
     if (!data) return null;
     let points = 0, wins = 0, podiums = 0;
-    const drivers = new Map<string, { name: string; points: number; code?: string; nat: string; id: string }>();
+    const drivers = new Map<string, { name: string; points: number; code?: string; nat: string; id: string; wikiUrl?: string }>();
     const perRace = data.races.map((r) => {
       let racePts = 0;
       for (const res of r.Results) {
@@ -47,6 +50,7 @@ export default function TeamDetail() {
         const cur = drivers.get(key) ?? {
           name: `${res.Driver.givenName} ${res.Driver.familyName}`,
           points: 0, code: res.Driver.code, nat: res.Driver.nationality, id: res.Driver.driverId,
+          wikiUrl: res.Driver.url,
         };
         cur.points += parseFloat(res.points);
         drivers.set(key, cur);
@@ -91,10 +95,25 @@ export default function TeamDetail() {
 
       <div className="grid grid-2 mt">
         <div className="card">
+          <div className="row">
+            <TeamLogo constructorId={data.team.id} name={data.team.name} size={64} tint={color} />
+            <div>
+              <h3 className="card-title" style={{ margin: 0 }}>{data.team.name}</h3>
+              <p className="muted small" style={{ margin: "2px 0 0" }}>
+                <span className="nat" style={{ marginRight: 0 }}>{nationalityCode(data.team.nationality)}</span>{" "}
+                {data.team.nationality}
+              </p>
+            </div>
+          </div>
+          <hr className="divider" />
+          <h3 className="card-title"><CarFront size={17} aria-hidden="true" />{t("monoposto")} · {season}</h3>
+          <CarImage constructorId={data.team.id} season={season} teamName={data.team.name} tint={color} />
+        </div>
+        <div className="card">
           <h3 className="card-title"><Users size={17} aria-hidden="true" />{t("nav_drivers")}</h3>
           {stats.drivers.map((d) => (
             <Link key={d.id} to={`/piloti/${d.id}`} className="driver-row">
-              <span className="avatar-init" style={{ background: color }}>{initials(d.name)}</span>
+              <DriverPhoto wikiUrl={d.wikiUrl} name={d.name} size={44} tint={color} />
               <span>
                 <b style={{ display: "flex", alignItems: "center", fontSize: "0.92rem" }}>
                   <span className="nat">{nationalityCode(d.nat)}</span>{d.name}
