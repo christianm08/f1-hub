@@ -27,8 +27,8 @@ interface Rss2JsonResp {
 }
 
 const FEEDS = [
-  { url: "https://www.racefans.net/feed/", source: "RaceFans" },
-  { url: "https://www.motorsport.com/rss/f1/news/", source: "Motorsport.com" },
+  { url: "https://it.motorsport.com/rss/f1/news/", source: "Motorsport.com Italia" },
+  { url: "https://www.pittalk.it/feed/", source: "PitTalk" },
 ];
 
 function stripHtml(html: string): string {

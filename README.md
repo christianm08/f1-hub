@@ -51,7 +51,7 @@ rewrite del server). Pagine caricate in lazy per chunk separati.
 - **OpenF1** (`https://api.openf1.org/v1/`): fonte per il Race Center live (posizioni, gap,
   bandiere, pit, meteo) e per i best lap delle prove libere. Se non c'è una sessione in corso,
   l'app mostra un messaggio esplicito di indisponibilità — **mai dati simulati**.
-- **News** (RaceFans, Motorsport.com via rss2json): solo titolo, estratto breve, fonte, data e
+- **News** (Motorsport.com Italia, PitTalk via rss2json): solo titolo, estratto breve, fonte, data e
   link all'originale. Nessuno scraping aggressivo.
 - Cache con TTL differenziati: dati storici a lunga scadenza, live timing a 15–60 s.
 - Dove l'API non fornisce un dato (es. lunghezza/curve dei circuiti, record sul giro), l'app
@@ -169,7 +169,7 @@ nel commento header di `src/api/openf1.ts`).
   delle sessioni completate è la modalità principale e funziona per tutto
   (torre, mappa, race control, pit, stint, meteo, radio).
 | f1api.dev (`f1api.dev/api/`) | **fonte secondaria (arricchimento)**: sigle piloti, date di nascita, numeri di gara, metadati team (sede, prima stagione, titoli) | no |
-| rss2json (proxy CORS keyless) | feed RSS RaceFans + Motorsport.com | no |
+| rss2json (proxy CORS keyless) | feed RSS Motorsport.com Italia + PitTalk | no |
 
 ## Fonti dati e licenze
 
@@ -188,7 +188,7 @@ nel commento header di `src/api/openf1.ts`).
   SVG e integrate in `src/data/tracks.ts` (file generato, vedi
   `tools/gen-tracks.js`). Il repository è non ufficiale e non affiliato alle
   società della Formula 1; i marchi F1® appartengono a Formula One Licensing B.V.
-- **News** — titoli ed estratti via RSS (RaceFans, Motorsport.com) con link
+- **News** — titoli ed estratti via RSS (Motorsport.com Italia, PitTalk) con link
   all'articolo originale; nessun articolo riprodotto integralmente.
 - **Foto dei piloti** — ritratti dagli articoli Wikipedia dei piloti (ospitati
   su Wikimedia Commons con licenze libere). Risoluzione in tre livelli
