@@ -226,7 +226,8 @@ export interface OFLap {
 
 export interface OFStint {
   driver_number: number;
-  compound: string;
+  /** UNKNOWN or null when the API has no compound info (seen on 2026 data). */
+  compound: string | null;
   tyre_age_at_start: number;
   lap_start: number;
   lap_end: number | null;

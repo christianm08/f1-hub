@@ -386,7 +386,7 @@ export function buildStintsView(stints: OFStint[]): StintView[] {
   for (const s of stints) {
     const arr = byDriver.get(s.driver_number) ?? [];
     arr.push({
-      compound: s.compound,
+      compound: s.compound ?? "UNKNOWN",
       lapStart: s.lap_start,
       lapEnd: s.lap_end,
       age: s.tyre_age_at_start,

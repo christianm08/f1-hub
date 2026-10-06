@@ -149,7 +149,14 @@ nel commento header di `src/api/openf1.ts`).
 - `car_data` (~3,2 Hz, DRS aperto se ≥10) solo live + breve buffer: sulle
   storiche restituisce []. `telemetryAvailable` è onesto al riguardo.
 - `location` campionata ~3,7s, unità NON metri e origine arbitraria: il fit è
-  puramente relativo al bbox (`normalizeLocations()`).
+  puramente relativo al bbox (`normalizeLocations()`). L'endpoint rifiuta
+  query multi-driver non limitate ("too much data"): il replay carica la
+  posizione per pilota in finestra [fine−32min, fine−8min] (`locationWindowMin`).
+- **Quirk critico operatori data (verificato 2026-10-06):** i docs scrivono
+  `date>=...`, ma il server spezza la query sul primo `=`: la chiave deve
+  essere `date>` singolo (`date%3E=...`), NON `date>=` (`date%3E%3D=...`)
+  che restituisce sempre "No results found.". Nel codice usare sempre
+  `"date>"` / `"date<"`.
 - `position` è event-driven e rado; `intervals` ~793 righe/pilota/gara: i poll
   live usano finestre `date>=` per scaricare solo il delta.
 - SC/VSC/RedFlag sono derivati dai messaggi di race control (non esiste un campo

@@ -171,6 +171,34 @@ export interface LiveDataProvider {
 
 const has = (channels: ChannelName[], name: ChannelName) => channels.includes(name);
 
+/**
+ * Module-level replay bundle cache: every panel (tower, map, replay, …)
+ * mounts its own useRaceCenterSession for the same sessionKey. Without this,
+ * each would refetch the full bundle (~13 requests). Key includes the
+ * location window since bundles differ by it. TTL 5 min; completed sessions
+ * are static anyway.
+ */
+const replayBundleCache = new Map<string, { ts: number; bundle: SessionBundle }>();
+const REPLAY_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function replayCacheGet(key: string): SessionBundle | null {
+  const e = replayBundleCache.get(key);
+  if (!e || Date.now() - e.ts > REPLAY_CACHE_TTL_MS) {
+    if (e) replayBundleCache.delete(key);
+    return null;
+  }
+  return e.bundle;
+}
+
+function replayCacheSet(key: string, bundle: SessionBundle) {
+  replayBundleCache.set(key, { ts: Date.now(), bundle });
+  // Bound memory: keep at most 8 sessions.
+  if (replayBundleCache.size > 8) {
+    const oldest = replayBundleCache.keys().next().value;
+    if (oldest !== undefined) replayBundleCache.delete(oldest);
+  }
+}
+
 export class RestPollingProvider implements LiveDataProvider {
   readonly name = "rest-polling";
   liveCapable = true;
@@ -189,22 +217,39 @@ export class RestPollingProvider implements LiveDataProvider {
     return openf1.startingGrid(quali.session_key, o);
   }
 
-  /** Per-driver location inside [end-32min, end-8min]: cars are on track there
-   * (date_end is the scheduled end; the real finish is often earlier, so we
-   * avoid the parked-cars tail while staying inside the action). */
+  /**
+   * Per-driver location inside a window anchored to the actual on-track
+   * action: [lastLap-12min, lastLap+3min] (from the laps data), falling back
+   * to [date_end-20min, date_end-8min] when laps are unavailable. date_end is
+   * the *scheduled* end; the real finish is often earlier, so anchoring to
+   * the last recorded lap keeps the cars moving instead of parked.
+   */
   private async loadLocationWindow(
     sessionKey: number,
     session: OFSession,
     drivers: OFDriver[],
+    laps: OFLap[],
     o?: FetchOpts,
   ): Promise<OFLocation[]> {
     const w = this.locationWindowMin;
     if (!w || w <= 0 || drivers.length === 0) return [];
-    const endMs = Date.parse(session.date_end);
-    if (!Number.isFinite(endMs)) return [];
     const fmt = (ms: number) => new Date(ms).toISOString().slice(0, 19);
-    const from = fmt(endMs - (w + 8) * 60 * 1000);
-    const to = fmt(endMs - 8 * 60 * 1000);
+    let from: string;
+    let to: string;
+    let lastLapMs = 0;
+    for (const l of laps) {
+      const t = Date.parse(l.date_start);
+      if (Number.isFinite(t) && t > lastLapMs) lastLapMs = t;
+    }
+    if (lastLapMs > 0) {
+      from = fmt(lastLapMs - w * 60 * 1000);
+      to = fmt(lastLapMs + 3 * 60 * 1000);
+    } else {
+      const endMs = Date.parse(session.date_end);
+      if (!Number.isFinite(endMs)) return [];
+      from = fmt(endMs - (w + 8) * 60 * 1000);
+      to = fmt(endMs - 8 * 60 * 1000);
+    }
     const out: OFLocation[] = [];
     const CONCURRENCY = 4; // stay well under the 25 req/min self-imposed budget
     const nums = drivers.map((d) => d.driver_number);
@@ -224,6 +269,9 @@ export class RestPollingProvider implements LiveDataProvider {
   }
 
   async loadReplayBundle(sessionKey: number, signal?: AbortSignal): Promise<SessionBundle> {
+    const cacheKey = `${sessionKey}:loc${this.locationWindowMin}`;
+    const cached = replayCacheGet(cacheKey);
+    if (cached) return cached;
     const o: FetchOpts = { signal };
     const sessions = await openf1.sessions({ session_key: sessionKey }, o);
     if (!sessions.length) throw new ApiError("http_404", 404);
@@ -256,8 +304,8 @@ export class RestPollingProvider implements LiveDataProvider {
       this.resolveStartingGrid(session, o),
     ]);
     // Windowed per-driver location (the unbounded query is rejected by the API).
-    const location = await this.loadLocationWindow(sessionKey, session, drivers, o);
-    return {
+    const location = await this.loadLocationWindow(sessionKey, session, drivers, laps, o);
+    const bundle: SessionBundle = {
       session,
       drivers,
       positions,
@@ -274,6 +322,8 @@ export class RestPollingProvider implements LiveDataProvider {
       carData: [],
       overtakes,
     };
+    replayCacheSet(cacheKey, bundle);
+    return bundle;
   }
 
   async loadLiveInitial(sessionKey: number, signal?: AbortSignal): Promise<Partial<SessionBundle>> {
