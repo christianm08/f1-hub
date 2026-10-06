@@ -723,9 +723,10 @@ table.tower-tbl { width: 100%; border-collapse: collapse; min-width: 640px; font
 }
 .mtable-row.leader .mpos { background: var(--accent); border-color: transparent; color: #fff; }
 
-/* ---------- overflow safety: flex children must be allowed to shrink ---------- */
+/* ---------- overflow safety: flex/grid children must be allowed to shrink ---------- */
 .spread { flex-wrap: wrap; }
 .row > *, .driver-row > *, .spread > * { min-width: 0; }
+.grid > * { min-width: 0; } /* grid items default to min-width:auto (=min-content): would stretch 1fr tracks */
 .kv dd { overflow-wrap: anywhere; }
 .ellip { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .search-results a > span:nth-child(2) { min-width: 0; }
