@@ -17,7 +17,7 @@ export function Sparkline({
 }) {
   if (values.length < 2) {
     return (
-      <svg width={width} height={height} role="img" aria-label={ariaLabel ?? "chart"}>
+      <svg width={width} height={height} role="img" aria-label={ariaLabel ?? "chart"} style={{ maxWidth: "100%", height: "auto", display: "block" }}>
         <line x1={0} y1={height / 2} x2={width} y2={height / 2} stroke={stroke} strokeWidth={2} strokeDasharray="4 4" />
       </svg>
     );
@@ -31,7 +31,7 @@ export function Sparkline({
   const area = `4,${height - 2} ${pts} ${width - 4},${height - 2}`;
   const gid = `g${Math.abs(values.reduce((a, b) => a + b, 0) * 997).toFixed(0)}`;
   return (
-    <svg width={width} height={height} role="img" aria-label={ariaLabel ?? "chart"} style={{ maxWidth: "100%" }}>
+    <svg width={width} height={height} role="img" aria-label={ariaLabel ?? "chart"} style={{ maxWidth: "100%", height: "auto", display: "block" }}>
       {fill && (
         <>
           <defs>

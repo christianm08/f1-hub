@@ -6,6 +6,7 @@ import { jolpica, type RaceInfo, type RaceResult } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
+import { MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { BarList } from "../components/charts";
 import { countryCode, initials, nationalityCode, teamColor } from "../data/meta";
 
@@ -120,6 +121,8 @@ export default function TeamDetail() {
       {stats.perRace.length === 0 ? (
         <EmptyState title={t("empty_title")} body={t("empty_body")} />
       ) : (
+        <ResponsiveTable
+          desktop={
         <div className="tbl-wrap"><table className="tbl">
           <thead><tr><th>{t("round")}</th><th>{t("gp")}</th><th>{t("driver")}</th><th>{t("position")}</th><th>{t("points")}</th></tr></thead>
           <tbody>
@@ -136,6 +139,25 @@ export default function TeamDetail() {
             )}
           </tbody>
         </table></div>
+          }
+          mobile={
+            <MobileTable rows={stats.perRace.flatMap((p) =>
+              p.results.map((r): MobileRow => ({
+                key: `${p.race.round}-${r.Driver.driverId}`,
+                rowClass: r.positionText === "1" ? "leader" : undefined,
+                left: <span className="mpos">{r.positionText}</span>,
+                title: (
+                  <Link to={`/gara/${p.race.season}/${p.race.round}`}>
+                    <span className="nat">{countryCode(p.race.Circuit.Location.country)}</span>
+                    <b>{p.race.raceName}</b>
+                  </Link>
+                ),
+                subtitle: `${r.Driver.code ?? r.Driver.familyName} · R${p.race.round}`,
+                value: r.points,
+              }))
+            )} />
+          }
+        />
       )}
     </div>
   );

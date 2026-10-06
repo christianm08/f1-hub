@@ -7,6 +7,7 @@ import { openf1, formatLapTime, type OFDriver } from "../api/openf1";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { Badge, EmptyState, ErrorState, PageHeader, SkeletonCard, fmtDateTime, gapText } from "../components/ui";
+import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { countryCode, nationalityCode, teamColor } from "../data/meta";
 
 type Tab = "info" | "race" | "quali" | "sprint" | "practice" | "standings";
@@ -163,7 +164,9 @@ export default function RaceDetail() {
       {tab === "race" && (
         data.results.length === 0
           ? <EmptyState title={t("empty_title")} body={t("empty_body")} />
-          : <div className="tbl-wrap"><table className="tbl">
+          : <ResponsiveTable
+              desktop={
+              <div className="tbl-wrap"><table className="tbl">
               <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>{t("time_gap")}</th><th>{t("points")}</th><th>{t("status")}</th></tr></thead>
               <tbody>
                 {data.results.map((r) => (
@@ -178,12 +181,38 @@ export default function RaceDetail() {
                 ))}
               </tbody>
             </table></div>
+              }
+              mobile={
+                <MobileTable rows={data.results.map((r): MobileRow => ({
+                  key: r.Driver.driverId,
+                  rowClass: r.positionText === "1" ? "leader" : undefined,
+                  left: <span className="mpos">{r.positionText}</span>,
+                  title: (
+                    <Link to={`/piloti/${r.Driver.driverId}`}>
+                      <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
+                      <span className="muted">{r.Driver.givenName} {r.Driver.familyName}</span>
+                    </Link>
+                  ),
+                  subtitle: r.Constructor.name,
+                  value: <span className="mono">{gapText(r)}</span>,
+                  details: (
+                    <MDetails items={[
+                      { label: t("team"), value: r.Constructor.name },
+                      { label: t("points"), value: r.points },
+                      { label: t("status"), value: r.status },
+                    ]} />
+                  ),
+                }))} />
+              }
+            />
       )}
 
       {tab === "quali" && (
         data.quali.length === 0
           ? <EmptyState icon={<Timer aria-hidden="true" />} title={t("empty_title")} body={t("empty_body")} />
-          : <div className="tbl-wrap"><table className="tbl">
+          : <ResponsiveTable
+              desktop={
+              <div className="tbl-wrap"><table className="tbl">
               <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>Q1</th><th>Q2</th><th>Q3</th></tr></thead>
               <tbody>
                 {data.quali.map((r) => (
@@ -198,12 +227,41 @@ export default function RaceDetail() {
                 ))}
               </tbody>
             </table></div>
+              }
+              mobile={
+                <MobileTable rows={data.quali.map((r): MobileRow => {
+                  const best = r.Q3 ?? r.Q2 ?? r.Q1 ?? "—";
+                  return {
+                    key: r.Driver.driverId,
+                    rowClass: r.positionText === "1" ? "leader" : undefined,
+                    left: <span className="mpos">{r.positionText}</span>,
+                    title: (
+                      <Link to={`/piloti/${r.Driver.driverId}`}>
+                        <b>{r.Driver.code ?? r.Driver.familyName}</b>
+                      </Link>
+                    ),
+                    subtitle: r.Constructor.name,
+                    value: <span className="mono">{best}</span>,
+                    details: (
+                      <MDetails items={[
+                        { label: t("team"), value: r.Constructor.name },
+                        { label: "Q1", value: <span className="mono">{r.Q1 ?? "—"}</span> },
+                        { label: "Q2", value: <span className="mono">{r.Q2 ?? "—"}</span> },
+                        { label: "Q3", value: <span className="mono">{r.Q3 ?? "—"}</span> },
+                      ]} />
+                    ),
+                  };
+                })} />
+              }
+            />
       )}
 
       {tab === "sprint" && (
         data.sprint.length === 0
           ? <EmptyState icon={<Zap aria-hidden="true" />} title={t("empty_title")} body={t("empty_body")} />
-          : <div className="tbl-wrap"><table className="tbl">
+          : <ResponsiveTable
+              desktop={
+              <div className="tbl-wrap"><table className="tbl">
               <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>{t("time_gap")}</th><th>{t("points")}</th></tr></thead>
               <tbody>
                 {data.sprint.map((r) => (
@@ -217,6 +275,24 @@ export default function RaceDetail() {
                 ))}
               </tbody>
             </table></div>
+              }
+              mobile={
+                <MobileTable rows={data.sprint.map((r): MobileRow => ({
+                  key: r.Driver.driverId,
+                  rowClass: r.positionText === "1" ? "leader" : undefined,
+                  left: <span className="mpos">{r.positionText}</span>,
+                  title: <b>{r.Driver.code ?? r.Driver.familyName}</b>,
+                  subtitle: r.Constructor.name,
+                  value: <span className="mono">{gapText(r)}</span>,
+                  details: (
+                    <MDetails items={[
+                      { label: t("team"), value: r.Constructor.name },
+                      { label: t("points"), value: r.points },
+                    ]} />
+                  ),
+                }))} />
+              }
+            />
       )}
 
       {tab === "practice" && (
@@ -238,7 +314,7 @@ export default function RaceDetail() {
                     >
                       <b className="num" style={{ width: 24 }}>{i + 1}</b>
                       <b>{b.acronym}</b>
-                      <span className="small muted">{b.team}</span>
+                      <span className="small muted ellip">{b.team}</span>
                       <span className="num mono" style={{ marginLeft: "auto" }}>{formatLapTime(b.lap)}</span>
                     </div>
                   ))
@@ -253,6 +329,8 @@ export default function RaceDetail() {
         <div className="grid grid-2">
           <div>
             <h3 className="section-title" style={{ marginTop: 0 }}><Trophy aria-hidden="true" /> {t("driver_standings")}</h3>
+            <ResponsiveTable
+              desktop={
             <div className="tbl-wrap"><table className="tbl">
               <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("points")}</th></tr></thead>
               <tbody>
@@ -265,9 +343,27 @@ export default function RaceDetail() {
                 ))}
               </tbody>
             </table></div>
+              }
+              mobile={
+                <MobileTable rows={data.dStands.map((s, i): MobileRow => ({
+                  key: s.Driver.driverId,
+                  rowClass: i === 0 ? "leader" : undefined,
+                  left: <span className="mpos">{s.positionText}</span>,
+                  title: (
+                    <Link to={`/piloti/${s.Driver.driverId}`}>
+                      <span className="nat">{nationalityCode(s.Driver.nationality)}</span>
+                      <b>{s.Driver.givenName} {s.Driver.familyName}</b>
+                    </Link>
+                  ),
+                  value: s.points,
+                }))} />
+              }
+            />
           </div>
           <div>
             <h3 className="section-title" style={{ marginTop: 0 }}><Car aria-hidden="true" /> {t("constructor_standings")}</h3>
+            <ResponsiveTable
+              desktop={
             <div className="tbl-wrap"><table className="tbl">
               <thead><tr><th>{t("position")}</th><th>{t("team")}</th><th>{t("points")}</th></tr></thead>
               <tbody>
@@ -280,6 +376,22 @@ export default function RaceDetail() {
                 ))}
               </tbody>
             </table></div>
+              }
+              mobile={
+                <MobileTable rows={data.cStands.map((s, i): MobileRow => ({
+                  key: s.Constructor.constructorId,
+                  rowClass: i === 0 ? "leader" : undefined,
+                  left: <span className="mpos">{s.positionText}</span>,
+                  title: (
+                    <Link to={`/team/${s.Constructor.constructorId}`}>
+                      <span className="team-dot" style={{ background: teamColor(s.Constructor.constructorId) }} aria-hidden="true" />
+                      <b>{s.Constructor.name}</b>
+                    </Link>
+                  ),
+                  value: s.points,
+                }))} />
+              }
+            />
           </div>
         </div>
       )}

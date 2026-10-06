@@ -6,6 +6,7 @@ import { jolpica, type RaceInfo, type RaceResult } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, gapText } from "../components/ui";
+import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { Sparkline } from "../components/charts";
 import { countryCode, initials, nationalityCode, teamColor } from "../data/meta";
 
@@ -134,6 +135,8 @@ export default function DriverDetail() {
       {stats.rows.length === 0 ? (
         <EmptyState title={t("empty_title")} body={t("empty_body")} />
       ) : (
+        <ResponsiveTable
+          desktop={
         <div className="tbl-wrap"><table className="tbl">
           <thead><tr><th>{t("round")}</th><th>{t("gp")}</th><th>{t("position")}</th><th>{t("time_gap")}</th><th>{t("points")}</th><th>{t("status")}</th></tr></thead>
           <tbody>
@@ -149,6 +152,29 @@ export default function DriverDetail() {
             ))}
           </tbody>
         </table></div>
+          }
+          mobile={
+            <MobileTable rows={stats.rows.map(({ race, res }): MobileRow => ({
+              key: race.round,
+              rowClass: res.positionText === "1" ? "leader" : undefined,
+              left: <span className="mpos">{res.positionText}</span>,
+              title: (
+                <Link to={`/gara/${race.season}/${race.round}`}>
+                  <span className="nat">{countryCode(race.Circuit.Location.country)}</span>
+                  <b>{race.raceName}</b>
+                </Link>
+              ),
+              subtitle: `${t("round")} ${race.round} · ${res.status}`,
+              value: res.points,
+              details: (
+                <MDetails items={[
+                  { label: t("time_gap"), value: <span className="mono">{gapText(res)}</span> },
+                  { label: t("status"), value: res.status },
+                ]} />
+              ),
+            }))} />
+          }
+        />
       )}
       <p className="small muted mt row">
         <Database size={14} aria-hidden="true" />

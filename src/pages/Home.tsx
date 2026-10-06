@@ -7,6 +7,7 @@ import { fetchNews, type NewsItem } from "../api/news";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { Badge, CountdownCells, EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, fmtDateTime, gapText } from "../components/ui";
+import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { countryCode, nationalityCode, teamColor } from "../data/meta";
 
 interface HomeData {
@@ -157,6 +158,8 @@ export default function Home() {
             <h2 className="section-title"><Flag aria-hidden="true" /> {t("latest_results")}: {data.lastResults.race.raceName}</h2>
             <Link to="/risultati" className="btn ghost small">{t("view_details")} <ArrowRight size={15} aria-hidden="true" /></Link>
           </div>
+          <ResponsiveTable
+            desktop={
           <div className="tbl-wrap">
             <table className="tbl">
               <thead><tr><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th>{t("time_gap")}</th><th className="num">{t("points")}</th></tr></thead>
@@ -177,6 +180,30 @@ export default function Home() {
               </tbody>
             </table>
           </div>
+            }
+            mobile={
+              <MobileTable rows={data.lastResults.rows.slice(0, 5).map((r): MobileRow => ({
+                key: r.Driver.driverId,
+                rowClass: r.positionText === "1" ? "leader" : undefined,
+                left: <span className="mpos">{r.positionText}</span>,
+                title: (
+                  <Link to={`/piloti/${r.Driver.driverId}`}>
+                    <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
+                    <b>{r.Driver.code ?? r.Driver.familyName}</b>
+                  </Link>
+                ),
+                subtitle: r.Constructor.name,
+                value: <span className="mono">{gapText(r)}</span>,
+                details: (
+                  <MDetails items={[
+                    { label: t("team"), value: r.Constructor.name },
+                    { label: t("points"), value: r.points },
+                    { label: t("status"), value: r.status },
+                  ]} />
+                ),
+              }))} />
+            }
+          />
         </>
       )}
 

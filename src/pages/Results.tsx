@@ -8,6 +8,7 @@ import { openf1, formatLapTime, type OFDriver } from "../api/openf1";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, PageHeader, SkeletonCard, gapText } from "../components/ui";
+import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { nationalityCode, teamColor } from "../data/meta";
 
 const MIN_SEASON = "2014";
@@ -145,7 +146,17 @@ function ResultsTable({ data }: { data: SessionData }) {
     if (!data.rows || data.rows.length === 0) {
       return <EmptyState icon={<Timer aria-hidden="true" />} title={t("empty_title")} body={t("not_available")} />;
     }
+    const rows: MobileRow[] = data.rows.map((r, i) => ({
+      key: r.acronym,
+      rowClass: i === 0 ? "leader" : undefined,
+      left: <span className="mpos">{i + 1}</span>,
+      title: <b>{r.acronym}</b>,
+      subtitle: r.team,
+      value: <span className="mono">{formatLapTime(r.lap)}</span>,
+    }));
     return (
+      <ResponsiveTable
+        desktop={
       <div className="tbl-wrap"><table className="tbl">
         <thead><tr>
           <th>{t("position")}</th>
@@ -164,12 +175,42 @@ function ResultsTable({ data }: { data: SessionData }) {
           ))}
         </tbody>
       </table></div>
+        }
+        mobile={<MobileTable rows={rows} />}
+      />
     );
   }
 
   if (data.kind === "qualifying") {
     if (data.rows.length === 0) return <EmptyState title={t("empty_title")} body={t("empty_body")} />;
+    const rows: MobileRow[] = data.rows.map((r, i) => {
+      const best = r.Q3 ?? r.Q2 ?? r.Q1 ?? "—";
+      return {
+        key: r.Driver.driverId,
+        rowClass: i === 0 ? "leader" : undefined,
+        left: <span className="mpos">{r.positionText}</span>,
+        title: (
+          <Link to={`/piloti/${r.Driver.driverId}`}>
+            <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
+            <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
+            <span className="muted">{r.Driver.givenName} {r.Driver.familyName}</span>
+          </Link>
+        ),
+        subtitle: r.Constructor.name,
+        value: <span className="mono">{best}</span>,
+        details: (
+          <MDetails items={[
+            { label: t("team"), value: r.Constructor.name },
+            { label: "Q1", value: <span className="mono">{r.Q1 ?? "—"}</span> },
+            { label: "Q2", value: <span className="mono">{r.Q2 ?? "—"}</span> },
+            { label: "Q3", value: <span className="mono">{r.Q3 ?? "—"}</span> },
+          ]} />
+        ),
+      };
+    });
     return (
+      <ResponsiveTable
+        desktop={
       <div className="tbl-wrap"><table className="tbl">
         <thead><tr>
           <th>{t("position")}</th>
@@ -198,11 +239,37 @@ function ResultsTable({ data }: { data: SessionData }) {
           ))}
         </tbody>
       </table></div>
+        }
+        mobile={<MobileTable rows={rows} />}
+      />
     );
   }
 
   if (data.rows.length === 0) return <EmptyState title={t("empty_title")} body={t("empty_body")} />;
+  const rows: MobileRow[] = data.rows.map((r, i) => ({
+    key: r.Driver.driverId,
+    rowClass: i === 0 ? "leader" : undefined,
+    left: <span className="mpos">{r.positionText}</span>,
+    title: (
+      <Link to={`/piloti/${r.Driver.driverId}`}>
+        <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
+        <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
+        <span className="muted">{r.Driver.givenName} {r.Driver.familyName}</span>
+      </Link>
+    ),
+    subtitle: r.Constructor.name,
+    value: <span className="mono">{gapText(r)}</span>,
+    details: (
+      <MDetails items={[
+        { label: t("team"), value: r.Constructor.name },
+        { label: t("points"), value: r.points },
+        { label: t("status"), value: r.status },
+      ]} />
+    ),
+  }));
   return (
+    <ResponsiveTable
+      desktop={
     <div className="tbl-wrap"><table className="tbl">
       <thead><tr>
         <th>{t("position")}</th>
@@ -231,5 +298,8 @@ function ResultsTable({ data }: { data: SessionData }) {
         ))}
       </tbody>
     </table></div>
+      }
+      mobile={<MobileTable rows={rows} />}
+    />
   );
 }

@@ -95,6 +95,8 @@ const it = {
   last_updated: "Aggiornato",
   standings_round: "Dopo il round",
   view_details: "Dettagli",
+  show_more: "Mostra dettagli",
+  show_less: "Nascondi dettagli",
   official: "ufficiale",
 };
 
@@ -193,6 +195,8 @@ const en: Record<DictKey, string> = {
   last_updated: "Updated",
   standings_round: "After round",
   view_details: "Details",
+  show_more: "Show details",
+  show_less: "Hide details",
   official: "official",
 };
 

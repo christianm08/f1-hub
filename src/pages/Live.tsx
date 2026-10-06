@@ -9,6 +9,7 @@ import { findLiveSession, openf1, formatLapTime } from "../api/openf1";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { Badge, EmptyState, PageHeader, Skeleton, fmtDateTime } from "../components/ui";
+import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 
 interface LeaderRow {
   num: number;
@@ -219,6 +220,8 @@ export default function Live() {
             {data.leaders.length === 0 ? (
               <p className="muted" style={{ padding: "20px 16px" }}>{t("not_available")}</p>
             ) : (
+              <ResponsiveTable
+                desktop={
               <div className="tower-scroll">
                 <table className="tower-tbl">
                   <thead>
@@ -261,6 +264,40 @@ export default function Live() {
                   </tbody>
                 </table>
               </div>
+                }
+                mobile={
+                  <MobileTable rows={data.leaders.map((l): MobileRow => ({
+                    key: String(l.num),
+                    rowClass: l.pos === 1 ? "leader" : undefined,
+                    left: <span className="tpos-m" style={{ borderLeftColor: l.color }}>{l.pos}</span>,
+                    title: <b>{l.acronym}</b>,
+                    subtitle: l.fullName || l.team,
+                    value: (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                        {l.tyre ? (
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                            <i className={`tyre ${TYRE_LETTER[l.tyre] ?? ""}`} aria-label={`${t("tyre")}: ${l.tyre}`}>
+                              {TYRE_LETTER[l.tyre] ?? "?"}
+                            </i>
+                            <span className="mono small muted">{l.tyreAge ?? "–"}</span>
+                          </span>
+                        ) : (
+                          <span className="muted">–</span>
+                        )}
+                        <span className="mono">{l.pos === 1 ? "LEADER" : (l.gap ?? "–")}</span>
+                      </span>
+                    ),
+                    details: (
+                      <MDetails items={[
+                        { label: t("team"), value: l.team || "–" },
+                        { label: "Int", value: <span className="mono">{l.interval ?? "–"}</span> },
+                        { label: t("best_lap"), value: <span className="mono">{l.bestLap ?? "–"}</span> },
+                        { label: t("pit"), value: l.pits },
+                      ]} />
+                    ),
+                  }))} />
+                }
+              />
             )}
           </div>
 

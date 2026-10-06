@@ -6,6 +6,7 @@ import { jolpica } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, PageHeader, SkeletonCard } from "../components/ui";
+import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { nationalityCode, teamColor } from "../data/meta";
 
 const MIN_SEASON = "2014";
@@ -36,10 +37,51 @@ export default function Standings() {
     if (status === "error" || !data) return <ErrorState onRetry={retry} />;
     const [drivers, constructors] = data;
     if (drivers.length === 0) return <EmptyState title={t("empty_title")} body={t("empty_body")} />;
+
+    const driverRows: MobileRow[] = drivers.map((s, i) => ({
+      key: s.Driver.driverId,
+      rowClass: i === 0 ? "leader" : undefined,
+      left: <span className="mpos">{s.positionText}</span>,
+      title: (
+        <Link to={`/piloti/${s.Driver.driverId}`}>
+          <span className="nat">{nationalityCode(s.Driver.nationality)}</span>
+          <b>{s.Driver.code ?? s.Driver.familyName}</b>{" "}
+          <span className="muted">{s.Driver.givenName} {s.Driver.familyName}</span>
+        </Link>
+      ),
+      subtitle: s.Constructors[0]?.name,
+      value: s.points,
+      details: (
+        <MDetails items={[
+          { label: t("team"), value: s.Constructors[0]?.name ?? "–" },
+          { label: t("wins"), value: s.wins },
+        ]} />
+      ),
+    }));
+
+    const constructorRows: MobileRow[] = constructors.map((s, i) => ({
+      key: s.Constructor.constructorId,
+      rowClass: i === 0 ? "leader" : undefined,
+      left: <span className="mpos">{s.positionText}</span>,
+      title: (
+        <Link to={`/team/${s.Constructor.constructorId}`}>
+          <span className="team-dot" style={{ background: teamColor(s.Constructor.constructorId) }} aria-hidden="true" />
+          <b>{s.Constructor.name}</b>
+        </Link>
+      ),
+      subtitle: s.Constructor.nationality,
+      value: s.points,
+      details: (
+        <MDetails items={[{ label: t("wins"), value: s.wins }]} />
+      ),
+    }));
+
     return (
       <div className="grid grid-2">
         <div>
           <h2 className="section-title" style={{ marginTop: 0 }}><Trophy aria-hidden="true" /> {t("driver_standings")}</h2>
+          <ResponsiveTable
+            desktop={
           <div className="tbl-wrap"><table className="tbl">
             <thead><tr>
               <th>{t("position")}</th>
@@ -66,9 +108,14 @@ export default function Standings() {
               ))}
             </tbody>
           </table></div>
+            }
+            mobile={<MobileTable rows={driverRows} />}
+          />
         </div>
         <div>
           <h2 className="section-title" style={{ marginTop: 0 }}><Car aria-hidden="true" /> {t("constructor_standings")}</h2>
+          <ResponsiveTable
+            desktop={
           <div className="tbl-wrap"><table className="tbl">
             <thead><tr>
               <th>{t("position")}</th>
@@ -93,6 +140,9 @@ export default function Standings() {
               ))}
             </tbody>
           </table></div>
+            }
+            mobile={<MobileTable rows={constructorRows} />}
+          />
         </div>
       </div>
     );
