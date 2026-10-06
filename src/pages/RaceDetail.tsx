@@ -11,6 +11,7 @@ import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../compo
 import { TrackMap } from "../components/TrackMap";
 import { findTrack, formatTrackLength } from "../data/circuits";
 import { countryCode, nationalityCode, teamColor } from "../data/meta";
+import { FlagIcon } from "../components/FlagIcon";
 
 type Tab = "info" | "race" | "quali" | "sprint" | "practice" | "standings";
 
@@ -145,7 +146,7 @@ export default function RaceDetail() {
       />
       <div className="row small muted" style={{ margin: "-6px 0 16px" }}>
         <MapPin size={14} aria-hidden="true" style={{ color: "var(--text-3)", flex: "0 0 auto" }} />
-        <span className="nat">{countryCode(race.Circuit.Location.country)}</span>
+        <FlagIcon code={countryCode(race.Circuit.Location.country)} />
         <span>{race.Circuit.Location.locality}, {race.Circuit.Location.country}</span>
       </div>
       <RaceCenterLink season={season} raceName={race.raceName} />
@@ -367,7 +368,7 @@ export default function RaceDetail() {
                 {data.dStands.map((s, i) => (
                   <tr key={s.Driver.driverId} className={i === 0 ? "leader" : ""}>
                     <td className="pos num">{s.positionText}</td>
-                    <td><span className="nat">{nationalityCode(s.Driver.nationality)}</span> {s.Driver.givenName} {s.Driver.familyName}</td>
+                    <td><FlagIcon code={nationalityCode(s.Driver.nationality)} /> {s.Driver.givenName} {s.Driver.familyName}</td>
                     <td className="num">{s.points}</td>
                   </tr>
                 ))}
@@ -381,7 +382,7 @@ export default function RaceDetail() {
                   left: <span className="mpos">{s.positionText}</span>,
                   title: (
                     <Link to={`/piloti/${s.Driver.driverId}?season=${season}`}>
-                      <span className="nat">{nationalityCode(s.Driver.nationality)}</span>
+                      <FlagIcon code={nationalityCode(s.Driver.nationality)} />
                       <b>{s.Driver.givenName} {s.Driver.familyName}</b>
                     </Link>
                   ),

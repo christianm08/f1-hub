@@ -11,6 +11,7 @@ import { EmptyState, ErrorState, PageHeader, SkeletonCard, gapText } from "../co
 import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { SeasonSelect } from "../components/SeasonSelect";
 import { nationalityCode, teamColor } from "../data/meta";
+import { FlagIcon } from "../components/FlagIcon";
 type SessionKind = "race" | "qualifying" | "sprint" | "practice";
 
 type SessionData =
@@ -183,7 +184,7 @@ function ResultsTable({ data, season }: { data: SessionData; season: string }) {
         left: <span className="mpos">{r.positionText}</span>,
         title: (
           <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
-            <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
+            <FlagIcon code={nationalityCode(r.Driver.nationality)} />{" "}
             <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
             <span className="muted">{r.Driver.givenName} {r.Driver.familyName}</span>
           </Link>
@@ -218,7 +219,7 @@ function ResultsTable({ data, season }: { data: SessionData; season: string }) {
               <td className="pos num">{r.positionText}</td>
               <td>
                 <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
-                  <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
+                  <FlagIcon code={nationalityCode(r.Driver.nationality)} />{" "}
                   <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
                   <span className="muted small">{r.Driver.givenName} {r.Driver.familyName}</span>
                 </Link>
@@ -244,7 +245,7 @@ function ResultsTable({ data, season }: { data: SessionData; season: string }) {
     left: <span className="mpos">{r.positionText}</span>,
     title: (
       <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
-        <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
+        <FlagIcon code={nationalityCode(r.Driver.nationality)} />{" "}
         <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
         <span className="muted">{r.Driver.givenName} {r.Driver.familyName}</span>
       </Link>
@@ -277,7 +278,7 @@ function ResultsTable({ data, season }: { data: SessionData; season: string }) {
             <td className="pos num">{r.positionText}</td>
             <td>
               <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
-                <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
+                <FlagIcon code={nationalityCode(r.Driver.nationality)} />{" "}
                 <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
                 <span className="muted small">{r.Driver.givenName} {r.Driver.familyName}</span>
               </Link>

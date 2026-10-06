@@ -11,6 +11,7 @@ import { DriverPhoto } from "../components/DriverPhoto";
 import { TeamLogo } from "../components/TeamLogo";
 import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { nationalityCode, teamColor } from "../data/meta";
+import { FlagIcon } from "../components/FlagIcon";
 
 export default function Standings() {
   const { t, season: defaultSeason } = useSettings();
@@ -47,7 +48,7 @@ export default function Standings() {
             historic={parseInt(season, 10) < 2000}
           />
           <Link to={`/piloti/${s.Driver.driverId}?season=${season}`}>
-            <span className="nat">{nationalityCode(s.Driver.nationality)}</span>
+            <FlagIcon code={nationalityCode(s.Driver.nationality)} />
             <b>{s.Driver.code ?? s.Driver.familyName}</b>{" "}
             <span className="muted">{s.Driver.givenName} {s.Driver.familyName}</span>
           </Link>
@@ -100,7 +101,7 @@ export default function Standings() {
                   <td className="pos num">{s.positionText}</td>
                   <td>
                     <Link to={`/piloti/${s.Driver.driverId}?season=${season}`}>
-                      <span className="nat">{nationalityCode(s.Driver.nationality)}</span>{" "}
+                      <FlagIcon code={nationalityCode(s.Driver.nationality)} />{" "}
                       <b>{s.Driver.code ?? s.Driver.familyName}</b>{" "}
                       <span className="muted small">{s.Driver.givenName} {s.Driver.familyName}</span>
                     </Link>
@@ -139,7 +140,7 @@ export default function Standings() {
                       <span className="team-dot" style={{ background: teamColor(s.Constructor.constructorId) }} aria-hidden="true" />
                       <b>{s.Constructor.name}</b>
                     </Link>{" "}
-                    <span className="nat">{nationalityCode(s.Constructor.nationality)}</span>
+                    <FlagIcon code={nationalityCode(s.Constructor.nationality)} />
                   </td>
                   <td className="num"><b>{s.points}</b></td>
                   <td className="num">{s.wins}</td>

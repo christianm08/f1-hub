@@ -42,6 +42,25 @@ const NAT_CODE: Record<string, string> = {
   Russian: "RUS", Indonesian: "INA", Malaysian: "MYS", "South African": "RSA",
 };
 
+/** 3-letter code -> ISO 3166-1 alpha-2, for the flag-icons library. */
+const ISO2_BY_CODE: Record<string, string> = {
+  AUS: "au", AUT: "at", AZE: "az", BHR: "bh", BEL: "be",
+  BRA: "br", CAN: "ca", CHN: "cn", FRA: "fr", HUN: "hu",
+  ITA: "it", JPN: "jp", MYS: "my", MEX: "mx", MON: "mc",
+  NED: "nl", QAT: "qa", RUS: "ru", KSA: "sa", SGP: "sg",
+  ESP: "es", TUR: "tr", UAE: "ae", GBR: "gb", USA: "us",
+  GER: "de", POR: "pt", RSA: "za", IND: "in", KOR: "kr",
+  ARG: "ar", MAR: "ma", SUI: "ch", SWE: "se", FIN: "fi",
+  DEN: "dk", THA: "th", NZL: "nz", POL: "pl", IRL: "ie",
+  COL: "co", VEN: "ve", CHI: "cl", URU: "uy", CZE: "cz",
+  RHO: "zw", LIE: "li", DDR: "de", INA: "id",
+};
+
+/** ISO 3166-1 alpha-2 code for a 3-letter code, or undefined when unknown. */
+export function flagIso2(code3: string): string | undefined {
+  return ISO2_BY_CODE[code3];
+}
+
 /** 3-letter country code, rendered with the `.nat` chip (no emoji flags). */
 export function countryCode(country: string): string {
   return CODE_BY_COUNTRY[country] ?? "···";

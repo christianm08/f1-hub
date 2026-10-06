@@ -12,6 +12,7 @@ import { SeasonSelect } from "../components/SeasonSelect";
 import { DriverPhoto } from "../components/DriverPhoto";
 import { nationalityCode, teamColor } from "../data/meta";
 import { useEffect } from "react";
+import { FlagIcon } from "../components/FlagIcon";
 
 export default function Drivers() {
   const { t } = useSettings();
@@ -53,7 +54,7 @@ export default function Drivers() {
                 <FavButton item={{ kind: "driver", id: d.id, label: d.fullName, season }} />
               </div>
               <h3 className="card-title" style={{ margin: "12px 0 4px" }}>
-                <span className="nat">{nationalityCode(d.nationality)}</span>
+                <FlagIcon code={nationalityCode(d.nationality)} />
                 <span>{d.fullName}</span>
               </h3>
               <p className="muted small" style={{ margin: 0 }}>#{d.number ?? "–"}</p>

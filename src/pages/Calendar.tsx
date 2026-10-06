@@ -8,6 +8,7 @@ import { useSettings } from "../store/settings";
 import { Badge, EmptyState, ErrorState, PageHeader, SkeletonCard, fmtDate } from "../components/ui";
 import { TrackMap } from "../components/TrackMap";
 import { continentOf, countryCode } from "../data/meta";
+import { FlagIcon } from "../components/FlagIcon";
 
 interface CalData {
   races: RaceInfo[];
@@ -123,7 +124,7 @@ export default function Calendar() {
                   <TrackMap circuitId={r.Circuit.circuitId} circuitName={r.Circuit.circuitName} className="track-mini" />
                 </div>
                 <p className="muted small" style={{ margin: "0 0 8px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <span className="nat">{countryCode(r.Circuit.Location.country)}</span>
+                  <FlagIcon code={countryCode(r.Circuit.Location.country)} />
                   <span>{r.Circuit.Location.locality}, {r.Circuit.Location.country}</span>
                 </p>
                 <div className="spread small" style={{ alignItems: "center" }}>

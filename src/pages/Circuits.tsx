@@ -15,6 +15,7 @@ import { TrackMap } from "../components/TrackMap";
 import { findTrack, formatTrackLength } from "../data/circuits";
 import { countryCode } from "../data/meta";
 import type { FetchOpts } from "../api/client";
+import { FlagIcon } from "../components/FlagIcon";
 
 interface CircuitsData {
   races: RaceInfo[];
@@ -88,7 +89,7 @@ export default function Circuits() {
                 <FavButton item={{ kind: "circuit", id: c.circuitId, label: c.circuitName }} />
               </div>
               <p className="muted small" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span className="nat">{countryCode(c.Location.country)}</span>
+                <FlagIcon code={countryCode(c.Location.country)} />
                 <span>{c.Location.locality}, {c.Location.country}</span>
               </p>
               <p className="small" style={{ display: "flex", alignItems: "center", gap: 6, margin: "0 0 8px" }}>

@@ -17,6 +17,7 @@ import { TeamLogo } from "../components/TeamLogo";
 import { CarImage } from "../components/CarImage";
 import type { FetchOpts } from "../api/client";
 import { countryCode, nationalityCode, teamColor } from "../data/meta";
+import { FlagIcon } from "../components/FlagIcon";
 
 interface DetailData {
   team: TeamModel;
@@ -121,7 +122,7 @@ export default function TeamDetail() {
             <div>
               <h3 className="card-title" style={{ margin: 0 }}>{data.team.name}</h3>
               <p className="muted small" style={{ margin: "2px 0 0" }}>
-                <span className="nat" style={{ marginRight: 0 }}>{nationalityCode(data.team.nationality)}</span>{" "}
+                <FlagIcon code={nationalityCode(data.team.nationality)} />{" "}
                 {data.team.nationality}
               </p>
             </div>
@@ -137,7 +138,7 @@ export default function TeamDetail() {
               <DriverPhoto driverId={d.id} wikiUrl={d.wikiUrl} name={d.name} size={44} tint={color} historic={parseInt(season, 10) < 2000} />
               <span>
                 <b style={{ display: "flex", alignItems: "center", fontSize: "0.92rem" }}>
-                  <span className="nat">{nationalityCode(d.nat)}</span>{d.name}
+                  <FlagIcon code={nationalityCode(d.nat)} />{d.name}
                 </b>
                 <span className="small muted">{d.code}</span>
               </span>
@@ -182,7 +183,7 @@ export default function TeamDetail() {
               p.results.map((r) => (
                 <tr key={`${p.race.round}-${r.Driver.driverId}`} className={r.positionText === "1" ? "leader" : undefined}>
                   <td className="num">{p.race.round}</td>
-                  <td><Link to={`/gara/${p.race.season}/${p.race.round}`}><span className="nat">{countryCode(p.race.Circuit.Location.country)}</span>{p.race.raceName}</Link></td>
+                  <td><Link to={`/gara/${p.race.season}/${p.race.round}`}><FlagIcon code={countryCode(p.race.Circuit.Location.country)} />{p.race.raceName}</Link></td>
                   <td><b>{r.Driver.code ?? r.Driver.familyName}</b></td>
                   <td className="pos num">{r.positionText}</td>
                   <td className="num">{r.points}</td>
@@ -200,7 +201,7 @@ export default function TeamDetail() {
                 left: <span className="mpos">{r.positionText}</span>,
                 title: (
                   <Link to={`/gara/${p.race.season}/${p.race.round}`}>
-                    <span className="nat">{countryCode(p.race.Circuit.Location.country)}</span>
+                    <FlagIcon code={countryCode(p.race.Circuit.Location.country)} />
                     <b>{p.race.raceName}</b>
                   </Link>
                 ),

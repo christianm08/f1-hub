@@ -11,6 +11,7 @@ import { Badge, CountdownCells, EmptyState, ErrorState, FavButton, PageHeader, S
 import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { TrackMap } from "../components/TrackMap";
 import { countryCode, nationalityCode, teamColor } from "../data/meta";
+import { FlagIcon } from "../components/FlagIcon";
 
 interface HomeData {
   races: RaceInfo[];
@@ -64,7 +65,7 @@ export default function Home() {
           <h2 style={{ marginTop: 10 }}>{liveRace.raceName}</h2>
           <p className="meta">
             <MapPin aria-hidden="true" />
-            <span className="nat">{countryCode(liveRace.Circuit.Location.country)}</span>
+            <FlagIcon code={countryCode(liveRace.Circuit.Location.country)} />
             {liveRace.Circuit.Location.locality}, {liveRace.Circuit.Location.country}
           </p>
           <span className="btn primary" style={{ marginTop: 12 }}>{t("view_race_center")} <ArrowRight size={15} aria-hidden="true" /></span>
@@ -85,7 +86,7 @@ export default function Home() {
           </div>
           <p className="meta">
             <MapPin aria-hidden="true" />
-            <span className="nat">{countryCode(next.race.Circuit.Location.country)}</span>
+            <FlagIcon code={countryCode(next.race.Circuit.Location.country)} />
             {next.race.Circuit.Location.locality}, {next.race.Circuit.Location.country}
             {" · "}{fmtDateTime(sessionDateTime(next.race.date, next.race.time), lang)}
           </p>
@@ -132,7 +133,7 @@ export default function Home() {
                 </span>
                 <span>
                   <b style={{ display: "block", fontSize: "0.92rem" }}>
-                    <span className="nat">{nationalityCode(s.Driver.nationality)}</span> {s.Driver.givenName} {s.Driver.familyName}
+                    <FlagIcon code={nationalityCode(s.Driver.nationality)} /> {s.Driver.givenName} {s.Driver.familyName}
                   </b>
                   <span className="small muted">{s.Constructors[0]?.name}</span>
                 </span>
@@ -178,7 +179,7 @@ export default function Home() {
                     <td className="pos num">{r.positionText}</td>
                     <td>
                       <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
-                        <span className="nat">{nationalityCode(r.Driver.nationality)}</span> <b>{r.Driver.code ?? r.Driver.familyName}</b>
+                        <FlagIcon code={nationalityCode(r.Driver.nationality)} /> <b>{r.Driver.code ?? r.Driver.familyName}</b>
                       </Link>
                     </td>
                     <td><span className="team-cell"><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} aria-hidden="true" />{r.Constructor.name}</span></td>
@@ -197,7 +198,7 @@ export default function Home() {
                 left: <span className="mpos">{r.positionText}</span>,
                 title: (
                   <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
-                    <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
+                    <FlagIcon code={nationalityCode(r.Driver.nationality)} />{" "}
                     <b>{r.Driver.code ?? r.Driver.familyName}</b>
                   </Link>
                 ),

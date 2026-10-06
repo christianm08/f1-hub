@@ -13,6 +13,7 @@ import { SeasonSelect } from "../components/SeasonSelect";
 import { TeamLogo } from "../components/TeamLogo";
 import { CarImage } from "../components/CarImage";
 import { nationalityCode, teamColor } from "../data/meta";
+import { FlagIcon } from "../components/FlagIcon";
 
 export default function Teams() {
   const { t } = useSettings();
@@ -63,7 +64,7 @@ export default function Teams() {
                 <FavButton item={{ kind: "team", id: c.id, label: c.name, season }} />
               </div>
               <h3 className="card-title" style={{ margin: "12px 0 4px" }}>
-                <span className="nat">{nationalityCode(c.nationality)}</span>
+                <FlagIcon code={nationalityCode(c.nationality)} />
                 <span>{c.name}</span>
               </h3>
               {lineup.length > 0 && (

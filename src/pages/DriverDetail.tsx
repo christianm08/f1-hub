@@ -15,6 +15,7 @@ import { Sparkline } from "../components/charts";
 import { DriverPhoto } from "../components/DriverPhoto";
 import type { FetchOpts } from "../api/client";
 import { countryCode, nationalityCode, teamColor } from "../data/meta";
+import { FlagIcon } from "../components/FlagIcon";
 
 interface DetailData {
   driver: DriverModel;
@@ -146,7 +147,7 @@ export default function DriverDetail() {
             <dt>{t("team")}</dt><dd>{teamLabel}</dd>
             <dt>{t("number")}</dt><dd className="num">#{data.driver.number ?? "–"}</dd>
             <dt>{t("code")}</dt><dd><span className="mono" style={{ fontWeight: 700 }}>{data.driver.code}</span></dd>
-            <dt>{t("nationality")}</dt><dd><span className="nat" style={{ marginRight: 0 }}>{nationalityCode(data.driver.nationality)}</span> {data.driver.nationality}</dd>
+            <dt>{t("nationality")}</dt><dd><FlagIcon code={nationalityCode(data.driver.nationality)} /> {data.driver.nationality}</dd>
             <dt>{t("birthday")}</dt><dd className="num">{fmtBirthday(data.driver.dateOfBirth, lang)}</dd>
             <dt>{t("age")}</dt><dd className="num">{age ?? "–"}</dd>
           </dl>
@@ -176,7 +177,7 @@ export default function DriverDetail() {
             {stats.rows.map(({ race, res }) => (
               <tr key={race.round} className={res.positionText === "1" ? "leader" : undefined}>
                 <td className="num">{race.round}</td>
-                <td><Link to={`/gara/${race.season}/${race.round}`}><span className="nat">{countryCode(race.Circuit.Location.country)}</span>{race.raceName}</Link></td>
+                <td><Link to={`/gara/${race.season}/${race.round}`}><FlagIcon code={countryCode(race.Circuit.Location.country)} />{race.raceName}</Link></td>
                 <td className="pos num">{res.positionText}</td>
                 <td className="mono num">{gapText(res)}</td>
                 <td className="num">{res.points}</td>
@@ -193,7 +194,7 @@ export default function DriverDetail() {
               left: <span className="mpos">{res.positionText}</span>,
               title: (
                 <Link to={`/gara/${race.season}/${race.round}`}>
-                  <span className="nat">{countryCode(race.Circuit.Location.country)}</span>
+                  <FlagIcon code={countryCode(race.Circuit.Location.country)} />
                   <b>{race.raceName}</b>
                 </Link>
               ),

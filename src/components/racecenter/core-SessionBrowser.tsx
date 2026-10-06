@@ -10,6 +10,7 @@ import { Badge } from "../ui";
 import { SeasonSelect } from "../SeasonSelect";
 import { fmtTime } from "./core-shared";
 import "./core.css";
+import { FlagIcon } from "../../components/FlagIcon";
 
 interface MeetingGroup {
   key: number;
@@ -143,7 +144,7 @@ export function SessionBrowser({ onSelect, liveSession, defaultYear }: Props) {
             return (
               <div className="rc-meeting" key={g.key} style={{ marginBottom: 8 }}>
                 <button className={`rc-meeting-head${open ? " open" : ""}`} onClick={() => toggle(g.key)} aria-expanded={open}>
-                  <span className="nat">{g.countryCode}</span>
+                  <FlagIcon code={g.countryCode} />
                   <span>{g.name} {t("rc_meeting")}</span>
                   <span className="small muted" style={{ fontWeight: 400 }}>{g.location}</span>
                   <ChevronDown size={16} className="chev" aria-hidden="true" />
