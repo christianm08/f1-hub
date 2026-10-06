@@ -6,6 +6,7 @@ import { BarChart3, Building2, CarFront, Flag, Medal, Sigma, Trophy, Users } fro
 import { jolpica, type RaceInfo, type RaceResult } from "../api/jolpica";
 import { loadTeamModels, type TeamModel } from "../api/model";
 import { useApi } from "../hooks/useApi";
+import { useSeasonParam } from "../hooks/useSeasonParam";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
 import { MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
@@ -13,6 +14,7 @@ import { BarList } from "../components/charts";
 import { DriverPhoto } from "../components/DriverPhoto";
 import { TeamLogo } from "../components/TeamLogo";
 import { CarImage } from "../components/CarImage";
+import type { FetchOpts } from "../api/client";
 import { countryCode, nationalityCode, teamColor } from "../data/meta";
 
 interface DetailData {
@@ -20,10 +22,10 @@ interface DetailData {
   races: ({ Results: RaceResult[] } & RaceInfo)[];
 }
 
-async function load(season: string, constructorId: string): Promise<DetailData> {
+async function load(season: string, constructorId: string, o?: FetchOpts): Promise<DetailData> {
   const [models, races] = await Promise.all([
-    loadTeamModels(season),
-    jolpica.constructorResults(season, constructorId),
+    loadTeamModels(season, o),
+    jolpica.constructorResults(season, constructorId, o),
   ]);
   const team = models.find((m) => m.id === constructorId);
   if (!team) throw new Error("not_found");
@@ -32,8 +34,10 @@ async function load(season: string, constructorId: string): Promise<DetailData> 
 
 export default function TeamDetail() {
   const { constructorId = "" } = useParams();
-  const { t, season } = useSettings();
-  const { status, data, retry } = useApi(() => load(season, constructorId), [season, constructorId]);
+  const { t } = useSettings();
+  // ?season= in the URL preserves the season context from the list page.
+  const [season] = useSeasonParam();
+  const { status, data, retry } = useApi((signal) => load(season, constructorId, { signal }), [season, constructorId]);
 
   const stats = useMemo(() => {
     if (!data) return null;
@@ -81,7 +85,7 @@ export default function TeamDetail() {
       <PageHeader
         title={data.team.name}
         sub={`${t("season")} ${season}`}
-        right={<FavButton item={{ kind: "team", id: data.team.id, label: data.team.name }} />}
+        right={<><span className="season-badge">{season}</span><FavButton item={{ kind: "team", id: data.team.id, label: data.team.name }} /></>}
       />
 
       <div className="grid grid-4">
@@ -112,7 +116,7 @@ export default function TeamDetail() {
         <div className="card">
           <h3 className="card-title"><Users size={17} aria-hidden="true" />{t("nav_drivers")}</h3>
           {stats.drivers.map((d) => (
-            <Link key={d.id} to={`/piloti/${d.id}`} className="driver-row">
+            <Link key={d.id} to={`/piloti/${d.id}?season=${season}`} className="driver-row">
               <DriverPhoto driverId={d.id} wikiUrl={d.wikiUrl} name={d.name} size={44} tint={color} historic={parseInt(season, 10) < 2000} />
               <span>
                 <b style={{ display: "flex", alignItems: "center", fontSize: "0.92rem" }}>

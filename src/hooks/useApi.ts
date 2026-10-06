@@ -9,7 +9,7 @@ export type ApiState<T> =
   | { status: "ok"; data: T; error: null }
   | { status: "error"; data: null; error: ApiError };
 
-export function useApi<T>(fn: () => Promise<T>, deps: unknown[]): ApiState<T> & { retry: () => void } {
+export function useApi<T>(fn: (signal?: AbortSignal) => Promise<T>, deps: unknown[]): ApiState<T> & { retry: () => void } {
   const { t } = useSettings();
   const [state, setState] = useState<ApiState<T>>({ status: "loading", data: null, error: null });
   const [nonce, setNonce] = useState(0);
@@ -22,16 +22,23 @@ export function useApi<T>(fn: () => Promise<T>, deps: unknown[]): ApiState<T> & 
 
   useEffect(() => {
     let cancelled = false;
+    // Abort obsolete in-flight requests (e.g. rapid season switching).
+    const ctrl = new AbortController();
     setState({ status: "loading", data: null, error: null });
-    fnRef.current()
+    fnRef.current(ctrl.signal)
       .then((data) => {
         if (!cancelled) setState({ status: "ok", data, error: null });
       })
       .catch((e) => {
+        if (cancelled) return;
+        // An aborted request is superseded by a newer one (or the component
+        // is gone): never surface it as an error state.
+        if (e instanceof ApiError && e.message === "aborted") return;
         if (!cancelled) setState({ status: "error", data: null, error: e instanceof ApiError ? e : new ApiError(String(e)) });
       });
     return () => {
       cancelled = true;
+      ctrl.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nonce, ...deps]);

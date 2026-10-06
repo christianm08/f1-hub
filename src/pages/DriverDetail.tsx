@@ -6,11 +6,13 @@ import { Database, Flag, Medal, Sigma, Timer, TrendingUp, Trophy, User } from "l
 import { jolpica, type RaceInfo, type RaceResult } from "../api/jolpica";
 import { loadDriverModels, resolveDriver, type DriverModel } from "../api/model";
 import { useApi } from "../hooks/useApi";
+import { useSeasonParam } from "../hooks/useSeasonParam";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, gapText } from "../components/ui";
 import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { Sparkline } from "../components/charts";
 import { DriverPhoto } from "../components/DriverPhoto";
+import type { FetchOpts } from "../api/client";
 import { countryCode, nationalityCode, teamColor } from "../data/meta";
 
 interface DetailData {
@@ -20,13 +22,13 @@ interface DetailData {
   races: ({ Results: RaceResult[] } & RaceInfo)[];
 }
 
-async function load(season: string, driverId: string): Promise<DetailData> {
+async function load(season: string, driverId: string, o?: FetchOpts): Promise<DetailData> {
   // Models first: driverIds are not stable across seasons, so resolve the
   // requested id against this season's roster before fetching results.
-  const models = await loadDriverModels(season);
+  const models = await loadDriverModels(season, o);
   const driver = resolveDriver(models, driverId);
   if (!driver) throw new Error("not_found");
-  const races = await jolpica.driverResults(season, driver.id);
+  const races = await jolpica.driverResults(season, driver.id, o);
   const teamId = driver.teamId ?? races[0]?.Results[0]?.Constructor.constructorId ?? "";
   return {
     driver,
@@ -45,8 +47,10 @@ function fmtBirthday(iso: string | undefined, lang: "it" | "en"): string {
 
 export default function DriverDetail() {
   const { driverId = "" } = useParams();
-  const { t, season, lang } = useSettings();
-  const { status, data, retry } = useApi(() => load(season, driverId), [season, driverId]);
+  const { t, lang } = useSettings();
+  // ?season= in the URL preserves the season context from the list page.
+  const [season] = useSeasonParam();
+  const { status, data, retry } = useApi((signal) => load(season, driverId, { signal }), [season, driverId]);
 
   const stats = useMemo(() => {
     if (!data) return null;
@@ -96,7 +100,7 @@ export default function DriverDetail() {
       <PageHeader
         title={name}
         sub={`#${data.driver.number ?? "–"} · ${teamLabel}${age != null ? ` · ${t("age")}: ${age}` : ""}`}
-        right={<FavButton item={{ kind: "driver", id: data.driver.id, label: name }} />}
+        right={<><span className="season-badge">{t("season")} {season}</span><FavButton item={{ kind: "driver", id: data.driver.id, label: name }} /></>}
       />
 
       <div className="grid grid-4">

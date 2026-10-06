@@ -65,8 +65,9 @@ export interface FetchOpts {
 
 const DEFAULT_TTL = 10 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 15000;
-/** One retry delay for transient bad bodies (Jolpica "error code: 1033"). */
-const PARSE_RETRY_DELAY_MS = 1200;
+/** Parse-error retries (Jolpica "error code: 1033" transient bad bodies). */
+const PARSE_MAX_ATTEMPTS = 3;
+const PARSE_RETRY_DELAYS_MS = [1200, 3000];
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -118,22 +119,33 @@ export async function fetchJSON<T>(url: string, opts: FetchOpts = {}): Promise<T
   if (!res.ok) {
     throw new ApiError(`http_${res.status}`, res.status);
   }
-  let data: T;
-  try {
-    data = (await res.json()) as T;
-  } catch {
-    // Transient bad body (Jolpica intermittently returns HTTP 200 with a
-    // plain-text "error code: 1033" Cloudflare page): one retry, then fail.
-    await sleep(PARSE_RETRY_DELAY_MS);
-    if (signal?.aborted) throw new ApiError("aborted");
-    try {
-      const res2 = await fetchOnce(url, signal ?? undefined);
-      if (!res2.ok) throw new ApiError(`http_${res2.status}`, res2.status);
-      data = (await res2.json()) as T;
-    } catch (e) {
-      if (e instanceof ApiError) throw e;
-      throw new ApiError("parse_error");
+  let data: T | undefined;
+  let lastErr: unknown = null;
+  for (let attempt = 0; attempt < PARSE_MAX_ATTEMPTS; attempt++) {
+    if (attempt > 0) {
+      // Transient bad body (Jolpica intermittently returns HTTP 200 with a
+      // plain-text "error code: 1033" Cloudflare page): backoff and retry.
+      await sleep(PARSE_RETRY_DELAYS_MS[attempt - 1] ?? 3000);
+      if (signal?.aborted) throw new ApiError("aborted");
+      try {
+        const r2 = await fetchOnce(url, signal ?? undefined);
+        if (!r2.ok) throw new ApiError(`http_${r2.status}`, r2.status);
+        res = r2;
+      } catch (e) {
+        lastErr = e;
+        continue;
+      }
     }
+    try {
+      data = (await res.json()) as T;
+      break;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  if (data === undefined) {
+    if (lastErr instanceof ApiError) throw lastErr;
+    throw new ApiError("parse_error");
   }
   const entry: CacheEntry = { ts: Date.now(), data };
   memSet(url, entry);

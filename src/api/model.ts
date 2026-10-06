@@ -31,7 +31,7 @@
  */
 import { jolpica, type ConstructorRef, type DriverRef } from "./jolpica";
 import { f1api, teamCountry, teamFirstSeason, type F1ApiDriverEntry, type F1ApiTeamInfo } from "./f1api";
-import type { FetchOpts } from "./client";
+import { ApiError, type FetchOpts } from "./client";
 
 export interface DriverModel {
   id: string;
@@ -137,6 +137,14 @@ function initialsOf(fullName: string): string {
 const driverCache = new Map<string, Promise<DriverModel[]>>();
 const teamCache = new Map<string, Promise<TeamModel[]>>();
 
+/** Numeric championship position for sorting. Non-numeric/missing values
+ *  (e.g. Ergast "-" for unclassified drivers in old seasons) sort last.
+ *  parseInt alone would yield NaN and break the comparator. */
+function sortPosition(p: string | undefined): number {
+  const n = parseInt(p ?? "", 10);
+  return Number.isFinite(n) ? n : 999;
+}
+
 function memo<T>(cache: Map<string, Promise<T[]>>, season: string, build: () => Promise<T[]>): Promise<T[]> {
   let p = cache.get(season);
   if (!p) {
@@ -156,10 +164,10 @@ async function safeEnrich<T>(fn: () => Promise<T>): Promise<T | null> {
   }
 }
 
-async function buildDriverModels(season: string): Promise<DriverModel[]> {
+async function buildDriverModels(season: string, o?: FetchOpts): Promise<DriverModel[]> {
   const [driversRes, standings] = await Promise.all([
-    jolpica.drivers(season).catch((): null => null),
-    jolpica.driverStandings(season).catch((): never[] => []),
+    jolpica.drivers(season, o).catch((): null => null),
+    jolpica.driverStandings(season, undefined, o).catch((): never[] => []),
   ]);
   // Resilience: Jolpica intermittently serves a non-JSON "error code: 1033"
   // body (with HTTP 200) on list endpoints. Rebuild the driver list from the
@@ -179,7 +187,12 @@ async function buildDriverModels(season: string): Promise<DriverModel[]> {
   }
   const standById = new Map(standings.map((s) => [s.Driver.driverId, s]));
 
-  const enrichList = await safeEnrich(() => f1api.driversChampionship(season));
+  // Every F1 season has drivers: an empty list always means the data failed
+  // to load (not "no drivers"). Throw so the UI shows a retryable error
+  // instead of a misleading empty state.
+  if (drivers.length === 0) throw new ApiError("empty_response");
+
+  const enrichList = await safeEnrich(() => f1api.driversChampionship(season, o));
   const enrichById = new Map<string, F1ApiDriverEntry>();
   for (const e of enrichList ?? []) enrichById.set(e.driverId, e);
 
@@ -215,18 +228,14 @@ async function buildDriverModels(season: string): Promise<DriverModel[]> {
     };
   });
 
-  models.sort((a, b) => {
-    const pa = parseInt(a.position ?? "99", 10);
-    const pb = parseInt(b.position ?? "99", 10);
-    return pa - pb;
-  });
+  models.sort((a, b) => sortPosition(a.position) - sortPosition(b.position));
   return models;
 }
 
-async function buildTeamModels(season: string): Promise<TeamModel[]> {
+async function buildTeamModels(season: string, o?: FetchOpts): Promise<TeamModel[]> {
   const [teamsRes, standings] = await Promise.all([
-    jolpica.constructors(season).catch((): null => null),
-    jolpica.constructorStandings(season).catch((): never[] => []),
+    jolpica.constructors(season, o).catch((): null => null),
+    jolpica.constructorStandings(season, undefined, o).catch((): never[] => []),
   ]);
   // Same resilience as buildDriverModels: rebuild from standings on flaky
   // list-endpoint responses.
@@ -244,7 +253,12 @@ async function buildTeamModels(season: string): Promise<TeamModel[]> {
   }
   const standById = new Map(standings.map((s) => [s.Constructor.constructorId, s]));
 
-  const enrichList = await safeEnrich(() => f1api.constructorsChampionship(season));
+  // Every F1 season has constructors: an empty list always means the data
+  // failed to load. Throw so the UI shows a retryable error instead of a
+  // misleading empty state.
+  if (teams.length === 0) throw new ApiError("empty_response");
+
+  const enrichList = await safeEnrich(() => f1api.constructorsChampionship(season, o));
   const enrichById = new Map<string, F1ApiTeamInfo>((enrichList ?? []).map((e) => [e.teamId, e.team]));
 
   const models: TeamModel[] = teams.map((c) => {
@@ -265,24 +279,20 @@ async function buildTeamModels(season: string): Promise<TeamModel[]> {
     };
   });
 
-  models.sort((a, b) => {
-    const pa = parseInt(a.position ?? "99", 10);
-    const pb = parseInt(b.position ?? "99", 10);
-    return pa - pb;
-  });
+  models.sort((a, b) => sortPosition(a.position) - sortPosition(b.position));
   return models;
 }
 
 /** All drivers of a season as normalized models (Jolpica + f1api.dev enrichment). */
 export function loadDriverModels(season: string, o?: FetchOpts): Promise<DriverModel[]> {
   if (o?.fresh) driverCache.delete(season);
-  return memo(driverCache, season, () => buildDriverModels(season));
+  return memo(driverCache, season, () => buildDriverModels(season, o));
 }
 
 /** All constructors of a season as normalized models (Jolpica + f1api.dev enrichment). */
 export function loadTeamModels(season: string, o?: FetchOpts): Promise<TeamModel[]> {
   if (o?.fresh) teamCache.delete(season);
-  return memo(teamCache, season, () => buildTeamModels(season));
+  return memo(teamCache, season, () => buildTeamModels(season, o));
 }
 
 /** Clear memoized models (used together with clearCache from Settings). */
