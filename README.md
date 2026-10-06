@@ -193,8 +193,11 @@ nel commento header di `src/api/openf1.ts`).
 - **Foto dei piloti** — ritratti dagli articoli Wikipedia dei piloti (ospitati
   su Wikimedia Commons con licenze libere). Risoluzione in tre livelli
   (`src/api/photos.ts`): (1) **mappa curata** in `src/data/assets.ts`
-  (`DRIVER_PHOTOS`: 35 ritratti verificati visivamente il 2026-10-06 —
-  riconoscibili, senza watermark, chiave stabile = Jolpica driverId);
+  (`DRIVER_PHOTOS`: 37 ritratti verificati visivamente — riconoscibili,
+  stile ritratto coerente (primi piani/mezzibusti), senza watermark, chiave
+  stabile = Jolpica driverId; ogni file con licenza libera verificata
+  singolarmente via API di Wikimedia Commons: CC BY 2.0 / CC BY-SA 2.0 /
+  CC BY-SA 4.0 / pubblico dominio);
   (2) miniatura dell'articolo Wikipedia via REST API (`/api/rest_v1/page/summary/`,
   deterministica: stesso articolo → stessa immagine infobox);
   (3) placeholder professionale (versione "archivio" seppia per i piloti
