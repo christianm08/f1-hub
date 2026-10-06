@@ -50,6 +50,9 @@ export interface DriverModel {
   age?: number;
   teamId?: string;
   teamName?: string;
+  /** ALL constructors the driver raced for in this season (Jolpica standings).
+   *  Drivers who switched teams mid-season have more than one entry. */
+  teams: { id: string; name: string }[];
   position?: string;
   points?: string;
   wins?: string;
@@ -80,6 +83,32 @@ export interface TeamModel {
 const DRIVER_ID_ALIASES: Record<string, string> = {
   arvid_lindblad: "lindblad",
 };
+
+/** Alternate Jolpica driverIds used in some seasons.
+ *  Jolpica/Ergast IDs are NOT stable across seasons
+ *  (e.g. "verstappen" in 2026 but "max_verstappen" in 2025). */
+const DRIVER_ID_SEASON_ALIASES: Record<string, string[]> = {
+  verstappen: ["max_verstappen"],
+  max_verstappen: ["verstappen"],
+};
+
+const normId = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
+
+/** Resolve a driverId to a season model, tolerating cross-season ID changes.
+ *  1) exact match  2) known season aliases  3) family-name fallback, ONLY when
+ *  it yields exactly one unambiguous candidate (never risk the wrong driver). */
+export function resolveDriver(models: DriverModel[], driverId: string): DriverModel | undefined {
+  const exact = models.find((m) => m.id === driverId);
+  if (exact) return exact;
+  for (const alt of DRIVER_ID_SEASON_ALIASES[driverId] ?? []) {
+    const m = models.find((x) => x.id === alt);
+    if (m) return m;
+  }
+  const fam = normId(driverId.split("_").pop() ?? driverId);
+  if (!fam) return undefined;
+  const cands = models.filter((m) => normId(m.familyName) === fam);
+  return cands.length === 1 ? cands[0] : undefined;
+}
 
 /** "DD/MM/YYYY" or ISO -> ISO "YYYY-MM-DD". undefined when unparseable. */
 export function parseF1ApiDate(s: string | undefined): string | undefined {
@@ -148,6 +177,7 @@ async function buildDriverModels(season: string): Promise<DriverModel[]> {
     const dateOfBirth = d.dateOfBirth || parseF1ApiDate(e?.driver.birthday);
     const teamId = s?.Constructors[0]?.constructorId ?? e?.teamId;
     const teamName = s?.Constructors[0]?.name;
+    const teams = (s?.Constructors ?? []).map((c) => ({ id: c.constructorId, name: c.name }));
     return {
       id: d.driverId,
       givenName: d.givenName,
@@ -161,6 +191,7 @@ async function buildDriverModels(season: string): Promise<DriverModel[]> {
       age: ageOf(dateOfBirth),
       teamId,
       teamName,
+      teams,
       position: s?.positionText,
       points: s?.points,
       wins: s?.wins,

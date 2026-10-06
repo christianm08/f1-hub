@@ -113,7 +113,7 @@ export default function TeamDetail() {
           <h3 className="card-title"><Users size={17} aria-hidden="true" />{t("nav_drivers")}</h3>
           {stats.drivers.map((d) => (
             <Link key={d.id} to={`/piloti/${d.id}`} className="driver-row">
-              <DriverPhoto wikiUrl={d.wikiUrl} name={d.name} size={44} tint={color} />
+              <DriverPhoto driverId={d.id} wikiUrl={d.wikiUrl} name={d.name} size={44} tint={color} historic={parseInt(season, 10) < 2000} />
               <span>
                 <b style={{ display: "flex", alignItems: "center", fontSize: "0.92rem" }}>
                   <span className="nat">{nationalityCode(d.nat)}</span>{d.name}

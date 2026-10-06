@@ -39,10 +39,12 @@ export default function Standings() {
       title: (
         <span className="row" style={{ gap: 10 }}>
           <DriverPhoto
+            driverId={s.Driver.driverId}
             wikiUrl={s.Driver.url}
             name={`${s.Driver.givenName} ${s.Driver.familyName}`}
             size={38}
             tint={teamColor(s.Constructors[0]?.constructorId ?? "")}
+            historic={parseInt(season, 10) < 2000}
           />
           <Link to={`/piloti/${s.Driver.driverId}`}>
             <span className="nat">{nationalityCode(s.Driver.nationality)}</span>

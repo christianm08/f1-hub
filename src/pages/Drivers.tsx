@@ -15,7 +15,7 @@ export default function Drivers() {
 
   useEffect(() => {
     if (data) {
-      preloadDriverPhotos(data.map((d) => ({ wikiUrl: d.wikiUrl, name: d.fullName })));
+      preloadDriverPhotos(data.map((d) => ({ driverId: d.id, wikiUrl: d.wikiUrl, name: d.fullName })));
     }
   }, [data]);
 
@@ -36,7 +36,7 @@ export default function Drivers() {
           return (
             <Link key={d.id} to={`/piloti/${d.id}`} className="card driver-card">
               <div className="spread">
-                <DriverPhoto wikiUrl={d.wikiUrl} name={d.fullName} size={56} tint={color} />
+                <DriverPhoto driverId={d.id} wikiUrl={d.wikiUrl} name={d.fullName} size={56} tint={color} historic={parseInt(season, 10) < 2000} />
                 <FavButton item={{ kind: "driver", id: d.id, label: d.fullName }} />
               </div>
               <h3 className="card-title" style={{ margin: "12px 0 4px" }}>

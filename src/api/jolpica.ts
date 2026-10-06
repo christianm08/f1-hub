@@ -124,7 +124,7 @@ export const jolpica = {
   driverStandings: (season: string, round?: string, o?: FetchOpts) =>
     mr(
       fetchJSON<MRData<{ StandingsTable: { StandingsLists: { DriverStandings: DriverStanding[] }[] } }>>(
-        `${BASE}/${season}${round ? `/${round}` : ""}/driverStandings.json`,
+        `${BASE}/${season}${round ? `/${round}` : ""}/driverStandings.json?limit=100`,
         o
       )
     ).then((d) => d.StandingsTable.StandingsLists[0]?.DriverStandings ?? []),
@@ -132,7 +132,7 @@ export const jolpica = {
   constructorStandings: (season: string, round?: string, o?: FetchOpts) =>
     mr(
       fetchJSON<MRData<{ StandingsTable: { StandingsLists: { ConstructorStandings: ConstructorStanding[] }[] } }>>(
-        `${BASE}/${season}${round ? `/${round}` : ""}/constructorStandings.json`,
+        `${BASE}/${season}${round ? `/${round}` : ""}/constructorStandings.json?limit=100`,
         o
       )
     ).then((d) => d.StandingsTable.StandingsLists[0]?.ConstructorStandings ?? []),
@@ -186,12 +186,12 @@ export const jolpica = {
     ).then((d) => d.RaceTable.Races),
 
   drivers: (season: string, o?: FetchOpts) =>
-    mr(fetchJSON<MRData<{ DriverTable: { Drivers: DriverRef[] } }>>(`${BASE}/${season}/drivers.json`, o)).then(
+    mr(fetchJSON<MRData<{ DriverTable: { Drivers: DriverRef[] } }>>(`${BASE}/${season}/drivers.json?limit=100`, o)).then(
       (d) => d.DriverTable.Drivers
     ),
 
   constructors: (season: string, o?: FetchOpts) =>
-    mr(fetchJSON<MRData<{ ConstructorTable: { Constructors: ConstructorRef[] } }>>(`${BASE}/${season}/constructors.json`, o)).then(
+    mr(fetchJSON<MRData<{ ConstructorTable: { Constructors: ConstructorRef[] } }>>(`${BASE}/${season}/constructors.json?limit=100`, o)).then(
       (d) => d.ConstructorTable.Constructors
     ),
 

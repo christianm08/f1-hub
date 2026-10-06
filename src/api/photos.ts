@@ -1,16 +1,27 @@
-/* Driver photos via Wikipedia REST summary API (free, keyless).
- * Source: the driver's Wikipedia article thumbnail (hosted on Wikimedia
- * Commons under a free license). Cached aggressively: in-memory promise
- * memo + localStorage with a long TTL. Never throws: null = use placeholder.
+/* Driver photos: curated verified portraits first, Wikipedia fallback, placeholder last.
+ * Sources: Wikimedia Commons / Wikipedia infobox portraits (free licenses).
+ *
+ * Resolution order (never invents, never mismatches):
+ *   1. curated DRIVER_PHOTOS map in ../data/assets (visually verified portraits,
+ *      keyed by stable Jolpica driverId)
+ *   2. Wikipedia PageImages API for the driver's article (deterministic:
+ *      same article -> same infobox image)
+ *   3. null -> the UI renders the professional placeholder
+ *
+ * Cached aggressively: in-memory promise memo + localStorage with a long TTL.
+ * Never throws: null = use placeholder.
  * Attribution: credit line "Immagini: Wikimedia Commons / Wikipedia"
  * is shown in the app footer and documented in the README.
  */
+import { driverPhotoAsset } from "../data/assets";
 
 export interface DriverPhoto {
   /** ~320px thumbnail for cards/lists. */
   thumb: string;
   /** Full-size original for the detail page. */
   full: string;
+  /** Vertical focal point 0-100 for the uniform crop (default 18). */
+  focalY?: number;
 }
 
 const LS_KEY = "f1hub:photos:v1";
@@ -89,13 +100,29 @@ async function fetchPhoto(title: string): Promise<DriverPhoto | null> {
 }
 
 /**
- * Resolve a driver's photo. Keyed by Wikipedia article title.
- * Dedupes in-flight requests; falls back to `name` as title when no URL.
+ * Resolve a driver's photo, curated-first.
+ * Keyed by stable Jolpica driverId when available (exact identity match);
+ * falls back to the Wikipedia article thumbnail; null when nothing usable.
+ * Dedupes in-flight requests.
  */
-export function getDriverPhoto(wikiUrl?: string, name?: string): Promise<DriverPhoto | null> {
+export function getDriverPhoto(
+  driverId?: string,
+  wikiUrl?: string,
+  name?: string
+): Promise<DriverPhoto | null> {
+  const curated = driverPhotoAsset(driverId);
+  const cacheKey = `id:${driverId ?? ""}`;
+  if (curated) {
+    let p = mem.get(cacheKey);
+    if (!p) {
+      p = Promise.resolve({ thumb: curated.url, full: curated.url, focalY: curated.focalY });
+      mem.set(cacheKey, p);
+    }
+    return p;
+  }
   const title = wikiTitleFromUrl(wikiUrl) ?? (name ? name.trim().replace(/ /g, "_") : null);
   if (!title) return Promise.resolve(null);
-  const key = title.toLowerCase();
+  const key = `wiki:${title.toLowerCase()}`;
   let p = mem.get(key);
   if (!p) {
     const cached = lsGet(key);
@@ -112,8 +139,8 @@ export function getDriverPhoto(wikiUrl?: string, name?: string): Promise<DriverP
 }
 
 /** Preload photos for above-the-fold drivers (fire and forget). */
-export function preloadDriverPhotos(items: Array<{ wikiUrl?: string; name?: string }>) {
+export function preloadDriverPhotos(items: Array<{ driverId?: string; wikiUrl?: string; name?: string }>) {
   for (const it of items.slice(0, 6)) {
-    getDriverPhoto(it.wikiUrl, it.name).catch(() => undefined);
+    getDriverPhoto(it.driverId, it.wikiUrl, it.name).catch(() => undefined);
   }
 }

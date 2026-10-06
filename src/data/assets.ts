@@ -316,3 +316,67 @@ export function teamCar(constructorId: string | undefined, season: number | stri
   const y = typeof season === "string" ? parseInt(season, 10) : season;
   return list.find((c) => c.season === y);
 }
+/** Curated driver portraits: Jolpica driverId -> verified free-license portrait.
+ * Source: Wikipedia infobox thumbnails (Wikimedia Commons). Visually verified 2026-10-06:
+ * recognizable professional portraits, no watermarks. See README 'Fonti dati e licenze'.
+ * Lookup order in api/photos.ts: curated map -> Wikipedia PageImages API -> placeholder.
+ * focalY: vertical focal point for object-position (percent, default 18 = near top). */
+export interface DriverPhotoAsset {
+  /** direct thumbnail URL (Wikimedia). */
+  url: string;
+  /** vertical focal point 0-100 for the uniform crop. */
+  focalY?: number;
+}
+export const DRIVER_PHOTOS: Record<string, DriverPhotoAsset> = {
+  alonso: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/97/Alonso-68_%2824710447098%29.jpg/330px-Alonso-68_%2824710447098%29.jpg" },
+  arvid_lindblad: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0c/Arvid_Lindblad_at_the_Red_Bull_Fan_Zone_%E2%80%93_Crown_Riverwalk%2C_Melbourne_%28028A7869%29_%28cropped%29.jpg/330px-Arvid_Lindblad_at_the_Red_Bull_Fan_Zone_%E2%80%93_Crown_Riverwalk%2C_Melbourne_%28028A7869%29_%28cropped%29.jpg" },
+  bearman: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/2025_Japan_GP_-_Haas_-_Oliver_Bearman_-_Thursday_%28cropped%29.jpg/330px-2025_Japan_GP_-_Haas_-_Oliver_Bearman_-_Thursday_%28cropped%29.jpg" },
+  bortoleto: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/25/Gabriel_Bortoleto_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_%28028A8581%29_cropped.jpg/330px-Gabriel_Bortoleto_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_%28028A8581%29_cropped.jpg" },
+  button: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0c/Jenson_Button_2024_WEC_Fuji.jpg/330px-Jenson_Button_2024_WEC_Fuji.jpg" },
+  clark: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4f/Jim_Clark_in_1963_%28cropped%29.JPG/330px-Jim_Clark_in_1963_%28cropped%29.JPG" },
+  colapinto: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1c/Franco_Colapinto_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_%28028A8698%29_cropped.jpg/330px-Franco_Colapinto_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_%28028A8698%29_cropped.jpg" },
+  damon_hill: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cf/Damon_Hill_at_the_Atlassian_Williams_Racing_Fan_Zone_of_2026_%28028A8241%29.jpg/330px-Damon_Hill_at_the_Atlassian_Williams_Racing_Fan_Zone_of_2026_%28028A8241%29.jpg" },
+  fangio: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Fangio_in_1955_%28cropped%29.jpg/330px-Fangio_in_1955_%28cropped%29.jpg" },
+  gasly: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3e/Pierre_Gasly_2017_Malaysia.jpg/330px-Pierre_Gasly_2017_Malaysia.jpg" },
+  hadjar: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/75/Isack_Hadjar_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_%28028A8753%29_%28cropped%29.jpg/330px-Isack_Hadjar_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_%28028A8753%29_%28cropped%29.jpg" },
+  hakkinen: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a6/Mika_H%C3%A4kkinen_Champions_for_Charity_2016-07-27.jpg/330px-Mika_H%C3%A4kkinen_Champions_for_Charity_2016-07-27.jpg" },
+  hamilton: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/Prime_Minister_Keir_Starmer_meets_Sir_Lewis_Hamilton_%2854566928382%29_%28cropped%29.jpg/330px-Prime_Minister_Keir_Starmer_meets_Sir_Lewis_Hamilton_%2854566928382%29_%28cropped%29.jpg" },
+  hulkenberg: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/2019_Formula_One_tests_Barcelona%2C_Hulkenberg_%2840287128313%29.jpg/330px-2019_Formula_One_tests_Barcelona%2C_Hulkenberg_%2840287128313%29.jpg" },
+  jack_brabham: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e7/BrabhamJack1966B.jpg/330px-BrabhamJack1966B.jpg" },
+  lauda: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Lauda_at_1982_Dutch_Grand_Prix.jpg/330px-Lauda_at_1982_Dutch_Grand_Prix.jpg" },
+  lawson: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/88/Liam_Lawson_at_the_Red_Bull_Fan_Zone_%E2%80%93_Crown_Riverwalk%2C_Melbourne_%28028A7795%29.jpg/330px-Liam_Lawson_at_the_Red_Bull_Fan_Zone_%E2%80%93_Crown_Riverwalk%2C_Melbourne_%28028A7795%29.jpg" },
+  leclerc: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d5/Charles_Leclerc_at_the_2026_Cannes_Film_Festival_%28cropped%29.jpg/330px-Charles_Leclerc_at_the_2026_Cannes_Film_Festival_%28cropped%29.jpg" },
+  mansell: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e4/Nigel_Mansell_-_Mexican_Grand_Prix_01_%28cropped%29.jpeg/330px-Nigel_Mansell_-_Mexican_Grand_Prix_01_%28cropped%29.jpeg" },
+  max_verstappen: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/52/2024-08-25_Motorsport%2C_Formel_1%2C_Gro%C3%9Fer_Preis_der_Niederlande_2024_STP_3973_by_Stepro_%28medium_crop%29.jpg/330px-2024-08-25_Motorsport%2C_Formel_1%2C_Gro%C3%9Fer_Preis_der_Niederlande_2024_STP_3973_by_Stepro_%28medium_crop%29.jpg" },
+  michael_schumacher: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c2/Michael_Schumacher%2C_September_2005.jpg/330px-Michael_Schumacher%2C_September_2005.jpg" },
+  norris: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/2024-08-25_Motorsport%2C_Formel_1%2C_Gro%C3%9Fer_Preis_der_Niederlande_2024_STP_3968_by_Stepro_%28cropped2%29.jpg/330px-2024-08-25_Motorsport%2C_Formel_1%2C_Gro%C3%9Fer_Preis_der_Niederlande_2024_STP_3968_by_Stepro_%28cropped2%29.jpg" },
+  ocon: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Esteban_Ocon_2024_Suzuka_%28cropped%29.jpg/330px-Esteban_Ocon_2024_Suzuka_%28cropped%29.jpg" },
+  piastri: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e5/2026_Chinese_GP_-_Oscar_Piastri_%28cropped%29_%28cropped%29.jpg/330px-2026_Chinese_GP_-_Oscar_Piastri_%28cropped%29_%28cropped%29.jpg" },
+  piquet: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5b/Cerimonia_de_entrega_da_medalha_Bras%C3%ADlia_60_anos_-_16.jpg/330px-Cerimonia_de_entrega_da_medalha_Bras%C3%ADlia_60_anos_-_16.jpg" },
+  prost: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/Festival_automobile_international_2015_-_Photocall_-_065_%28cropped3%29.jpg/330px-Festival_automobile_international_2015_-_Photocall_-_065_%28cropped3%29.jpg" },
+  raikkonen: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/F12019_Schloss_Gabelhofen_%2822%29_%28cropped%29.jpg/330px-F12019_Schloss_Gabelhofen_%2822%29_%28cropped%29.jpg" },
+  rindt: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Rindt_at_1970_Dutch_Grand_Prix_%282C%29.jpg/330px-Rindt_at_1970_Dutch_Grand_Prix_%282C%29.jpg" },
+  russell: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7f/KingsLeonSilverstne040724_%2828_of_112%29_%2853838006028%29_%28cropped%29.jpg/330px-KingsLeonSilverstne040724_%2828_of_112%29_%2853838006028%29_%28cropped%29.jpg" },
+  sainz: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/Carlos_Sainz_at_the_83rd_Venice_FILM_festival-9_%28cropped%29.jpg/330px-Carlos_Sainz_at_the_83rd_Venice_FILM_festival-9_%28cropped%29.jpg" },
+  senna: { url: "https://upload.wikimedia.org/wikipedia/commons/9/9f/Ayrton_Senna_Pesawat_RC_Cropped.jpg" },
+  stewart: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4b/Jackie_Stewart_at_the_2014_WEC_Silverstone_round.jpg/330px-Jackie_Stewart_at_the_2014_WEC_Silverstone_round.jpg" },
+  stroll: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4e/2025_Japan_GP_-_Aston_Martin_-_Lance_Stroll_-_Fanzone_Stage_%28cropped%29.jpg/330px-2025_Japan_GP_-_Aston_Martin_-_Lance_Stroll_-_Fanzone_Stage_%28cropped%29.jpg" },
+  tsunoda: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a0/Yuki_Tsunoda_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_%28028A8096%29.jpg/330px-Yuki_Tsunoda_at_the_Melbourne_Walk_during_the_2026_Australian_Grand_Prix_%28028A8096%29.jpg" },
+  vettel: { url: "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/af/Sebastian_Vettel_at_the_2026_Italian_Grand_Prix.jpg/330px-Sebastian_Vettel_at_the_2026_Italian_Grand_Prix.jpg" },
+};
+
+/** Small alias table for cross-season Jolpica ID changes (mirrors model.ts). */
+const DRIVER_PHOTO_ALIASES: Record<string, string> = {
+  verstappen: "max_verstappen",
+  lindblad: "arvid_lindblad",
+};
+
+/**
+ * Verified portrait for a Jolpica driverId, or undefined -> caller falls back
+ * to the Wikipedia API thumbnail, then to the professional placeholder.
+ * Never guesses: unknown IDs return undefined.
+ */
+export function driverPhotoAsset(driverId: string | undefined): DriverPhotoAsset | undefined {
+  if (!driverId) return undefined;
+  return DRIVER_PHOTOS[driverId] ?? DRIVER_PHOTOS[DRIVER_PHOTO_ALIASES[driverId] ?? ""];
+}

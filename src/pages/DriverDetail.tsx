@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Database, Flag, Medal, Sigma, Timer, TrendingUp, Trophy, User } from "lucide-react";
 import { jolpica, type RaceInfo, type RaceResult } from "../api/jolpica";
-import { loadDriverModels, type DriverModel } from "../api/model";
+import { loadDriverModels, resolveDriver, type DriverModel } from "../api/model";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, gapText } from "../components/ui";
@@ -21,12 +21,12 @@ interface DetailData {
 }
 
 async function load(season: string, driverId: string): Promise<DetailData> {
-  const [models, races] = await Promise.all([
-    loadDriverModels(season),
-    jolpica.driverResults(season, driverId),
-  ]);
-  const driver = models.find((m) => m.id === driverId);
+  // Models first: driverIds are not stable across seasons, so resolve the
+  // requested id against this season's roster before fetching results.
+  const models = await loadDriverModels(season);
+  const driver = resolveDriver(models, driverId);
   if (!driver) throw new Error("not_found");
+  const races = await jolpica.driverResults(season, driver.id);
   const teamId = driver.teamId ?? races[0]?.Results[0]?.Constructor.constructorId ?? "";
   return {
     driver,
@@ -78,6 +78,9 @@ export default function DriverDetail() {
   const color = teamColor(data.teamId);
   const name = data.driver.fullName;
   const age = data.driver.age;
+  const teamLabel = data.driver.teams.length > 1
+    ? data.driver.teams.map((tm) => tm.name).join(" · ")
+    : data.teamName;
   const progMin = stats.progression.length ? Math.min(...stats.progression) : 0;
   const progMax = stats.progression.length ? Math.max(...stats.progression) : 0;
 
@@ -92,7 +95,7 @@ export default function DriverDetail() {
     <div>
       <PageHeader
         title={name}
-        sub={`#${data.driver.number ?? "–"} · ${data.teamName}${age != null ? ` · ${t("age")}: ${age}` : ""}`}
+        sub={`#${data.driver.number ?? "–"} · ${teamLabel}${age != null ? ` · ${t("age")}: ${age}` : ""}`}
         right={<FavButton item={{ kind: "driver", id: data.driver.id, label: name }} />}
       />
 
@@ -109,15 +112,15 @@ export default function DriverDetail() {
         <div className="card">
           <h3 className="card-title"><User size={17} aria-hidden="true" />{t("driver")}</h3>
           <div className="row">
-            <DriverPhoto wikiUrl={data.driver.wikiUrl} name={name} size={72} tint={color} />
+            <DriverPhoto driverId={data.driver.id} wikiUrl={data.driver.wikiUrl} name={name} size={72} tint={color} historic={parseInt(season, 10) < 2000} />
             <div>
               <b style={{ fontSize: "0.98rem" }}>{name}</b>
-              <p className="muted small" style={{ margin: "2px 0 0" }}>{data.teamName}</p>
+              <p className="muted small" style={{ margin: "2px 0 0" }}>{teamLabel}</p>
             </div>
           </div>
           <hr className="divider" />
           <dl className="kv">
-            <dt>{t("team")}</dt><dd>{data.teamName}</dd>
+            <dt>{t("team")}</dt><dd>{teamLabel}</dd>
             <dt>{t("number")}</dt><dd className="num">#{data.driver.number ?? "–"}</dd>
             <dt>{t("code")}</dt><dd><span className="mono" style={{ fontWeight: 700 }}>{data.driver.code}</span></dd>
             <dt>{t("nationality")}</dt><dd><span className="nat" style={{ marginRight: 0 }}>{nationalityCode(data.driver.nationality)}</span> {data.driver.nationality}</dd>

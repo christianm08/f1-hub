@@ -129,10 +129,17 @@ rewrite del server). Pagine caricate in lazy per chunk separati.
   società della Formula 1; i marchi F1® appartengono a Formula One Licensing B.V.
 - **News** — titoli ed estratti via RSS (RaceFans, Motorsport.com) con link
   all'articolo originale; nessun articolo riprodotto integralmente.
-- **Foto dei piloti** — miniature dagli articoli Wikipedia dei piloti (ospitate
-  su Wikimedia Commons con licenze libere), risolte a runtime via Wikipedia
-  REST API (`/api/rest_v1/page/summary/`), senza key. Cache locale 90 giorni.
-  Quando non esiste una foto, l'app mostra un placeholder grafico professionale.
+- **Foto dei piloti** — ritratti dagli articoli Wikipedia dei piloti (ospitati
+  su Wikimedia Commons con licenze libere). Risoluzione in tre livelli
+  (`src/api/photos.ts`): (1) **mappa curata** in `src/data/assets.ts`
+  (`DRIVER_PHOTOS`: 35 ritratti verificati visivamente il 2026-10-06 —
+  riconoscibili, senza watermark, chiave stabile = Jolpica driverId);
+  (2) miniatura dell'articolo Wikipedia via REST API (`/api/rest_v1/page/summary/`,
+  deterministica: stesso articolo → stessa immagine infobox);
+  (3) placeholder professionale (versione "archivio" seppia per i piloti
+  pre-2000 senza foto). Mai foto di altri piloti, mai immagini casuali dal web.
+  Presentazione uniforme: stesso aspect ratio 1:1, `object-fit: cover` con
+  focal point per pilota, backdrop in tinta team. Cache locale 90 giorni.
   Attribuzione: "Immagini: Wikimedia Commons / Wikipedia" (anche nel footer).
 - **Loghi dei team** — SOLO loghi con licenza libera verificata su Wikimedia
   Commons (17 team su 22 mappati, prevalentemente `PD-textlogo`: liberi da
