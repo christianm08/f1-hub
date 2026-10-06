@@ -60,7 +60,7 @@ export default function Teams() {
             <Link key={c.id} to={`/team/${c.id}?season=${season}`} className="card team-card">
               <div className="spread">
                 <TeamLogo constructorId={c.id} name={c.name} size={52} tint={color} />
-                <FavButton item={{ kind: "team", id: c.id, label: c.name }} />
+                <FavButton item={{ kind: "team", id: c.id, label: c.name, season }} />
               </div>
               <h3 className="card-title" style={{ margin: "12px 0 4px" }}>
                 <span className="nat">{nationalityCode(c.nationality)}</span>

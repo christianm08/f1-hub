@@ -165,12 +165,12 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
     for (const d of data.drivers) {
       const label = `${d.givenName} ${d.familyName}`;
       if (label.toLowerCase().includes(query) || (d.code ?? "").toLowerCase() === query) {
-        out.push({ kind: t("nav_drivers"), label, sub: d.nationality, to: `/piloti/${d.driverId}`, icon: Users });
+        out.push({ kind: t("nav_drivers"), label, sub: d.nationality, to: `/piloti/${d.driverId}?season=${season}`, icon: Users });
       }
     }
     for (const c of data.teams) {
       if (c.name.toLowerCase().includes(query)) {
-        out.push({ kind: t("nav_teams"), label: c.name, sub: c.nationality, to: `/team/${c.constructorId}`, icon: Building2 });
+        out.push({ kind: t("nav_teams"), label: c.name, sub: c.nationality, to: `/team/${c.constructorId}?season=${season}`, icon: Building2 });
       }
     }
     for (const r of data.races) {
@@ -189,7 +189,7 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
       }
     }
     return out.slice(0, 24);
-  }, [q, data, t]);
+  }, [q, data, t, season]);
 
   return (
     <div className="search-overlay" onClick={onClose} role="presentation">

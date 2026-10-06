@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { Database, Flag, Medal, Sigma, Timer, TrendingUp, Trophy, User } from "lucide-react";
 import { jolpica, type RaceInfo, type RaceResult } from "../api/jolpica";
 import { loadDriverModels, resolveDriver, type DriverModel } from "../api/model";
+import { ApiError } from "../api/client";
 import { useApi } from "../hooks/useApi";
 import { useSeasonParam } from "../hooks/useSeasonParam";
 import { useSettings } from "../store/settings";
@@ -27,7 +28,9 @@ async function load(season: string, driverId: string, o?: FetchOpts): Promise<De
   // requested id against this season's roster before fetching results.
   const models = await loadDriverModels(season, o);
   const driver = resolveDriver(models, driverId);
-  if (!driver) throw new Error("not_found");
+  // The driver is not on this season's roster (wrong/foreign-season id):
+  // surface a dedicated "not in this season" state, not a generic error.
+  if (!driver) throw new ApiError("driver_not_found");
   const races = await jolpica.driverResults(season, driver.id, o);
   const teamId = driver.teamId ?? races[0]?.Results[0]?.Constructor.constructorId ?? "";
   return {
@@ -50,7 +53,7 @@ export default function DriverDetail() {
   const { t, lang } = useSettings();
   // ?season= in the URL preserves the season context from the list page.
   const [season] = useSeasonParam();
-  const { status, data, retry } = useApi((signal) => load(season, driverId, { signal }), [season, driverId]);
+  const { status, data, retry, error } = useApi((signal) => load(season, driverId, { signal }), [season, driverId]);
 
   const stats = useMemo(() => {
     if (!data) return null;
@@ -76,6 +79,22 @@ export default function DriverDetail() {
     return <div><PageHeader title={t("loading")} /><div className="grid grid-2"><SkeletonCard /><SkeletonCard /></div></div>;
   }
   if (status === "error" || !data || !stats) {
+    if (error?.message === "driver_not_found") {
+      return (
+        <div>
+          <PageHeader title={t("nav_drivers")} sub={`${t("season")} ${season}`} />
+          <EmptyState
+            title={t("driver_not_in_season_title")}
+            body={t("driver_not_in_season_body")}
+          />
+          <p style={{ marginTop: 12 }}>
+            <Link to={`/piloti?season=${season}`} className="btn primary">
+              {t("back_to_drivers")}
+            </Link>
+          </p>
+        </div>
+      );
+    }
     return <div><PageHeader title={t("nav_drivers")} /><ErrorState onRetry={retry} /></div>;
   }
 
@@ -100,7 +119,7 @@ export default function DriverDetail() {
       <PageHeader
         title={name}
         sub={`#${data.driver.number ?? "–"} · ${teamLabel}${age != null ? ` · ${t("age")}: ${age}` : ""}`}
-        right={<><span className="season-badge">{t("season")} {season}</span><FavButton item={{ kind: "driver", id: data.driver.id, label: name }} /></>}
+        right={<><span className="season-badge">{t("season")} {season}</span><FavButton item={{ kind: "driver", id: data.driver.id, label: name, season }} /></>}
       />
 
       <div className="grid grid-4">

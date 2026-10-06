@@ -104,7 +104,7 @@ export default function Home() {
           <h2 className="section-title"><Heart aria-hidden="true" /> {t("favorites")}</h2>
           <div className="grid grid-3">
             {favorites.map((f) => (
-              <Link key={`${f.kind}:${f.id}`} className="card" to={f.kind === "driver" ? `/piloti/${f.id}` : f.kind === "team" ? `/team/${f.id}` : "/circuiti"}>
+              <Link key={`${f.kind}:${f.id}`} className="card" to={f.kind === "driver" ? `/piloti/${f.id}?season=${f.season ?? season}` : f.kind === "team" ? `/team/${f.id}?season=${f.season ?? season}` : "/circuiti"}>
                 <div className="spread">
                   <b>{f.label}</b>
                   <FavButton item={f} />
@@ -124,7 +124,7 @@ export default function Home() {
           </div>
           <div className="card" style={{ padding: "6px 16px" }}>
             {data.standings.slice(0, 5).map((s, i) => (
-              <Link key={s.Driver.driverId} to={`/piloti/${s.Driver.driverId}`} className="driver-row">
+              <Link key={s.Driver.driverId} to={`/piloti/${s.Driver.driverId}?season=${season}`} className="driver-row">
                 <b className="num" style={{ width: 26 }}>{i + 1}</b>
                 <span className="avatar-init" style={{ background: teamColor(s.Constructors[0]?.constructorId ?? "") }}>
                   {s.Driver.code ?? s.Driver.familyName.slice(0, 3).toUpperCase()}
@@ -147,7 +147,7 @@ export default function Home() {
           </div>
           <div className="card" style={{ padding: "6px 16px" }}>
             {data.cstands.slice(0, 5).map((s, i) => (
-              <Link key={s.Constructor.constructorId} to={`/team/${s.Constructor.constructorId}`} className="driver-row">
+              <Link key={s.Constructor.constructorId} to={`/team/${s.Constructor.constructorId}?season=${season}`} className="driver-row">
                 <b className="num" style={{ width: 26 }}>{i + 1}</b>
                 <span className="avatar-init" style={{ background: teamColor(s.Constructor.constructorId) }}>
                   {s.Constructor.name.slice(0, 2).toUpperCase()}
@@ -176,7 +176,7 @@ export default function Home() {
                   <tr key={r.Driver.driverId} className={r.positionText === "1" ? "leader" : ""}>
                     <td className="pos num">{r.positionText}</td>
                     <td>
-                      <Link to={`/piloti/${r.Driver.driverId}`}>
+                      <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
                         <span className="nat">{nationalityCode(r.Driver.nationality)}</span> <b>{r.Driver.code ?? r.Driver.familyName}</b>
                       </Link>
                     </td>
@@ -195,7 +195,7 @@ export default function Home() {
                 rowClass: r.positionText === "1" ? "leader" : undefined,
                 left: <span className="mpos">{r.positionText}</span>,
                 title: (
-                  <Link to={`/piloti/${r.Driver.driverId}`}>
+                  <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
                     <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
                     <b>{r.Driver.code ?? r.Driver.familyName}</b>
                   </Link>

@@ -10,6 +10,8 @@ export interface FavItem {
   kind: "driver" | "team" | "circuit";
   id: string;
   label: string;
+  /** Season context for driver/team favorites — restores the right season on open. */
+  season?: string;
 }
 
 interface Settings {

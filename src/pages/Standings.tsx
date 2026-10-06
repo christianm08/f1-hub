@@ -46,7 +46,7 @@ export default function Standings() {
             tint={teamColor(s.Constructors[0]?.constructorId ?? "")}
             historic={parseInt(season, 10) < 2000}
           />
-          <Link to={`/piloti/${s.Driver.driverId}`}>
+          <Link to={`/piloti/${s.Driver.driverId}?season=${season}`}>
             <span className="nat">{nationalityCode(s.Driver.nationality)}</span>
             <b>{s.Driver.code ?? s.Driver.familyName}</b>{" "}
             <span className="muted">{s.Driver.givenName} {s.Driver.familyName}</span>
@@ -68,7 +68,7 @@ export default function Standings() {
       rowClass: i === 0 ? "leader" : undefined,
       left: <span className="mpos">{s.positionText}</span>,
       title: (
-        <Link to={`/team/${s.Constructor.constructorId}`} className="row" style={{ gap: 10 }}>
+        <Link to={`/team/${s.Constructor.constructorId}?season=${season}`} className="row" style={{ gap: 10 }}>
           <TeamLogo constructorId={s.Constructor.constructorId} name={s.Constructor.name} size={34} tint={teamColor(s.Constructor.constructorId)} />
           <b>{s.Constructor.name}</b>
         </Link>
@@ -99,7 +99,7 @@ export default function Standings() {
                 <tr key={s.Driver.driverId} className={i === 0 ? "leader" : ""}>
                   <td className="pos num">{s.positionText}</td>
                   <td>
-                    <Link to={`/piloti/${s.Driver.driverId}`}>
+                    <Link to={`/piloti/${s.Driver.driverId}?season=${season}`}>
                       <span className="nat">{nationalityCode(s.Driver.nationality)}</span>{" "}
                       <b>{s.Driver.code ?? s.Driver.familyName}</b>{" "}
                       <span className="muted small">{s.Driver.givenName} {s.Driver.familyName}</span>
@@ -135,7 +135,7 @@ export default function Standings() {
                 <tr key={s.Constructor.constructorId} className={i === 0 ? "leader" : ""}>
                   <td className="pos num">{s.positionText}</td>
                   <td>
-                    <Link to={`/team/${s.Constructor.constructorId}`}>
+                    <Link to={`/team/${s.Constructor.constructorId}?season=${season}`}>
                       <span className="team-dot" style={{ background: teamColor(s.Constructor.constructorId) }} aria-hidden="true" />
                       <b>{s.Constructor.name}</b>
                     </Link>{" "}

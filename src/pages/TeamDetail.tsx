@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { BarChart3, Building2, CarFront, Flag, Medal, Sigma, Trophy, Users } from "lucide-react";
 import { jolpica, type RaceInfo, type RaceResult } from "../api/jolpica";
 import { loadTeamModels, type TeamModel } from "../api/model";
+import { ApiError } from "../api/client";
 import { useApi } from "../hooks/useApi";
 import { useSeasonParam } from "../hooks/useSeasonParam";
 import { useSettings } from "../store/settings";
@@ -28,7 +29,7 @@ async function load(season: string, constructorId: string, o?: FetchOpts): Promi
     jolpica.constructorResults(season, constructorId, o),
   ]);
   const team = models.find((m) => m.id === constructorId);
-  if (!team) throw new Error("not_found");
+  if (!team) throw new ApiError("team_not_found");
   return { team, races };
 }
 
@@ -37,7 +38,7 @@ export default function TeamDetail() {
   const { t } = useSettings();
   // ?season= in the URL preserves the season context from the list page.
   const [season] = useSeasonParam();
-  const { status, data, retry } = useApi((signal) => load(season, constructorId, { signal }), [season, constructorId]);
+  const { status, data, retry, error } = useApi((signal) => load(season, constructorId, { signal }), [season, constructorId]);
 
   const stats = useMemo(() => {
     if (!data) return null;
@@ -68,6 +69,22 @@ export default function TeamDetail() {
     return <div><PageHeader title={t("loading")} /><div className="grid grid-2"><SkeletonCard /><SkeletonCard /></div></div>;
   }
   if (status === "error" || !data || !stats) {
+    if (error?.message === "team_not_found") {
+      return (
+        <div>
+          <PageHeader title={t("nav_teams")} sub={`${t("season")} ${season}`} />
+          <EmptyState
+            title={t("team_not_in_season_title")}
+            body={t("team_not_in_season_body")}
+          />
+          <p style={{ marginTop: 12 }}>
+            <Link to={`/team?season=${season}`} className="btn primary">
+              {t("back_to_teams")}
+            </Link>
+          </p>
+        </div>
+      );
+    }
     return <div><PageHeader title={t("nav_teams")} /><ErrorState onRetry={retry} /></div>;
   }
 
@@ -85,7 +102,7 @@ export default function TeamDetail() {
       <PageHeader
         title={data.team.name}
         sub={`${t("season")} ${season}`}
-        right={<><span className="season-badge">{season}</span><FavButton item={{ kind: "team", id: data.team.id, label: data.team.name }} /></>}
+        right={<><span className="season-badge">{season}</span><FavButton item={{ kind: "team", id: data.team.id, label: data.team.name, season }} /></>}
       />
 
       <div className="grid grid-4">

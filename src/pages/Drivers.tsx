@@ -50,7 +50,7 @@ export default function Drivers() {
             <Link key={d.id} to={`/piloti/${d.id}?season=${season}`} className="card driver-card">
               <div className="spread">
                 <DriverPhoto driverId={d.id} wikiUrl={d.wikiUrl} name={d.fullName} size={56} tint={color} historic={parseInt(season, 10) < 2000} />
-                <FavButton item={{ kind: "driver", id: d.id, label: d.fullName }} />
+                <FavButton item={{ kind: "driver", id: d.id, label: d.fullName, season }} />
               </div>
               <h3 className="card-title" style={{ margin: "12px 0 4px" }}>
                 <span className="nat">{nationalityCode(d.nationality)}</span>

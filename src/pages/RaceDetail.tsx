@@ -202,7 +202,7 @@ export default function RaceDetail() {
                 {data.results.map((r) => (
                   <tr key={r.Driver.driverId} className={r.positionText === "1" ? "leader" : undefined}>
                     <td className="pos num">{r.positionText}</td>
-                    <td><Link to={`/piloti/${r.Driver.driverId}`}><b>{r.Driver.code ?? r.Driver.familyName}</b> <span className="muted small">{r.Driver.givenName} {r.Driver.familyName}</span></Link></td>
+                    <td><Link to={`/piloti/${r.Driver.driverId}?season=${season}`}><b>{r.Driver.code ?? r.Driver.familyName}</b> <span className="muted small">{r.Driver.givenName} {r.Driver.familyName}</span></Link></td>
                     <td><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} />{r.Constructor.name}</td>
                     <td className="num mono">{gapText(r)}</td>
                     <td className="num">{r.points}</td>
@@ -218,7 +218,7 @@ export default function RaceDetail() {
                   rowClass: r.positionText === "1" ? "leader" : undefined,
                   left: <span className="mpos">{r.positionText}</span>,
                   title: (
-                    <Link to={`/piloti/${r.Driver.driverId}`}>
+                    <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
                       <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
                       <span className="muted">{r.Driver.givenName} {r.Driver.familyName}</span>
                     </Link>
@@ -248,7 +248,7 @@ export default function RaceDetail() {
                 {data.quali.map((r) => (
                   <tr key={r.Driver.driverId}>
                     <td className="pos num">{r.positionText}</td>
-                    <td><Link to={`/piloti/${r.Driver.driverId}`}><b>{r.Driver.code ?? r.Driver.familyName}</b></Link></td>
+                    <td><Link to={`/piloti/${r.Driver.driverId}?season=${season}`}><b>{r.Driver.code ?? r.Driver.familyName}</b></Link></td>
                     <td><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} />{r.Constructor.name}</td>
                     <td className="num mono">{r.Q1 ?? "—"}</td>
                     <td className="num mono">{r.Q2 ?? "—"}</td>
@@ -266,7 +266,7 @@ export default function RaceDetail() {
                     rowClass: r.positionText === "1" ? "leader" : undefined,
                     left: <span className="mpos">{r.positionText}</span>,
                     title: (
-                      <Link to={`/piloti/${r.Driver.driverId}`}>
+                      <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
                         <b>{r.Driver.code ?? r.Driver.familyName}</b>
                       </Link>
                     ),
@@ -380,7 +380,7 @@ export default function RaceDetail() {
                   rowClass: i === 0 ? "leader" : undefined,
                   left: <span className="mpos">{s.positionText}</span>,
                   title: (
-                    <Link to={`/piloti/${s.Driver.driverId}`}>
+                    <Link to={`/piloti/${s.Driver.driverId}?season=${season}`}>
                       <span className="nat">{nationalityCode(s.Driver.nationality)}</span>
                       <b>{s.Driver.givenName} {s.Driver.familyName}</b>
                     </Link>
@@ -413,7 +413,7 @@ export default function RaceDetail() {
                   rowClass: i === 0 ? "leader" : undefined,
                   left: <span className="mpos">{s.positionText}</span>,
                   title: (
-                    <Link to={`/team/${s.Constructor.constructorId}`}>
+                    <Link to={`/team/${s.Constructor.constructorId}?season=${season}`}>
                       <span className="team-dot" style={{ background: teamColor(s.Constructor.constructorId) }} aria-hidden="true" />
                       <b>{s.Constructor.name}</b>
                     </Link>

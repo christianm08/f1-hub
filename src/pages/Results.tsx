@@ -125,13 +125,13 @@ export default function Results() {
       ) : !results.data ? (
         <EmptyState title={t("empty_title")} body={t("empty_body")} />
       ) : (
-        <ResultsTable data={results.data} />
+        <ResultsTable data={results.data} season={season} />
       )}
     </div>
   );
 }
 
-function ResultsTable({ data }: { data: SessionData }) {
+function ResultsTable({ data, season }: { data: SessionData; season: string }) {
   const { t } = useSettings();
 
   if (data.kind === "practice") {
@@ -182,7 +182,7 @@ function ResultsTable({ data }: { data: SessionData }) {
         rowClass: i === 0 ? "leader" : undefined,
         left: <span className="mpos">{r.positionText}</span>,
         title: (
-          <Link to={`/piloti/${r.Driver.driverId}`}>
+          <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
             <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
             <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
             <span className="muted">{r.Driver.givenName} {r.Driver.familyName}</span>
@@ -217,7 +217,7 @@ function ResultsTable({ data }: { data: SessionData }) {
             <tr key={r.Driver.driverId} className={i === 0 ? "leader" : ""}>
               <td className="pos num">{r.positionText}</td>
               <td>
-                <Link to={`/piloti/${r.Driver.driverId}`}>
+                <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
                   <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
                   <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
                   <span className="muted small">{r.Driver.givenName} {r.Driver.familyName}</span>
@@ -243,7 +243,7 @@ function ResultsTable({ data }: { data: SessionData }) {
     rowClass: i === 0 ? "leader" : undefined,
     left: <span className="mpos">{r.positionText}</span>,
     title: (
-      <Link to={`/piloti/${r.Driver.driverId}`}>
+      <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
         <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
         <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
         <span className="muted">{r.Driver.givenName} {r.Driver.familyName}</span>
@@ -276,7 +276,7 @@ function ResultsTable({ data }: { data: SessionData }) {
           <tr key={r.Driver.driverId} className={i === 0 ? "leader" : ""}>
             <td className="pos num">{r.positionText}</td>
             <td>
-              <Link to={`/piloti/${r.Driver.driverId}`}>
+              <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
                 <span className="nat">{nationalityCode(r.Driver.nationality)}</span>{" "}
                 <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
                 <span className="muted small">{r.Driver.givenName} {r.Driver.familyName}</span>

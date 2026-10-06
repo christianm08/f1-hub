@@ -96,7 +96,9 @@ const normId = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
 
 /** Resolve a driverId to a season model, tolerating cross-season ID changes.
  *  1) exact match  2) known season aliases  3) family-name fallback, ONLY when
- *  it yields exactly one unambiguous candidate (never risk the wrong driver). */
+ *  it yields exactly one unambiguous candidate (never risk the wrong driver).
+ *  The family-name match also accepts the trailing segment of compound names
+ *  (e.g. "rosa" -> "de la Rosa"), still requiring uniqueness. */
 export function resolveDriver(models: DriverModel[], driverId: string): DriverModel | undefined {
   const exact = models.find((m) => m.id === driverId);
   if (exact) return exact;
@@ -106,7 +108,10 @@ export function resolveDriver(models: DriverModel[], driverId: string): DriverMo
   }
   const fam = normId(driverId.split("_").pop() ?? driverId);
   if (!fam) return undefined;
-  const cands = models.filter((m) => normId(m.familyName) === fam);
+  const cands = models.filter((m) => {
+    const mFam = normId(m.familyName);
+    return mFam === fam || mFam.endsWith(fam);
+  });
   return cands.length === 1 ? cands[0] : undefined;
 }
 
