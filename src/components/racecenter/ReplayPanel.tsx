@@ -57,8 +57,13 @@ export function ReplayPanel({ sessionKey, onSelectDriver }: PanelProps) {
   const endMs = info ? Date.parse(info.endUtc) : NaN;
   const validRange = Number.isFinite(startMs) && Number.isFinite(endMs) && endMs > startMs;
 
-  // Virtual clock. tMs stays null until the user scrubs/steps/plays; the
-  // derived cursor below defaults to the end of the session in that case.
+  // Virtual clock. tMs starts at the session start (a replay is for watching
+  // the session unfold); the derived cursor falls back to the end only when
+  // the range is invalid.
+  useEffect(() => {
+    if (tMs == null && validRange) setTMs(startMs);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [validRange, startMs]);
   useEffect(() => {
     if (!playing || !Number.isFinite(endMs)) return;
     const id = window.setInterval(() => {

@@ -22,6 +22,7 @@ const STR = {
     rcx_map_poor_quality:
       "Allineamento posizioni–tracciato non affidabile per questo circuito — tracciato statico.",
     rcx_map_toggle_positions: "Posizioni",
+    rcx_map_retry_hint: "Il caricamento potrebbe essere fallito per un problema di rete.",
     rcx_map_drs_open: "DRS aperto",
     rcx_map_click_hint: "Tocca una vettura per selezionarla",
     rcx_map_play: "Riproduci",
@@ -108,6 +109,7 @@ const STR = {
     rcx_map_poor_quality:
       "Car-to-track alignment unreliable for this circuit — static track outline.",
     rcx_map_toggle_positions: "Positions",
+    rcx_map_retry_hint: "Loading may have failed due to a network issue.",
     rcx_map_drs_open: "DRS open",
     rcx_map_click_hint: "Tap a car to select it",
     rcx_map_play: "Play",

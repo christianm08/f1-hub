@@ -20,7 +20,7 @@
  * ========================================================================== */
 
 import { useEffect, useMemo, useState } from "react";
-import { Info, ListOrdered, Map as MapIcon, Pause, Play } from "lucide-react";
+import { Info, ListOrdered, Map as MapIcon, Pause, Play, RotateCcw } from "lucide-react";
 import {
   LIVE_SUBSCRIPTION_MESSAGE_EN,
   LIVE_SUBSCRIPTION_MESSAGE_IT,
@@ -237,6 +237,12 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
         <div className="rcx-head"><h2 className="rcx-title"><MapIcon aria-hidden="true" />{t("rcx_map_title")}</h2></div>
         <TrackMap circuitId="" circuitName={circuitLabel || undefined} />
         <div className="rcx-note" role="note"><Info aria-hidden="true" />{note}</div>
+        <div className="rcx-mapbar">
+          <span className="rcx-caption">{t("rcx_map_retry_hint")}</span>
+          <button type="button" className="rcx-toggle" onClick={refresh}>
+            <RotateCcw aria-hidden="true" />{t("rcx_retry")}
+          </button>
+        </div>
       </section>
     );
   }
