@@ -1,0 +1,29 @@
+{
+  "logos": [
+    {"constructorId":"jordan","url":"https://upload.wikimedia.org/wikipedia/commons/1/1d/Mini_Free_Logo_Jordan.png","license":"CC0"},
+    {"constructorId":"arrows","url":"https://upload.wikimedia.org/wikipedia/commons/6/62/Arrows_Grand_Prix_logo.png","license":"PD-textlogo"},
+    {"constructorId":"ligier","url":"https://upload.wikimedia.org/wikipedia/commons/f/ff/Logo_Ligier.svg","license":"PD-textlogo"},
+    {"constructorId":"prost","url":"https://upload.wikimedia.org/wikipedia/commons/d/d1/Prost_Grand_Prix_Formula_One_Logo.png","license":"CC BY-SA 4.0"},
+    {"constructorId":"jaguar","url":"https://upload.wikimedia.org/wikipedia/commons/6/65/Mini_Free_Logo_Jaguar_v2.png","license":"CC0"},
+    {"constructorId":"stewart","url":"https://upload.wikimedia.org/wikipedia/commons/3/3b/Stewart_Gran_Prix_logo.png","license":"PD-textlogo"},
+    {"constructorId":"bar","url":"https://upload.wikimedia.org/wikipedia/commons/9/93/Mini_Free_Logo_BAR_v2.png","license":"CC0"},
+    {"constructorId":"honda","url":"https://upload.wikimedia.org/wikipedia/commons/2/2a/Logo_Honda_F1_Racing.svg","license":"PD-textlogo"},
+    {"constructorId":"super_aguri","url":"https://upload.wikimedia.org/wikipedia/commons/e/e3/Super_Aguri_logo.svg","license":"PD-textlogo"},
+    {"constructorId":"toro_rosso","url":"https://upload.wikimedia.org/wikipedia/commons/b/b5/F1_Team_Icon_-_Toro_Rosso%282009%29.svg","license":"CC BY-SA 4.0"},
+    {"constructorId":"dallara","url":"https://upload.wikimedia.org/wikipedia/commons/6/60/Dallara_logo.svg","license":"PD-textlogo"},
+    {"constructorId":"footwork","url":"https://upload.wikimedia.org/wikipedia/commons/4/44/Mini_Free_Logo_Footwork.png","license":"CC0"},
+    {"constructorId":"simtek","url":"https://upload.wikimedia.org/wikipedia/commons/d/d7/Simtek_logo.svg","license":"PD-textlogo"},
+    {"constructorId":"pacific","url":"https://upload.wikimedia.org/wikipedia/commons/c/c1/Logo_Pacific_Grand_Prix.svg","license":"PD-textlogo"},
+    {"constructorId":"lola","url":"https://upload.wikimedia.org/wikipedia/commons/c/cf/Lola_F1_logo.png","license":"PD-textlogo"},
+    {"constructorId":"osella","url":"https://upload.wikimedia.org/wikipedia/commons/9/9a/Osella.svg","license":"PD-textlogo"},
+    {"constructorId":"alfa","url":"https://upload.wikimedia.org/wikipedia/commons/1/11/AlfaRomeoF1Stake.svg","license":"PD-textlogo"}
+  ],
+  "cars": [
+    {"constructorId":"mclaren","season":1988,"car":"McLaren MP4/4","url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/3/3b/McLaren_MP4-4_at_Formula_1_Exhibition%2C_London_02.jpg/1280px-McLaren_MP4-4_at_Formula_1_Exhibition%2C_London_02.jpg","license":"CC BY-SA 4.0"},
+    {"constructorId":"williams","season":1992,"car":"Williams FW14B","url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/1992_Williams_FW14B_%2849379465223%29.jpg/1280px-1992_Williams_FW14B_%2849379465223%29.jpg","license":"CC BY 2.0"},
+    {"constructorId":"ferrari","season":2002,"car":"Ferrari F2002","url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ca/2002_Ferrari_F2002.jpg/1280px-2002_Ferrari_F2002.jpg","license":"CC BY-SA 4.0"},
+    {"constructorId":"red_bull","season":2012,"car":"Red Bull RB8","url":"https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/2012_Red_Bull_RB8.jpg/1280px-2012_Red_Bull_RB8.jpg","license":"CC BY-SA 4.0"},
+    {"constructorId":"lotus","season":1978,"car":"Lotus 79","url":"https://thumb.wikimedia.org/wikipedia/commons/thumb/2/22/Mario_Andretti_-_Lotus_79_at_the_1978_British_Grand_Prix_%2850049698533%29.jpg/1280px-Mario_Andretti_-_Lotus_79_at_the_1978_British_Grand_Prix_%2850049698533%29.jpg","license":"CC BY-SA 2.0"}
+  ],
+  "no_free_logo": ["forti","zakspeed","leyton_house"]
+}

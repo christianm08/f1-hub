@@ -206,17 +206,19 @@ nel commento header di `src/api/openf1.ts`).
   focal point per pilota, backdrop in tinta team. Cache locale 90 giorni.
   Attribuzione: "Immagini: Wikimedia Commons / Wikipedia" (anche nel footer).
 - **Loghi dei team** — SOLO loghi con licenza libera verificata su Wikimedia
-  Commons (17 team su 22 mappati, prevalentemente `PD-textlogo`: liberi da
+  Commons (37 team mappati, prevalentemente `PD-textlogo`/CC0: liberi da
   copyright in quanto semplici wordmark, ma restano marchi registrati — uso
   nominativo/descrittivo in un'app informativa). Mappatura curata in
-  `src/data/assets.ts` (validata con `tools/gen-assets.js`, 43 URL verificati
-  con HTTP 200). I loghi senza versione libera (es. Ferrari, Aston Martin)
-  usano un placeholder professionale, mai un logo protetto.
+  `src/data/assets.ts`. I loghi senza versione libera (es. Racing Bulls, il
+  cavallino Ferrari è solo wordmark) usano un placeholder professionale,
+  mai un logo protetto. Attribuzione nel footer: "Immagini: Wikimedia
+  Commons / Wikipedia".
 - **Foto delle monoposto** — fotografie con licenza libera (CC-BY / CC-BY-SA /
-  pubblico dominio) da Wikimedia Commons, mappate per stagione esatta in
-  `src/data/assets.ts` (26 foto: intera griglia 2025 e 2026, più MCL38/RB20/
-  SF-24/W15 del 2024, RB16B 2021, W11 2020, F2004 2004). Mai mostrata un'auto
-  dell'anno sbagliato: senza corrispondenza esatta si usa il fallback.
+  CC0 / pubblico dominio) da Wikimedia Commons, mappate per stagione esatta in
+  `src/data/assets.ts` (72 foto: intera griglia 2020→2026 per tutti i team
+  moderni, più icone storiche come MP4/4 1988, FW14B 1992, F2002 2002, F2004
+  2004, RB8 2012, Lotus 79 1978). Mai mostrata un'auto dell'anno sbagliato:
+  senza corrispondenza esatta si usa il fallback.
 
 Nessun dato è inventato: quando una fonte non risponde, l'app mostra dati in
 cache o un messaggio onesto di indisponibilità.

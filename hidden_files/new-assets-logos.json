@@ -1,0 +1,8 @@
+{
+  "logos": [
+    {"constructorId":"ferrari","url":"https://upload.wikimedia.org/wikipedia/commons/9/9b/Ferrari_wordmark.svg","license":"PD-textlogo","note":"black wordmark - needs light chip/invert on dark theme"},
+    {"constructorId":"aston_martin","url":"https://upload.wikimedia.org/wikipedia/commons/0/03/Aston_Martin_F1_Team_logo_2024.jpg","license":"CC BY 4.0","note":"needs attribution in footer/README"},
+    {"constructorId":"sauber","url":"https://upload.wikimedia.org/wikipedia/commons/9/94/Sauber_F1_Team_logo.svg","license":"PD-textlogo"}
+  ],
+  "no_free_logo": ["rb"]
+}
