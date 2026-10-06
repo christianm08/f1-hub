@@ -6,6 +6,7 @@ import { jolpica, nextSession, raceStatus, sessionDateTime, type RaceInfo } from
 import { fetchNews, type NewsItem } from "../api/news";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
+import { SeasonSelect } from "../components/SeasonSelect";
 import { Badge, CountdownCells, EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, fmtDateTime, gapText } from "../components/ui";
 import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { TrackMap } from "../components/TrackMap";
@@ -37,7 +38,7 @@ async function load(season: string): Promise<HomeData> {
 }
 
 export default function Home() {
-  const { t, lang, season, favorites } = useSettings();
+  const { t, lang, season, setSeason, favorites } = useSettings();
   const { status, data, retry } = useApi(() => load(season), [season]);
 
   const next = useMemo(() => (data ? nextSession(data.races) : null), [data]);
@@ -55,7 +56,7 @@ export default function Home() {
 
   return (
     <div>
-      <PageHeader title={t("nav_home")} sub={`${t("season")} ${season}`} />
+      <PageHeader title={t("nav_home")} sub={`${t("season")} ${season}`} right={<SeasonSelect id="home-season" value={season} onChange={setSeason} />} />
 
       {liveRace ? (
         <Link to="/live" className="hero" style={{ display: "block", marginBottom: 18 }} aria-label={t("view_race_center")}>
