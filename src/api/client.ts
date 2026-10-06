@@ -36,11 +36,31 @@ function writeLS(key: string, entry: CacheEntry) {
   }
 }
 
+/** Cap the in-memory cache so high-frequency polling with unique URLs
+    (delta windows) can't grow it without bound. Map preserves insertion order. */
+const MEM_CACHE_MAX = 600;
+function memSet(key: string, entry: CacheEntry) {
+  memCache.set(key, entry);
+  if (memCache.size > MEM_CACHE_MAX) {
+    const it = memCache.keys();
+    for (let i = 0; i < 100; i++) {
+      const k = it.next();
+      if (k.done) break;
+      memCache.delete(k.value);
+    }
+  }
+}
+
 export interface FetchOpts {
   /** milliseconds; default 10 min */
   ttl?: number;
   /** bypass cache */
   fresh?: boolean;
+  /** AbortSignal to cancel in-flight requests (e.g. obsolete live polls). */
+  signal?: AbortSignal;
+  /** Persist to localStorage (default true). Set false for high-frequency live
+      polling so unique delta-window URLs don't fill the quota. */
+  persist?: boolean;
 }
 
 const DEFAULT_TTL = 10 * 60 * 1000;
@@ -61,26 +81,32 @@ export async function fetchJSON<T>(url: string, opts: FetchOpts = {}): Promise<T
       return ls.data as T;
     }
   }
+  const signal = opts.signal;
+  if (signal?.aborted) throw new ApiError("aborted");
   let res: Response;
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+    const onAbort = () => ctrl.abort();
+    signal?.addEventListener("abort", onAbort, { once: true });
     try {
       res = await fetch(url, { signal: ctrl.signal });
     } finally {
       clearTimeout(timer);
+      signal?.removeEventListener("abort", onAbort);
     }
   } catch {
-    throw new ApiError("network_error");
+    throw new ApiError(signal?.aborted ? "aborted" : "network_error");
   }
   if (res.status === 429) {
     // Rate limited: honor Retry-After once, then give up gracefully.
     const waitS = parseInt(res.headers.get("Retry-After") ?? "5", 10);
     await sleep(Math.min(Number.isFinite(waitS) ? waitS : 5, 30) * 1000);
+    if (signal?.aborted) throw new ApiError("aborted");
     try {
-      res = await fetch(url);
+      res = await fetch(url, { signal: signal ?? undefined });
     } catch {
-      throw new ApiError("network_error");
+      throw new ApiError(signal?.aborted ? "aborted" : "network_error");
     }
   }
   if (!res.ok) {
@@ -93,8 +119,8 @@ export async function fetchJSON<T>(url: string, opts: FetchOpts = {}): Promise<T
     throw new ApiError("parse_error");
   }
   const entry: CacheEntry = { ts: Date.now(), data };
-  memCache.set(url, entry);
-  writeLS(url, entry);
+  memSet(url, entry);
+  if (opts.persist !== false) writeLS(url, entry);
   return data;
 }
 

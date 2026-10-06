@@ -42,7 +42,7 @@ interface LiveData {
 }
 
 async function loadLive(): Promise<LiveData> {
-  const session = await findLiveSession();
+  const { live: session } = await findLiveSession();
   if (!session) {
     const err = new Error("no_live") as Error & { code?: string };
     err.code = "NO_LIVE";
@@ -55,7 +55,7 @@ async function loadLive(): Promise<LiveData> {
     openf1.latestIntervals(key).catch(() => new Map()),
     openf1.raceControl(key).catch(() => []),
     openf1.pits(key).catch(() => []),
-    openf1.weather(key).catch(() => null),
+    openf1.weatherLatest(key).catch(() => null),
     openf1.bestLaps(key).catch(() => []),
     openf1.stints(key).catch(() => []),
   ]);

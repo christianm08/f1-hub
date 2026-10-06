@@ -21,9 +21,11 @@ Requisiti: Node 18+. Nessuna API key richiesta.
 ```
 src/
 ├── api/            # layer API separato, nessuna chiamata fetch nelle pagine
-│   ├── client.ts   # fetchJSON con cache (memoria + localStorage, TTL configurabile) e ApiError
+│   ├── client.ts   # fetchJSON con cache (memoria + localStorage, TTL configurabile), ApiError, AbortSignal
 │   ├── jolpica.ts  # dati storici/statici: stagioni, calendario, classifiche, risultati, piloti, team, circuiti
-│   ├── openf1.ts   # dati live/timing: sessioni, posizioni, intervalli, meteo, race control, pit, best lap
+│   ├── openf1.ts   # client OpenF1 tipizzato: rate limiter 25 req/min, retry, 404=vuoto, normalizzazioni, parser SC/VSC
+│   ├── openf1model.ts # modello normalizzato per la UI (funzioni pure): SessionInfo, TimingRow, PitView, StintView…
+│   ├── openf1live.ts  # refresh intelligente: interfaccia LiveDataProvider + hook useRaceCenterSession
 │   └── news.ts     # aggregazione RSS via rss2json (solo titolo, estratto, fonte, data, link)
 ├── i18n/dict.ts    # dizionario IT/EN (default IT)
 ├── store/settings.tsx  # tema, lingua, stagione, unità, preferiti, notifiche (localStorage)
@@ -74,9 +76,11 @@ rewrite del server). Pagine caricate in lazy per chunk separati.
 - **Circuiti**: schede informative (località, paese, coordinate, vincitore recente); placeholder
   per il layout del tracciato.
 - **Classifiche**: piloti + costruttori con selettore stagione (2014–2026, da API).
-- **Race Center / Live**: torre dei tempi reale (posizioni, gap, intervalli, best lap, pit),
-  meteo, timeline race control, badge bandiera; auto-refresh ogni 15 s (disattivabile). Se non
-  c'è una sessione live → messaggio onesto di indisponibilità.
+- **Race Center / Live**: torre dei tempi (posizioni, gap, intervalli, best lap, pit),
+  meteo, timeline race control, badge bandiera; refresh intelligente con canali
+  differenziati e aggiornamenti differenziali (hook `useRaceCenterSession`).
+  Replay completo delle sessioni terminate dal 2023; se non c'è sessione live e
+  i dati live non sono disponibili → messaggio onesto (mai dati simulati).
 - **News**: aggregatore RSS con filtro per categoria (Ultime, Gare, Mercato, Tecnica, Team,
   Regolamenti).
 - **Ricerca globale** (🔍 o Ctrl+K): piloti, team, circuiti, GP, news.
@@ -95,9 +99,10 @@ rewrite del server). Pagine caricate in lazy per chunk separati.
   usato un placeholder elegante + dati reali disponibili (località, coordinate).
 - **Dati circuito estesi** (lunghezza, curve, record sul giro): non forniti dalle API usate;
   mostrato `n/d` invece di dati inventati.
-- **Telemetria avanzata** (mappe, mini-settori, gomme in tempo reale per stint): OpenF1 li
-  espone ma la granularità live è disponibile solo durante le sessioni; non implementato per
-  restare nel perimetro "funzionante e vero".
+- **Telemetria avanzata** (mappe, mini-settori, gomme in tempo reale per stint): il data
+  layer la supporta (`car_data` ~3,2 Hz, `location`, `segments_sector_*` nei laps,
+  `overtakes`); la granularità live esiste solo durante le sessioni e sul piano
+  gratuito quasi mai — la UI mostra uno stato onesto (`telemetryAvailable`).
 - **Confronto testa-a-testa piloti**: nice-to-have, rimandato per priorità (dati veri > extra).
 - **PWA/offline completo**: la cache dati esiste, ma niente service worker/manifest.
 
@@ -106,7 +111,56 @@ rewrite del server). Pagine caricate in lazy per chunk separati.
 | API | Uso | Key |
 |---|---|---|
 | Jolpica F1 API (`api.jolpi.ca/ergast/f1/`) | **fonte primaria**: stagioni, calendario, classifiche, risultati, piloti, team, circuiti | no |
-| OpenF1 (`api.openf1.org/v1/`) | live timing, best lap prove, meteo, race control | no |
+| OpenF1 (`api.openf1.org/v1/`) | replay sessioni 2023+, live timing best-effort, best lap prove, meteo, race control, pit, stint, team radio, telemetria (solo live) | no |
+
+### OpenF1 — endpoint utilizzati, rate limits, limiti noti
+
+**Rate limits (verificati dai docs ufficiali).** Piano gratuito: 3 req/s, 30 req/min,
+nessun dato live nella finestra [inizio−30min, fine+30min] (riservata al piano a
+pagamento). Il client applica un token bucket condiviso da **25 req/min + 3 req/s**
+su tutte le chiamate, con dedup delle richieste identiche in-flight, retry con
+backoff esponenziale (max 3) e rispetto del `Retry-After` sui 429.
+Piano a pagamento ($11.58/mese): 6 req/s, 60 req/min + realtime.
+
+**Budget stimato (profilo live standard, sotto il cap 25/min):** position 8s (7,5) +
+intervals 12s (5) + race_control 20s (3) + pit/stint 30s (2+2) + weather/session_result/
+team_radio/overtakes 120s (0,5×4) + laps 60s (1) ≈ **22,5 req/min**. Con mappa:
+location 12s (5), cadence torre ridotte → ≈19/min. Con telemetria: car_data 3s (20) +
+position 20s (3) + race_control 60s (1) = 24/min (altri canali in pausa). Il replay
+di sessioni completate fa un full-load + max 2 rivalidazioni, poi si ferma.
+
+**Endpoint usati:** `sessions`, `meetings`, `drivers`, `position`, `intervals`,
+`laps`, `stints`, `pit`, `weather`, `race_control`, `team_radio`, `location`,
+`session_result`, `starting_grid`, `car_data`, `overtakes` (dettagli e parametri
+nel commento header di `src/api/openf1.ts`).
+
+**Limiti noti (verificati con curl):**
+- Storico solo **dal 2023** (`meetings?year=2022` → 404); prima del 2023 solo Jolpica.
+- `404 {"detail":"No results found."}` = insieme vuoto, mai errore (es. intervals su
+  una FP1, `starting_grid` con la session_key della gara).
+- `interval_key=latest` funziona solo sull'ultima sessione in assoluto; sulle
+  sessioni completate il client ripiega su fetch completo + max `date` per pilota.
+- `session_name` non è stabile ("Practice 1" nel 2023, "FP1" nel 2026): sempre
+  normalizzato con `normalizeSessionName()`.
+- `session_result`: niente `fastest_lap`/`number_of_pit_stops`; in qualifica
+  `duration` e `gap_to_leader` sono array [Q1,Q2,Q3] (normalizzati all'ultimo
+  non-null); `gap_to_leader` può essere il numero 0.
+- `starting_grid` richiede la session_key della **qualifica** (helper dedicato).
+- `car_data` (~3,2 Hz, DRS aperto se ≥10) solo live + breve buffer: sulle
+  storiche restituisce []. `telemetryAvailable` è onesto al riguardo.
+- `location` campionata ~3,7s, unità NON metri e origine arbitraria: il fit è
+  puramente relativo al bbox (`normalizeLocations()`).
+- `position` è event-driven e rado; `intervals` ~793 righe/pilota/gara: i poll
+  live usano finestre `date>=` per scaricare solo il delta.
+- SC/VSC/RedFlag sono derivati dai messaggi di race control (non esiste un campo
+  booleano): `deriveTrackStatus()`.
+- Team radio: MP3 sulla CDN ufficiale F1 (`livetiming.formula1.com`); uso
+  personale/educativo, attribuzione obbligatoria "Audio: Formula 1 / OpenF1".
+- **Live onesto:** senza abbonamento, se durante una sessione live le chiamate
+  restano vuote/404, l'hook entra in stato `needsSubscription` ("I dati live
+  OpenF1 richiedono l'abbonamento ($11.58/mese)") — mai dati simulati. Il replay
+  delle sessioni completate è la modalità principale e funziona per tutto
+  (torre, mappa, race control, pit, stint, meteo, radio).
 | f1api.dev (`f1api.dev/api/`) | **fonte secondaria (arricchimento)**: sigle piloti, date di nascita, numeri di gara, metadati team (sede, prima stagione, titoli) | no |
 | rss2json (proxy CORS keyless) | feed RSS RaceFans + Motorsport.com | no |
 
