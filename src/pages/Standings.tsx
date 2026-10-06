@@ -43,7 +43,7 @@ export default function Standings() {
             driverId={s.Driver.driverId}
             wikiUrl={s.Driver.url}
             name={`${s.Driver.givenName} ${s.Driver.familyName}`}
-            size={44}
+            size={52}
             tint={teamColor(s.Constructors[0]?.constructorId ?? "")}
             historic={parseInt(season, 10) < 2000}
           />
@@ -53,10 +53,11 @@ export default function Standings() {
               <span>{s.Driver.code ?? s.Driver.familyName}</span>
             </span>
             <span className="mtitle-line2">{s.Driver.givenName} {s.Driver.familyName}</span>
+            <span className="mtitle-line3">{s.Constructors[0]?.name}</span>
           </span>
         </Link>
       ),
-      subtitle: s.Constructors[0]?.name,
+      subtitle: undefined,
       value: s.points,
       details: (
         <MDetails items={[
@@ -73,7 +74,7 @@ export default function Standings() {
       title: (
         <Link to={`/team/${s.Constructor.constructorId}?season=${season}`} className="mtitle">
           <span className="mtitle-media">
-            <TeamLogo constructorId={s.Constructor.constructorId} name={s.Constructor.name} size={40} tint={teamColor(s.Constructor.constructorId)} />
+            <TeamLogo constructorId={s.Constructor.constructorId} name={s.Constructor.name} size={46} tint={teamColor(s.Constructor.constructorId)} />
           </span>
           <span className="mtitle-text">
             <span className="mtitle-line1">
