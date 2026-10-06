@@ -65,9 +65,24 @@ export interface FetchOpts {
 
 const DEFAULT_TTL = 10 * 60 * 1000;
 const FETCH_TIMEOUT_MS = 15000;
+/** One retry delay for transient bad bodies (Jolpica "error code: 1033"). */
+const PARSE_RETRY_DELAY_MS = 1200;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+async function fetchOnce(url: string, signal?: AbortSignal): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+  const onAbort = () => ctrl.abort();
+  signal?.addEventListener("abort", onAbort, { once: true });
+  try {
+    return await fetch(url, { signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", onAbort);
+  }
 }
 
 export async function fetchJSON<T>(url: string, opts: FetchOpts = {}): Promise<T> {
@@ -85,16 +100,7 @@ export async function fetchJSON<T>(url: string, opts: FetchOpts = {}): Promise<T
   if (signal?.aborted) throw new ApiError("aborted");
   let res: Response;
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
-    const onAbort = () => ctrl.abort();
-    signal?.addEventListener("abort", onAbort, { once: true });
-    try {
-      res = await fetch(url, { signal: ctrl.signal });
-    } finally {
-      clearTimeout(timer);
-      signal?.removeEventListener("abort", onAbort);
-    }
+    res = await fetchOnce(url, signal ?? undefined);
   } catch {
     throw new ApiError(signal?.aborted ? "aborted" : "network_error");
   }
@@ -104,7 +110,7 @@ export async function fetchJSON<T>(url: string, opts: FetchOpts = {}): Promise<T
     await sleep(Math.min(Number.isFinite(waitS) ? waitS : 5, 30) * 1000);
     if (signal?.aborted) throw new ApiError("aborted");
     try {
-      res = await fetch(url, { signal: signal ?? undefined });
+      res = await fetchOnce(url, signal ?? undefined);
     } catch {
       throw new ApiError(signal?.aborted ? "aborted" : "network_error");
     }
@@ -116,7 +122,18 @@ export async function fetchJSON<T>(url: string, opts: FetchOpts = {}): Promise<T
   try {
     data = (await res.json()) as T;
   } catch {
-    throw new ApiError("parse_error");
+    // Transient bad body (Jolpica intermittently returns HTTP 200 with a
+    // plain-text "error code: 1033" Cloudflare page): one retry, then fail.
+    await sleep(PARSE_RETRY_DELAY_MS);
+    if (signal?.aborted) throw new ApiError("aborted");
+    try {
+      const res2 = await fetchOnce(url, signal ?? undefined);
+      if (!res2.ok) throw new ApiError(`http_${res2.status}`, res2.status);
+      data = (await res2.json()) as T;
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+      throw new ApiError("parse_error");
+    }
   }
   const entry: CacheEntry = { ts: Date.now(), data };
   memSet(url, entry);

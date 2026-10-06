@@ -29,7 +29,7 @@
  * - Nothing is ever invented: missing fields stay undefined and the UI
  *   renders its honest empty state.
  */
-import { jolpica } from "./jolpica";
+import { jolpica, type ConstructorRef, type DriverRef } from "./jolpica";
 import { f1api, teamCountry, teamFirstSeason, type F1ApiDriverEntry, type F1ApiTeamInfo } from "./f1api";
 import type { FetchOpts } from "./client";
 
@@ -157,10 +157,26 @@ async function safeEnrich<T>(fn: () => Promise<T>): Promise<T | null> {
 }
 
 async function buildDriverModels(season: string): Promise<DriverModel[]> {
-  const [drivers, standings] = await Promise.all([
-    jolpica.drivers(season),
+  const [driversRes, standings] = await Promise.all([
+    jolpica.drivers(season).catch((): null => null),
     jolpica.driverStandings(season).catch((): never[] => []),
   ]);
+  // Resilience: Jolpica intermittently serves a non-JSON "error code: 1033"
+  // body (with HTTP 200) on list endpoints. Rebuild the driver list from the
+  // standings payload — which embeds full Driver objects — instead of
+  // failing the whole page.
+  let drivers: DriverRef[] = driversRes ?? [];
+  if (drivers.length === 0) {
+    const seen = new Set<string>();
+    drivers = [];
+    for (const s of standings) {
+      const d = s.Driver;
+      if (d && !seen.has(d.driverId)) {
+        seen.add(d.driverId);
+        drivers.push(d);
+      }
+    }
+  }
   const standById = new Map(standings.map((s) => [s.Driver.driverId, s]));
 
   const enrichList = await safeEnrich(() => f1api.driversChampionship(season));
@@ -208,10 +224,24 @@ async function buildDriverModels(season: string): Promise<DriverModel[]> {
 }
 
 async function buildTeamModels(season: string): Promise<TeamModel[]> {
-  const [teams, standings] = await Promise.all([
-    jolpica.constructors(season),
+  const [teamsRes, standings] = await Promise.all([
+    jolpica.constructors(season).catch((): null => null),
     jolpica.constructorStandings(season).catch((): never[] => []),
   ]);
+  // Same resilience as buildDriverModels: rebuild from standings on flaky
+  // list-endpoint responses.
+  let teams: ConstructorRef[] = teamsRes ?? [];
+  if (teams.length === 0) {
+    const seen = new Set<string>();
+    teams = [];
+    for (const s of standings) {
+      const c = s.Constructor;
+      if (c && !seen.has(c.constructorId)) {
+        seen.add(c.constructorId);
+        teams.push(c);
+      }
+    }
+  }
   const standById = new Map(standings.map((s) => [s.Constructor.constructorId, s]));
 
   const enrichList = await safeEnrich(() => f1api.constructorsChampionship(season));
