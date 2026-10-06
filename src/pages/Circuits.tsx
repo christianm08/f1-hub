@@ -1,10 +1,12 @@
-/* Circuits: cards with info; layout placeholder (no licit free source for track SVGs). */
+/* Circuits: cards with vector track outlines (bacinger/f1-circuits, MIT). */
 import { useMemo } from "react";
-import { ArrowUpRight, Info, Route, Trophy } from "lucide-react";
+import { ArrowUpRight, Info, Trophy } from "lucide-react";
 import { jolpica, raceStatus, type RaceInfo } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
+import { TrackMap } from "../components/TrackMap";
+import { findTrack, formatTrackLength } from "../data/circuits";
 import { countryCode } from "../data/meta";
 
 interface CircuitsData {
@@ -31,7 +33,7 @@ async function load(season: string): Promise<CircuitsData> {
 }
 
 export default function Circuits() {
-  const { t, season, lang } = useSettings();
+  const { t, season, lang, units } = useSettings();
   const { status, data, retry } = useApi(() => load(season), [season]);
 
   const circuits = useMemo(() => {
@@ -55,6 +57,7 @@ export default function Circuits() {
       <div className="grid grid-3">
         {circuits.map((r) => {
           const c = r.Circuit;
+          const track = findTrack(c.circuitId, c.circuitName);
           return (
             <div className="card" key={c.circuitId}>
               <div className="spread">
@@ -65,7 +68,7 @@ export default function Circuits() {
                 <span className="nat">{countryCode(c.Location.country)}</span>
                 <span>{c.Location.locality}, {c.Location.country}</span>
               </p>
-              <div className="circuit-ph" aria-label={t("circuit")}><Route aria-hidden="true" />{t("circuit_info")}</div>
+              <TrackMap circuitId={c.circuitId} circuitName={c.circuitName} />
               <dl className="kv mt">
                 <dt>{t("winner")} ({lang === "it" ? "recente" : "latest"})</dt>
                 <dd>
@@ -75,7 +78,7 @@ export default function Circuits() {
                 <dt>Lat/Long</dt>
                 <dd className="mono num">{c.Location.lat}, {c.Location.long}</dd>
                 <dt>{t("length")}</dt>
-                <dd>{t("not_available")}</dd>
+                <dd className="num">{track ? formatTrackLength(track.lengthM, lang, units === "imperial") : t("not_available")}</dd>
               </dl>
               <a className="btn ghost small mt" href={c.url} target="_blank" rel="noopener noreferrer">
                 Wikipedia <ArrowUpRight size={13} aria-hidden="true" />
@@ -86,11 +89,7 @@ export default function Circuits() {
       </div>
       <p className="small muted mt row" style={{ alignItems: "flex-start" }}>
         <Info size={14} aria-hidden="true" style={{ color: "var(--text-3)", flex: "0 0 auto", marginTop: 2 }} />
-        <span>
-          {lang === "it"
-            ? "Lunghezza, curve e record sul giro non sono forniti dall'API: mostrati solo quando disponibili da fonte ufficiale."
-            : "Length, corners and lap records aren't provided by the API: shown only when available from an official source."}
-        </span>
+        <span>{t("track_attribution")}</span>
       </p>
     </div>
   );

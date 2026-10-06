@@ -6,6 +6,7 @@ import { jolpica, raceStatus, type RaceInfo } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { Badge, EmptyState, ErrorState, PageHeader, SkeletonCard, fmtDate } from "../components/ui";
+import { TrackMap } from "../components/TrackMap";
 import { continentOf, countryCode } from "../data/meta";
 
 interface CalData {
@@ -117,7 +118,10 @@ export default function Calendar() {
                     : s === "past" ? <Badge kind="done">{t("past")}</Badge>
                     : <Badge kind="accent">{t("upcoming")}</Badge>}
                 </div>
-                <h3 style={{ margin: "10px 0 4px", fontSize: "1.08rem" }}>{r.raceName}</h3>
+                <div className="spread" style={{ alignItems: "center", gap: 12 }}>
+                  <h3 style={{ margin: "10px 0 4px", fontSize: "1.08rem", flex: "1 1 auto", minWidth: 0 }}>{r.raceName}</h3>
+                  <TrackMap circuitId={r.Circuit.circuitId} circuitName={r.Circuit.circuitName} className="track-mini" />
+                </div>
                 <p className="muted small" style={{ margin: "0 0 8px", display: "flex", alignItems: "center", gap: 8 }}>
                   <span className="nat">{countryCode(r.Circuit.Location.country)}</span>
                   <span>{r.Circuit.Location.locality}, {r.Circuit.Location.country}</span>

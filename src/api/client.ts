@@ -44,6 +44,11 @@ export interface FetchOpts {
 }
 
 const DEFAULT_TTL = 10 * 60 * 1000;
+const FETCH_TIMEOUT_MS = 15000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 export async function fetchJSON<T>(url: string, opts: FetchOpts = {}): Promise<T> {
   const ttl = opts.ttl ?? DEFAULT_TTL;
@@ -58,9 +63,25 @@ export async function fetchJSON<T>(url: string, opts: FetchOpts = {}): Promise<T
   }
   let res: Response;
   try {
-    res = await fetch(url);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+    try {
+      res = await fetch(url, { signal: ctrl.signal });
+    } finally {
+      clearTimeout(timer);
+    }
   } catch {
     throw new ApiError("network_error");
+  }
+  if (res.status === 429) {
+    // Rate limited: honor Retry-After once, then give up gracefully.
+    const waitS = parseInt(res.headers.get("Retry-After") ?? "5", 10);
+    await sleep(Math.min(Number.isFinite(waitS) ? waitS : 5, 30) * 1000);
+    try {
+      res = await fetch(url);
+    } catch {
+      throw new ApiError("network_error");
+    }
   }
   if (!res.ok) {
     throw new ApiError(`http_${res.status}`, res.status);

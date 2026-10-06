@@ -1,6 +1,6 @@
-/* Teams list. */
+/* Teams list. Data: normalized TeamModel (Jolpica + f1api.dev). */
 import { Link } from "react-router-dom";
-import { jolpica } from "../api/jolpica";
+import { loadTeamModels } from "../api/model";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
@@ -8,24 +8,14 @@ import { initials, nationalityCode, teamColor } from "../data/meta";
 
 export default function Teams() {
   const { t, season } = useSettings();
-  const { status, data, retry } = useApi(
-    () => Promise.all([jolpica.constructors(season), jolpica.constructorStandings(season).catch(() => [])]),
-    [season]
-  );
+  const { status, data, retry } = useApi(() => loadTeamModels(season), [season]);
 
   if (status === "loading") {
     return <div><PageHeader title={t("nav_teams")} /><div className="grid grid-3"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div></div>;
   }
   if (status === "error" || !data) return <div><PageHeader title={t("nav_teams")} /><ErrorState onRetry={retry} /></div>;
 
-  const [teams, standings] = data;
-  const standById = new Map(standings.map((s) => [s.Constructor.constructorId, s]));
-  const ordered = [...teams].sort((a, b) => {
-    const pa = parseInt(standById.get(a.constructorId)?.position ?? "99", 10);
-    const pb = parseInt(standById.get(b.constructorId)?.position ?? "99", 10);
-    return pa - pb;
-  });
-
+  const ordered = data;
   if (ordered.length === 0) return <div><PageHeader title={t("nav_teams")} /><EmptyState title={t("empty_title")} body={t("empty_body")} /></div>;
 
   return (
@@ -33,27 +23,27 @@ export default function Teams() {
       <PageHeader title={t("nav_teams")} sub={`${t("season")} ${season}`} />
       <div className="grid grid-3">
         {ordered.map((c) => {
-          const s = standById.get(c.constructorId);
-          const color = teamColor(c.constructorId);
+          const color = teamColor(c.id);
           return (
-            <Link key={c.constructorId} to={`/team/${c.constructorId}`} className="card">
+            <Link key={c.id} to={`/team/${c.id}`} className="card">
               <div className="spread">
                 <span className="avatar-init" style={{ background: color }}>{initials(c.name)}</span>
-                <FavButton item={{ kind: "team", id: c.constructorId, label: c.name }} />
+                <FavButton item={{ kind: "team", id: c.id, label: c.name }} />
               </div>
               <h3 className="card-title" style={{ margin: "12px 0 4px" }}>
                 <span className="nat">{nationalityCode(c.nationality)}</span>
                 <span>{c.name}</span>
               </h3>
               <div className="spread mt">
-                <span className="badge">{s ? `P${s.position}` : "–"}</span>
-                <b className="num">{s ? `${s.points} ${t("points").toLowerCase()}` : ""}</b>
+                <span className="badge">{c.position ? `P${c.position}` : "–"}</span>
+                <b className="num">{c.points ? `${c.points} ${t("points").toLowerCase()}` : ""}</b>
               </div>
-              {s && (
-                <p className="small muted" style={{ margin: "8px 0 0" }}>
-                  {t("wins")}: <b className="num">{s.wins}</b>
-                </p>
-              )}
+              <p className="small muted" style={{ margin: "8px 0 0" }}>
+                {t("wins")}: <b className="num">{c.wins ?? "–"}</b>
+                {c.constructorsTitles != null && (
+                  <> · {t("titles")}: <b className="num">{c.constructorsTitles}</b></>
+                )}
+              </p>
             </Link>
           );
         })}

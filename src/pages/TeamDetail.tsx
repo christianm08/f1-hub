@@ -1,8 +1,10 @@
-/* Team detail: stats, drivers, race-by-race results. */
+/* Team detail: stats, drivers, race-by-race results.
+ * Team identity: normalized TeamModel (Jolpica + f1api.dev enrichment). */
 import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
-import { BarChart3, Flag, Medal, Sigma, Trophy, Users } from "lucide-react";
+import { BarChart3, Building2, Flag, Medal, Sigma, Trophy, Users } from "lucide-react";
 import { jolpica, type RaceInfo, type RaceResult } from "../api/jolpica";
+import { loadTeamModels, type TeamModel } from "../api/model";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
@@ -11,20 +13,18 @@ import { BarList } from "../components/charts";
 import { countryCode, initials, nationalityCode, teamColor } from "../data/meta";
 
 interface DetailData {
-  name: string;
-  id: string;
-  nationality: string;
+  team: TeamModel;
   races: ({ Results: RaceResult[] } & RaceInfo)[];
 }
 
 async function load(season: string, constructorId: string): Promise<DetailData> {
-  const [teams, races] = await Promise.all([
-    jolpica.constructors(season),
+  const [models, races] = await Promise.all([
+    loadTeamModels(season),
     jolpica.constructorResults(season, constructorId),
   ]);
-  const team = teams.find((c) => c.constructorId === constructorId);
+  const team = models.find((m) => m.id === constructorId);
   if (!team) throw new Error("not_found");
-  return { name: team.name, id: team.constructorId, nationality: team.nationality, races };
+  return { team, races };
 }
 
 export default function TeamDetail() {
@@ -63,7 +63,7 @@ export default function TeamDetail() {
     return <div><PageHeader title={t("nav_teams")} /><ErrorState onRetry={retry} /></div>;
   }
 
-  const color = teamColor(data.id);
+  const color = teamColor(data.team.id);
 
   const kpis: { icon: React.ReactNode; label: string; value: string | number }[] = [
     { icon: <Sigma size={13} aria-hidden="true" />, label: t("points"), value: stats.points },
@@ -75,9 +75,9 @@ export default function TeamDetail() {
   return (
     <div>
       <PageHeader
-        title={data.name}
+        title={data.team.name}
         sub={`${t("season")} ${season}`}
-        right={<FavButton item={{ kind: "team", id: data.id, label: data.name }} />}
+        right={<FavButton item={{ kind: "team", id: data.team.id, label: data.team.name }} />}
       />
 
       <div className="grid grid-4">
@@ -104,6 +104,18 @@ export default function TeamDetail() {
               <b className="num" style={{ marginLeft: "auto" }}>{d.points}</b>
             </Link>
           ))}
+          {data.team.enriched && (
+            <>
+              <hr className="divider" />
+              <h3 className="card-title"><Building2 size={17} aria-hidden="true" />{t("team_info")}</h3>
+              <dl className="kv">
+                {data.team.country && (<><dt>{t("country")}</dt><dd>{data.team.country}</dd></>)}
+                {data.team.firstSeason != null && (<><dt>{t("first_season")}</dt><dd className="num">{data.team.firstSeason}</dd></>)}
+                {data.team.constructorsTitles != null && (<><dt>{t("titles_constructors")}</dt><dd className="num">{data.team.constructorsTitles}</dd></>)}
+                {data.team.driversTitles != null && (<><dt>{t("titles_drivers")}</dt><dd className="num">{data.team.driversTitles}</dd></>)}
+              </dl>
+            </>
+          )}
         </div>
         <div className="card">
           <h3 className="card-title"><BarChart3 size={17} aria-hidden="true" />{t("points")} {t("race_by_race").toLowerCase()}</h3>

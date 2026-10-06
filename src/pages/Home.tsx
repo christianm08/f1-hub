@@ -8,6 +8,7 @@ import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { Badge, CountdownCells, EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, fmtDateTime, gapText } from "../components/ui";
 import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
+import { TrackMap } from "../components/TrackMap";
 import { countryCode, nationalityCode, teamColor } from "../data/meta";
 
 interface HomeData {
@@ -73,7 +74,14 @@ export default function Home() {
             <Badge kind="accent">{t("next_gp")}</Badge>
             <span className="muted small">{t("round")} {next.race.round}</span>
           </div>
-          <h2 style={{ marginTop: 10 }}>{next.race.raceName}</h2>
+          <div className="spread" style={{ alignItems: "center", gap: 16 }}>
+            <h2 style={{ marginTop: 10, flex: "1 1 auto", minWidth: 0 }}>{next.race.raceName}</h2>
+            <TrackMap
+              circuitId={next.race.Circuit.circuitId}
+              circuitName={next.race.Circuit.circuitName}
+              className="hero-track"
+            />
+          </div>
           <p className="meta">
             <MapPin aria-hidden="true" />
             <span className="nat">{countryCode(next.race.Circuit.Location.country)}</span>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Bell, CalendarDays, Database, Heart, Info, Palette, RefreshCw, X } from "lucide-react";
 import { jolpica, type ConstructorRef, type DriverRef } from "../api/jolpica";
 import { clearCache } from "../api/client";
+import { clearModelCache } from "../api/model";
 import { useSettings } from "../store/settings";
 import { Badge, PageHeader } from "../components/ui";
 
@@ -41,6 +42,7 @@ export default function Settings() {
 
   const onClearCache = () => {
     clearCache();
+    clearModelCache();
     setCacheMsg(t("cache_cleared"));
     setTimeout(() => setCacheMsg(""), 2500);
   };

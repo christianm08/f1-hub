@@ -1,8 +1,10 @@
-/* Driver detail: season stats, race-by-race table, points progression chart. */
+/* Driver detail: season stats, race-by-race table, points progression chart.
+ * Driver identity: normalized DriverModel (Jolpica + f1api.dev enrichment). */
 import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Database, Flag, Medal, Sigma, Timer, TrendingUp, Trophy, User } from "lucide-react";
 import { jolpica, type RaceInfo, type RaceResult } from "../api/jolpica";
+import { loadDriverModels, type DriverModel } from "../api/model";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, gapText } from "../components/ui";
@@ -11,31 +13,33 @@ import { Sparkline } from "../components/charts";
 import { countryCode, initials, nationalityCode, teamColor } from "../data/meta";
 
 interface DetailData {
-  driver: { driverId: string; givenName: string; familyName: string; nationality: string; permanentNumber?: string; dateOfBirth: string };
+  driver: DriverModel;
   teamName: string;
   teamId: string;
   races: ({ Results: RaceResult[] } & RaceInfo)[];
 }
 
 async function load(season: string, driverId: string): Promise<DetailData> {
-  const [drivers, races] = await Promise.all([
-    jolpica.drivers(season),
+  const [models, races] = await Promise.all([
+    loadDriverModels(season),
     jolpica.driverResults(season, driverId),
   ]);
-  const driver = drivers.find((d) => d.driverId === driverId);
+  const driver = models.find((m) => m.id === driverId);
   if (!driver) throw new Error("not_found");
-  const teamId = races[0]?.Results[0]?.Constructor.constructorId ?? "";
+  const teamId = driver.teamId ?? races[0]?.Results[0]?.Constructor.constructorId ?? "";
   return {
-    driver: { driverId: driver.driverId, givenName: driver.givenName, familyName: driver.familyName, nationality: driver.nationality, permanentNumber: driver.permanentNumber, dateOfBirth: driver.dateOfBirth },
-    teamName: races[0]?.Results[0]?.Constructor.name ?? "",
+    driver,
+    teamName: driver.teamName ?? races[0]?.Results[0]?.Constructor.name ?? "",
     teamId,
     races,
   };
 }
 
-function ageOf(dob: string): number {
-  const b = new Date(dob).getTime();
-  return Math.floor((Date.now() - b) / 31557600000);
+function fmtBirthday(iso: string | undefined, lang: "it" | "en"): string {
+  if (!iso) return lang === "it" ? "n/d" : "n/a";
+  const d = new Date(iso + "T00:00:00Z");
+  if (Number.isNaN(d.getTime())) return lang === "it" ? "n/d" : "n/a";
+  return d.toLocaleDateString(lang === "it" ? "it-IT" : "en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
 export default function DriverDetail() {
@@ -71,8 +75,8 @@ export default function DriverDetail() {
   }
 
   const color = teamColor(data.teamId);
-  const name = `${data.driver.givenName} ${data.driver.familyName}`;
-  const age = ageOf(data.driver.dateOfBirth);
+  const name = data.driver.fullName;
+  const age = data.driver.age;
   const progMin = stats.progression.length ? Math.min(...stats.progression) : 0;
   const progMax = stats.progression.length ? Math.max(...stats.progression) : 0;
 
@@ -87,8 +91,8 @@ export default function DriverDetail() {
     <div>
       <PageHeader
         title={name}
-        sub={`#${data.driver.permanentNumber ?? "–"} · ${data.teamName} · ${t("age")}: ${age}`}
-        right={<FavButton item={{ kind: "driver", id: data.driver.driverId, label: name }} />}
+        sub={`#${data.driver.number ?? "–"} · ${data.teamName}${age != null ? ` · ${t("age")}: ${age}` : ""}`}
+        right={<FavButton item={{ kind: "driver", id: data.driver.id, label: name }} />}
       />
 
       <div className="grid grid-4">
@@ -113,9 +117,11 @@ export default function DriverDetail() {
           <hr className="divider" />
           <dl className="kv">
             <dt>{t("team")}</dt><dd>{data.teamName}</dd>
-            <dt>{t("number")}</dt><dd className="num">#{data.driver.permanentNumber ?? "–"}</dd>
+            <dt>{t("number")}</dt><dd className="num">#{data.driver.number ?? "–"}</dd>
+            <dt>{t("code")}</dt><dd><span className="mono" style={{ fontWeight: 700 }}>{data.driver.code}</span></dd>
             <dt>{t("nationality")}</dt><dd><span className="nat" style={{ marginRight: 0 }}>{nationalityCode(data.driver.nationality)}</span> {data.driver.nationality}</dd>
-            <dt>{t("age")}</dt><dd className="num">{age}</dd>
+            <dt>{t("birthday")}</dt><dd className="num">{fmtBirthday(data.driver.dateOfBirth, lang)}</dd>
+            <dt>{t("age")}</dt><dd className="num">{age ?? "–"}</dd>
           </dl>
         </div>
         <div className="card">
@@ -178,7 +184,7 @@ export default function DriverDetail() {
       )}
       <p className="small muted mt row">
         <Database size={14} aria-hidden="true" />
-        <span>{lang === "it" ? "Dati: Jolpica F1 API" : "Data: Jolpica F1 API"}</span>
+        <span>{lang === "it" ? "Dati: Jolpica F1 API" : "Data: Jolpica F1 API"}{data.driver.enriched ? " · f1api.dev" : ""}</span>
       </p>
     </div>
   );

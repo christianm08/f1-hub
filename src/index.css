@@ -622,6 +622,18 @@ table.tower-tbl { width: 100%; border-collapse: collapse; min-width: 640px; font
 }
 .circuit-ph svg { width: 30px; height: 30px; opacity: 0.7; }
 
+/* Vector circuit outlines (TrackMap). currentColor -> adapts to dark/light. */
+.trackmap {
+  display: block; width: 100%; height: auto; max-height: 240px;
+  color: var(--text-2); margin: 4px 0;
+}
+.track-mini { width: 62px; flex: 0 0 auto; margin: 6px 0 0; color: var(--text-3); }
+.hero-track {
+  width: 108px; flex: 0 0 auto; color: rgba(255, 255, 255, 0.8);
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.35));
+}
+@media (max-width: 420px) { .hero-track { width: 76px; } }
+
 .progress { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--border); }
 .progress > i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-strong)); border-radius: 999px; transition: width 0.5s ease; }
 .muted { color: var(--text-2); } .small { font-size: var(--fs-small); }

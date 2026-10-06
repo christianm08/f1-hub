@@ -1,13 +1,15 @@
 /* GP detail: circuit info, weekend schedule, per-session results, standings after the GP. */
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ArrowUpRight, Car, Flag, Info, MapPin, Route, Timer, Trophy, Wrench, Zap } from "lucide-react";
+import { ArrowUpRight, Car, Flag, Info, MapPin, Timer, Trophy, Wrench, Zap } from "lucide-react";
 import { jolpica, raceSessions, raceStatus, type RaceInfo, type RaceResult, type QualiResult } from "../api/jolpica";
 import { openf1, formatLapTime, type OFDriver } from "../api/openf1";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { Badge, EmptyState, ErrorState, PageHeader, SkeletonCard, fmtDateTime, gapText } from "../components/ui";
 import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
+import { TrackMap } from "../components/TrackMap";
+import { findTrack, formatTrackLength } from "../data/circuits";
 import { countryCode, nationalityCode, teamColor } from "../data/meta";
 
 type Tab = "info" | "race" | "quali" | "sprint" | "practice" | "standings";
@@ -80,7 +82,7 @@ function sessionIcon(key: string) {
 
 export default function RaceDetail() {
   const { season = "", round = "" } = useParams();
-  const { t, lang } = useSettings();
+  const { t, lang, units } = useSettings();
   const { status, data, retry } = useApi(() => load(season, round), [season, round]);
   const [tab, setTab] = useState<Tab>("info");
 
@@ -137,10 +139,15 @@ export default function RaceDetail() {
         <div className="grid grid-2">
           <div className="card">
             <h3 style={{ marginTop: 0 }}>{race.Circuit.circuitName}</h3>
-            <div className="circuit-ph" aria-hidden="true"><Route aria-hidden="true" />{t("circuit_info")}</div>
+            <TrackMap circuitId={race.Circuit.circuitId} circuitName={race.Circuit.circuitName} />
             <dl className="kv mt">
               <dt>{t("city")}</dt><dd>{race.Circuit.Location.locality}</dd>
               <dt>{t("country")}</dt><dd>{race.Circuit.Location.country}</dd>
+              <dt>{t("length")}</dt>
+              <dd className="num">{(() => {
+                const track = findTrack(race.Circuit.circuitId, race.Circuit.circuitName);
+                return track ? formatTrackLength(track.lengthM, lang, units === "imperial") : t("not_available");
+              })()}</dd>
               <dt>{t("lap_record")}</dt><dd>{t("not_available")}</dd>
             </dl>
             <a className="btn ghost small mt" href={race.Circuit.url} target="_blank" rel="noopener noreferrer">

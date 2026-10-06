@@ -105,9 +105,33 @@ rewrite del server). Pagine caricate in lazy per chunk separati.
 
 | API | Uso | Key |
 |---|---|---|
-| Jolpica F1 API (`api.jolpi.ca/ergast/f1/`) | stagioni, calendario, classifiche, risultati, piloti, team, circuiti | no |
+| Jolpica F1 API (`api.jolpi.ca/ergast/f1/`) | **fonte primaria**: stagioni, calendario, classifiche, risultati, piloti, team, circuiti | no |
 | OpenF1 (`api.openf1.org/v1/`) | live timing, best lap prove, meteo, race control | no |
+| f1api.dev (`f1api.dev/api/`) | **fonte secondaria (arricchimento)**: sigle piloti, date di nascita, numeri di gara, metadati team (sede, prima stagione, titoli) | no |
 | rss2json (proxy CORS keyless) | feed RSS RaceFans + Motorsport.com | no |
+
+## Fonti dati e licenze
+
+- **Jolpica F1 API** — fonte primaria per calendario, classifiche, risultati e
+  anagrafiche. Dati storici stile Ergast, gratuiti senza API key.
+- **OpenF1** — live timing e dati di sessione. Dati storici gratuiti senza key;
+  lo streaming realtime puro richiede un piano a pagamento (l'app usa gli
+  endpoint REST gratuiti e dichiara onestamente quando il live non è disponibile).
+- **f1api.dev** — fonte secondaria usata SOLO per arricchire le schede piloti/team
+  (sigla, data di nascita, numero, sede team, prima stagione, titoli vinti).
+  Gratuita senza key. In caso di conflitto con Jolpica, vince Jolpica (fonte
+  primaria designata); le scelte sono documentate in `src/api/model.ts`.
+- **Tracciati dei circuiti** — geometrie vettoriali da
+  [bacinger/f1-circuits](https://github.com/bacinger/f1-circuits),
+  **MIT License, Copyright (c) 2019-2025 Tomislav Bacinger**, convertite in
+  SVG e integrate in `src/data/tracks.ts` (file generato, vedi
+  `tools/gen-tracks.js`). Il repository è non ufficiale e non affiliato alle
+  società della Formula 1; i marchi F1® appartengono a Formula One Licensing B.V.
+- **News** — titoli ed estratti via RSS (RaceFans, Motorsport.com) con link
+  all'articolo originale; nessun articolo riprodotto integralmente.
+
+Nessun dato è inventato: quando una fonte non risponde, l'app mostra dati in
+cache o un messaggio onesto di indisponibilità.
 
 ## Note tecniche
 
