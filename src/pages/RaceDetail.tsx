@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowUpRight, Car, Flag, Info, MapPin, Timer, Trophy, Wrench, Zap } from "lucide-react";
 import { jolpica, raceSessions, raceStatus, type RaceInfo, type RaceResult, type QualiResult } from "../api/jolpica";
-import { openf1, formatLapTime, type OFDriver } from "../api/openf1";
+import { openf1, findMeeting, formatLapTime, type OFDriver } from "../api/openf1";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { Badge, EmptyState, ErrorState, PageHeader, SkeletonCard, fmtDateTime, gapText } from "../components/ui";
@@ -80,6 +80,28 @@ function sessionIcon(key: string) {
   return <Wrench size={14} aria-hidden="true" style={{ color: "var(--text-3)" }} />;
 }
 
+/** Deep link into the Race Center for this GP's Race session (OpenF1, 2023+).
+ *  Renders nothing while resolving or when no session exists — never fake. */
+function RaceCenterLink({ season, raceName }: { season: string; raceName: string }) {
+  const { t } = useSettings();
+  const { status, data: sessionKey } = useApi(async () => {
+    const year = parseInt(season, 10);
+    if (!Number.isFinite(year) || year < 2023) return null;
+    const meeting = await findMeeting(year, raceName).catch(() => null);
+    if (!meeting) return null;
+    const sessions = await openf1.sessions({ meeting_key: meeting.meeting_key, session_name: "Race" }).catch(() => []);
+    return sessions.length ? sessions[0].session_key : null;
+  }, [season, raceName]);
+  if (status !== "ok" || !sessionKey) return null;
+  return (
+    <div className="row" style={{ margin: "-8px 0 16px" }}>
+      <Link to={`/live?session=${sessionKey}`} className="btn ghost small">
+        <Flag size={14} aria-hidden="true" />{t("view_race_center")}
+      </Link>
+    </div>
+  );
+}
+
 export default function RaceDetail() {
   const { season = "", round = "" } = useParams();
   const { t, lang, units } = useSettings();
@@ -126,6 +148,7 @@ export default function RaceDetail() {
         <span className="nat">{countryCode(race.Circuit.Location.country)}</span>
         <span>{race.Circuit.Location.locality}, {race.Circuit.Location.country}</span>
       </div>
+      <RaceCenterLink season={season} raceName={race.raceName} />
 
       <div className="tabs" role="tablist" aria-label={race.raceName}>
         {tabs.map((tb) => (
