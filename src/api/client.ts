@@ -68,9 +68,30 @@ const FETCH_TIMEOUT_MS = 15000;
 /** Parse-error retries (Jolpica "error code: 1033" transient bad bodies). */
 const PARSE_MAX_ATTEMPTS = 3;
 const PARSE_RETRY_DELAYS_MS = [1200, 3000];
+/** Network-error retries (flaky mobile connections: a single failed request
+    must not surface as a page-level error). */
+const NET_MAX_ATTEMPTS = 3;
+const NET_RETRY_DELAYS_MS = [1000, 3000];
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+/** fetchOnce with retries on network errors/timeouts (not on HTTP statuses:
+ *  those are handled by the caller). Throws ApiError("aborted" | "network_error"). */
+async function fetchWithNetRetry(url: string, signal?: AbortSignal): Promise<Response> {
+  for (let attempt = 0; attempt < NET_MAX_ATTEMPTS; attempt++) {
+    if (attempt > 0) {
+      await sleep(NET_RETRY_DELAYS_MS[attempt - 1] ?? 3000);
+      if (signal?.aborted) throw new ApiError("aborted");
+    }
+    try {
+      return await fetchOnce(url, signal);
+    } catch {
+      /* retry unless attempts are exhausted */
+    }
+  }
+  throw new ApiError(signal?.aborted ? "aborted" : "network_error");
 }
 
 async function fetchOnce(url: string, signal?: AbortSignal): Promise<Response> {
@@ -99,22 +120,13 @@ export async function fetchJSON<T>(url: string, opts: FetchOpts = {}): Promise<T
   }
   const signal = opts.signal;
   if (signal?.aborted) throw new ApiError("aborted");
-  let res: Response;
-  try {
-    res = await fetchOnce(url, signal ?? undefined);
-  } catch {
-    throw new ApiError(signal?.aborted ? "aborted" : "network_error");
-  }
+  let res: Response = await fetchWithNetRetry(url, signal ?? undefined);
   if (res.status === 429) {
     // Rate limited: honor Retry-After once, then give up gracefully.
     const waitS = parseInt(res.headers.get("Retry-After") ?? "5", 10);
     await sleep(Math.min(Number.isFinite(waitS) ? waitS : 5, 30) * 1000);
     if (signal?.aborted) throw new ApiError("aborted");
-    try {
-      res = await fetchOnce(url, signal ?? undefined);
-    } catch {
-      throw new ApiError(signal?.aborted ? "aborted" : "network_error");
-    }
+    res = await fetchWithNetRetry(url, signal ?? undefined);
   }
   if (!res.ok) {
     throw new ApiError(`http_${res.status}`, res.status);
@@ -128,7 +140,7 @@ export async function fetchJSON<T>(url: string, opts: FetchOpts = {}): Promise<T
       await sleep(PARSE_RETRY_DELAYS_MS[attempt - 1] ?? 3000);
       if (signal?.aborted) throw new ApiError("aborted");
       try {
-        const r2 = await fetchOnce(url, signal ?? undefined);
+        const r2 = await fetchWithNetRetry(url, signal ?? undefined);
         if (!r2.ok) throw new ApiError(`http_${r2.status}`, r2.status);
         res = r2;
       } catch (e) {
