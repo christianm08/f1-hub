@@ -4,8 +4,10 @@ import { Link } from "react-router-dom";
 import { CalendarDays, Trophy, Zap } from "lucide-react";
 import { jolpica, raceStatus, type RaceInfo } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
+import { useSeasonParam } from "../hooks/useSeasonParam";
 import { useSettings } from "../store/settings";
 import { Badge, EmptyState, ErrorState, PageHeader, SkeletonCard, fmtDate } from "../components/ui";
+import { SeasonSelect } from "../components/SeasonSelect";
 import { TrackMap } from "../components/TrackMap";
 import { continentOf, countryCode } from "../data/meta";
 import { FlagIcon } from "../components/FlagIcon";
@@ -37,7 +39,8 @@ const MONTHS_IT = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set"
 const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export default function Calendar() {
-  const { t, lang, season } = useSettings();
+  const { t, lang } = useSettings();
+  const [season, setSeason] = useSeasonParam();
   const { status, data, retry } = useApi(() => load(season), [season]);
   const [month, setMonth] = useState("all");
   const [continent, setContinent] = useState("all");
@@ -64,16 +67,16 @@ export default function Calendar() {
   if (status === "loading") {
     return (
       <div>
-        <PageHeader title={t("nav_calendar")} />
+        <PageHeader title={t("nav_calendar")} right={<SeasonSelect value={season} onChange={setSeason} id="calendar-season" />} />
         <div className="grid grid-3"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
       </div>
     );
   }
-  if (status === "error" || !data) return <div><PageHeader title={t("nav_calendar")} /><ErrorState onRetry={retry} /></div>;
+  if (status === "error" || !data) return <div><PageHeader title={t("nav_calendar")} right={<SeasonSelect value={season} onChange={setSeason} id="calendar-season" />} /><ErrorState onRetry={retry} /></div>;
 
   return (
     <div>
-      <PageHeader title={t("nav_calendar")} sub={`${t("season")} ${season} · ${filtered.length} GP`} />
+      <PageHeader title={t("nav_calendar")} sub={`${t("season")} ${season} · ${filtered.length} GP`} right={<SeasonSelect value={season} onChange={setSeason} id="calendar-season" />} />
 
       <div className="filters" role="group" aria-label="filters">
         <div className="field">
