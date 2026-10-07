@@ -44,7 +44,7 @@ const NAT_CODE: Record<string, string> = {
 
 /** 3-letter code -> ISO 3166-1 alpha-2, for the flag-icons library. */
 const ISO2_BY_CODE: Record<string, string> = {
-  AUS: "au", AUT: "at", AZE: "az", BHR: "bh", BEL: "be",
+  AUS: "au", AUT: "at", AZE: "az", BHR: "bh", BRN: "bh", /* BRN: codice OpenF1 per il Bahrain */ BEL: "be",
   BRA: "br", CAN: "ca", CHN: "cn", FRA: "fr", HUN: "hu",
   ITA: "it", JPN: "jp", MYS: "my", MEX: "mx", MON: "mc",
   NED: "nl", QAT: "qa", RUS: "ru", KSA: "sa", SGP: "sg",
