@@ -387,3 +387,6 @@ table.rc-tbl { width: 100%; border-collapse: collapse; min-width: 680px; font-si
 .rc-note .micon { flex: 0 0 auto; margin-top: 2px; }
 .rc-grid-2 { display: grid; gap: var(--md-sys-spacing-4); grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 900px) { .rc-grid-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+
+/* MTabs as a direct grid item: scrolls internally instead of overflowing the column. */
+.rc-mtabs { margin-bottom: 12px; min-width: 0; }

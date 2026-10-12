@@ -213,15 +213,14 @@ export default function Live() {
         mobile ? (
           /* ------------------------- mobile tab layout ------------------------- */
           <div style={{ marginTop: 12 }}>
-            <div style={{ marginBottom: 12 }}>
-              <MTabs
-                tabs={MOBILE_TABS.map((tb) => ({ key: tb.id, label: t(tb.key), icon: tb.icon }))}
-                value={mtab}
-                onChange={(k) => setMtab(k as MobileTab)}
-                variant="secondary"
-                ariaLabel={t("nav_live")}
-              />
-            </div>
+            <MTabs
+              className="rc-mtabs"
+              tabs={MOBILE_TABS.map((tb) => ({ key: tb.id, label: t(tb.key), icon: tb.icon }))}
+              value={mtab}
+              onChange={(k) => setMtab(k as MobileTab)}
+              variant="secondary"
+              ariaLabel={t("nav_live")}
+            />
 
             {mtab === "timing" && (
               <TimingTower timing={rc.timing} drivers={rc.drivers} selected={selDriver} onSelect={setSelDriver} />
@@ -276,15 +275,14 @@ export default function Live() {
           <div className="rc-shell" style={{ marginTop: 12 }}>
             <div style={{ display: "grid", gap: 14, minWidth: 0 }}>
               <TimingTower timing={rc.timing} drivers={rc.drivers} selected={selDriver} onSelect={setSelDriver} />
-              <div style={{ marginBottom: 12 }}>
-                <MTabs
-                  tabs={PANEL_TABS.map((tb) => ({ key: tb.id, label: t(tb.key), icon: tb.icon }))}
-                  value={panel}
-                  onChange={(k) => setPanel(k as PanelTab)}
-                  variant="secondary"
-                  ariaLabel={t("rc_unified_timeline")}
-                />
-              </div>
+              <MTabs
+                className="rc-mtabs"
+                tabs={PANEL_TABS.map((tb) => ({ key: tb.id, label: t(tb.key), icon: tb.icon }))}
+                value={panel}
+                onChange={(k) => setPanel(k as PanelTab)}
+                variant="secondary"
+                ariaLabel={t("rc_unified_timeline")}
+              />
               {panel === "events" && (
                 <UnifiedTimeline raceControl={rc.raceControl} pits={rc.pits} overtakes={rc.overtakes} laps={rc.laps} drivers={rc.drivers} />
               )}
