@@ -90,7 +90,7 @@ export function TeamRadioPanel({ sessionKey, onSelectDriver }: PanelProps) {
                 <button
                   type="button"
                   className="rcx-radio-acr"
-                  style={{ background: "none", border: 0, borderLeft: `3px solid ${d?.teamColour ?? "var(--accent)"}`, cursor: "pointer", color: "inherit", font: "inherit" }}
+                  style={{ background: "none", border: 0, borderLeft: `3px solid ${d?.teamColour ?? "var(--md-sys-color-primary)"}`, cursor: "pointer", color: "inherit", font: "inherit" }}
                   onClick={() => onSelectDriver?.(r.driver)}
                   title={d?.fullName ?? `#${r.driver}`}
                 >

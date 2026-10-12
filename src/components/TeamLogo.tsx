@@ -30,7 +30,7 @@ export function TeamLogo({ constructorId, name, size = 40, tint, className }: Pr
       >
         <span
           className="tlogo-ph-in"
-          style={tint ? { background: `color-mix(in srgb, ${tint} 20%, var(--surface-2))`, color: tint } : undefined}
+          style={tint ? { background: `color-mix(in srgb, ${tint} 20%, var(--md-sys-color-surface-container))`, color: tint } : undefined}
         >
           <MIcon name="sports_motorsports" size={Math.round(size * 0.5)} />
         </span>

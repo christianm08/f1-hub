@@ -85,7 +85,7 @@ export function DriverPanel({ number, onClose, timing, drivers, laps, stints, pi
       {lapSeries.length > 1 && (
         <section>
           <p className="rc-dp-sec">{t("rc_lap_timing")} · {t("rc_time")}</p>
-          <Sparkline values={lapSeries} width={340} height={64} stroke="#e10600" ariaLabel={t("rc_lap_timing")} />
+          <Sparkline values={lapSeries} width={340} height={64} ariaLabel={t("rc_lap_timing")} />
         </section>
       )}
 

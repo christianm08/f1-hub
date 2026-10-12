@@ -79,7 +79,7 @@ const TowerRow = memo(function TowerRow({ row, driver, sessionBest, selected, on
             <i className={`tyre ${TYRE_LETTER[row.compound] ?? ""}`} aria-label={`${t("tyre")}: ${row.compound}`}>
               {TYRE_LETTER[row.compound] ?? "?"}
             </i>
-            <span className="rc-mono" style={{ color: "var(--text-3)", fontSize: "0.76rem" }}>
+            <span className="rc-mono" style={{ color: "var(--md-sys-color-on-surface-variant)", fontSize: "0.76rem" }}>
               {row.tyreAge ?? "–"}
             </span>
           </span>

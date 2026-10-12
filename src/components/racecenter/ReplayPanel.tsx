@@ -297,7 +297,7 @@ export function ReplayPanel({ sessionKey, onSelectDriver }: PanelProps) {
               return (
                 <div className="rcx-tower-row" key={r.number}>
                   <span className="rcx-tower-pos">P{r.position}</span>
-                  <span className="rcx-tower-acr" style={{ borderLeftColor: d?.teamColour ?? "var(--accent)" }}>
+                  <span className="rcx-tower-acr" style={{ borderLeftColor: d?.teamColour ?? "var(--md-sys-color-primary)" }}>
                     {d?.acronym ?? `#${r.number}`}
                   </span>
                   <span className="rcx-tower-name">{d?.fullName ?? ""}</span>

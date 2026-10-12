@@ -112,6 +112,10 @@
 .m3-btn:disabled .m3-btn__label { opacity: 0.6; }
 .m3-btn--outlined:disabled, .m3-btn--text:disabled { background: transparent; }
 .m3-btn--sm { min-height: 40px; padding: 0 var(--md-sys-spacing-4); }
+/* 48dp touch target around the 40dp small button (visual size unchanged) */
+.m3-btn--sm::before {
+  content: ""; position: absolute; inset: -4px 0;
+}
 
 /* ============ MIconButton ============ */
 .m3-icon-btn {

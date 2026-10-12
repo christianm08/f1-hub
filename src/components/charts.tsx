@@ -4,7 +4,7 @@ export function Sparkline({
   values,
   width = 220,
   height = 56,
-  stroke = "#e10600",
+  stroke = "var(--md-sys-color-primary)",
   fill = true,
   ariaLabel,
 }: {
@@ -18,7 +18,7 @@ export function Sparkline({
   if (values.length < 2) {
     return (
       <svg width={width} height={height} role="img" aria-label={ariaLabel ?? "chart"} style={{ maxWidth: "100%", height: "auto", display: "block" }}>
-        <line x1={0} y1={height / 2} x2={width} y2={height / 2} stroke={stroke} strokeWidth={2} strokeDasharray="4 4" />
+        <line x1={0} y1={height / 2} x2={width} y2={height / 2} style={{ stroke }} strokeWidth={2} strokeDasharray="4 4" />
       </svg>
     );
   }
@@ -36,15 +36,15 @@ export function Sparkline({
         <>
           <defs>
             <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={stroke} stopOpacity={0.35} />
-              <stop offset="100%" stopColor={stroke} stopOpacity={0} />
+              <stop offset="0%" style={{ stopColor: stroke }} stopOpacity={0.35} />
+              <stop offset="100%" style={{ stopColor: stroke }} stopOpacity={0} />
             </linearGradient>
           </defs>
           <polygon points={area} fill={`url(#${gid})`} />
         </>
       )}
-      <polyline points={pts} fill="none" stroke={stroke} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={px(values.length - 1)} cy={py(values[values.length - 1])} r={4} fill={stroke} />
+      <polyline points={pts} fill="none" style={{ stroke }} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={px(values.length - 1)} cy={py(values[values.length - 1])} r={4} style={{ fill: stroke }} />
     </svg>
   );
 }

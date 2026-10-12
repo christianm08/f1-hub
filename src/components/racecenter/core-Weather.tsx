@@ -71,7 +71,7 @@ export function WeatherPanel({ latest, series, hasWeather }: Props) {
                 </div>
               </div>
             </div>
-            <p className="small" style={{ display: "flex", alignItems: "center", gap: 6, margin: "10px 0 0", color: latest.rain ? "var(--info)" : "var(--text-3)" }}>
+            <p className="small" style={{ display: "flex", alignItems: "center", gap: 6, margin: "10px 0 0", color: latest.rain ? "var(--info)" : "var(--md-sys-color-on-surface-variant)" }}>
               <MIcon name="rainy" size={14} />
               {latest.rain ? t("rc_rain_yes") : t("rc_rain_no")}
               <span className="rc-nd" style={{ marginLeft: "auto" }}>{fmtTime(new Date(latest.time), lang)}</span>

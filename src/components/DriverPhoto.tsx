@@ -63,7 +63,7 @@ export function DriverPhoto({ driverId, wikiUrl, name, size = 44, tint, historic
   const style = { width: size, height: size } as const;
   const showImg = src && !failed;
   const backdrop = tint
-    ? { background: `linear-gradient(160deg, color-mix(in srgb, ${tint} 26%, var(--surface-2)), var(--surface-2) 72%)` }
+    ? { background: `linear-gradient(160deg, color-mix(in srgb, ${tint} 26%, var(--md-sys-color-surface-container)), var(--md-sys-color-surface-container) 72%)` }
     : undefined;
 
   return (
