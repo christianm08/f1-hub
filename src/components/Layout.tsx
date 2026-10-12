@@ -1,11 +1,21 @@
-/* App shell: top bar, desktop nav, mobile bottom nav, global search overlay. */
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+/* App shell: M3 top app bar, desktop nav rail, mobile bottom nav bar,
+ * global search (dialog) and "more" menu (bottom sheet on mobile).
+ * Routes are unchanged (see App.tsx). */
+import { useEffect, useMemo, useState } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
-  Building2, CalendarDays, Flag, Home, Menu, Moon, Newspaper, Radio, Route,
-  Search, Settings, Sun, Trophy, Users, X,
-  type LucideIcon,
-} from "lucide-react";
+  MBottomSheet,
+  MDialog,
+  MIcon,
+  MIconButton,
+  MList,
+  MListItem,
+  MNavBar,
+  MNavRail,
+  MSearchBar,
+  MTopAppBar,
+  type MIconName,
+} from "../design";
 import { useSettings } from "../store/settings";
 import { jolpica, type DriverRef, type ConstructorRef, type RaceInfo, type CircuitRef } from "../api/jolpica";
 import { fetchNews, type NewsItem } from "../api/news";
@@ -14,30 +24,31 @@ import type { DictKey } from "../i18n/dict";
 interface NavItem {
   to: string;
   key: DictKey;
-  icon: LucideIcon;
-  primary?: boolean;
-  menu?: boolean;
+  icon: MIconName;
 }
 
 const NAV: NavItem[] = [
-  { to: "/", key: "nav_home", icon: Home, primary: true },
-  { to: "/calendario", key: "nav_calendar", icon: CalendarDays, primary: true },
-  { to: "/live", key: "nav_live", icon: Radio, primary: true },
-  { to: "/classifiche", key: "nav_standings", icon: Trophy, primary: true },
-  { to: "/menu", key: "nav_more", icon: Menu, primary: true, menu: true },
-  { to: "/risultati", key: "nav_results", icon: Flag },
-  { to: "/piloti", key: "nav_drivers", icon: Users },
-  { to: "/team", key: "nav_teams", icon: Building2 },
-  { to: "/circuiti", key: "nav_circuits", icon: Route },
-  { to: "/news", key: "nav_news", icon: Newspaper },
-  { to: "/impostazioni", key: "nav_settings", icon: Settings },
+  { to: "/", key: "nav_home", icon: "home" },
+  { to: "/calendario", key: "nav_calendar", icon: "calendar_month" },
+  { to: "/live", key: "nav_live", icon: "radio" },
+  { to: "/classifiche", key: "nav_standings", icon: "trophy" },
+  { to: "/risultati", key: "nav_results", icon: "flag" },
+  { to: "/piloti", key: "nav_drivers", icon: "group" },
+  { to: "/team", key: "nav_teams", icon: "corporate_fare" },
+  { to: "/circuiti", key: "nav_circuits", icon: "route" },
+  { to: "/news", key: "nav_news", icon: "newspaper" },
+  { to: "/impostazioni", key: "nav_settings", icon: "settings" },
 ];
+
+/** Destinations shown directly in the mobile bottom bar; the rest live in "Altro". */
+const MOBILE_PRIMARY = ["/", "/calendario", "/live", "/classifiche"];
 
 export function Layout() {
   const { t, theme, setTheme } = useSettings();
   const [searchOpen, setSearchOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -45,106 +56,103 @@ export function Layout() {
         e.preventDefault();
         setSearchOpen((o) => !o);
       }
-      if (e.key === "Escape") {
-        setSearchOpen(false);
-        setMenuOpen(false);
-      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  useEffect(() => setMenuOpen(false), [location.pathname]);
+  useEffect(() => setMoreOpen(false), [location.pathname]);
+
+  const activeKey = useMemo(() => {
+    const p = location.pathname;
+    const found = NAV.find((n) => (n.to === "/" ? p === "/" : p === n.to || p.startsWith(n.to + "/")));
+    return found?.to ?? "/";
+  }, [location.pathname]);
+
+  const railItems = NAV.map((n) => ({ key: n.to, icon: n.icon, label: t(n.key) }));
+  const barItems = [
+    ...NAV.filter((n) => MOBILE_PRIMARY.includes(n.to)).map((n) => ({ key: n.to, icon: n.icon, label: t(n.key) })),
+    { key: "__more", icon: "menu" as MIconName, label: t("nav_more") },
+  ];
+  const moreItems = NAV.filter((n) => !MOBILE_PRIMARY.includes(n.to));
+
+  const go = (key: string) => {
+    if (key === "__more") {
+      setMoreOpen(true);
+      return;
+    }
+    navigate(key);
+  };
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <div className="topbar-inner">
-          <Link to="/" className="brand" aria-label="F1 Hub home">
-            <span className="brand-mark" aria-hidden="true">F1</span>
-            <span>F1&nbsp;Hub</span>
-          </Link>
-          <nav className="nav-desktop" aria-label="Primary">
-            {NAV.filter((n) => !n.menu).map((n) => (
-              <NavLink key={n.to} to={n.to} end={n.to === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
-                <n.icon aria-hidden="true" />
-                {t(n.key)}
-              </NavLink>
-            ))}
-          </nav>
-          <div className="topbar-actions">
-            <button className="icon-btn" onClick={() => setSearchOpen(true)} aria-label={t("search_placeholder")} title="Ctrl+K">
-              <Search aria-hidden="true" />
-            </button>
-            <button
-              className="icon-btn"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              aria-label={theme === "dark" ? t("theme_light") : t("theme_dark")}
-            >
-              {theme === "dark" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="app-shell">
+      <MNavRail items={railItems} value={activeKey} onChange={go} ariaLabel={t("nav_home")} />
 
-      <main className="main" id="main">
-        <Outlet />
-        <footer className="footer">
-          <span className="fbrand"><Flag aria-hidden="true" /> F1 Hub</span>
-          <span>{t("about_text")}</span>
-          <span className="fcredit">{t("img_credit_wiki")}</span>
-        </footer>
-      </main>
+      <div className="app-body">
+        <MTopAppBar
+          title={
+            <Link to="/" className="brand" aria-label="F1 Hub home">
+              <span className="brand-mark" aria-hidden="true">F1</span>
+              <span className="brand-name">F1&nbsp;Hub</span>
+            </Link>
+          }
+          actions={
+            <>
+              <MIconButton icon="search" label={t("search_placeholder")} onClick={() => setSearchOpen(true)} />
+              <MIconButton
+                icon={theme === "dark" ? "light_mode" : "dark_mode"}
+                label={theme === "dark" ? t("theme_light") : t("theme_dark")}
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              />
+            </>
+          }
+        />
 
-      <nav className="bottomnav" aria-label="Primary mobile">
-        {NAV.filter((n) => n.primary).map((n) =>
-          n.menu ? (
-            <button key={n.to} className={`mnav${menuOpen ? " active" : ""}`} onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen} aria-label={t(n.key)}>
-              {menuOpen ? <X aria-hidden="true" /> : <n.icon aria-hidden="true" />}
-              {t(n.key)}
-            </button>
-          ) : (
-            <NavLink key={n.to} to={n.to} end={n.to === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
-              <n.icon aria-hidden="true" />
-              {t(n.key)}
-            </NavLink>
-          )
-        )}
-      </nav>
+        <main className="app-main" id="main">
+          <Outlet />
+          <footer className="app-footer">
+            <span className="fbrand"><MIcon name="flag" size={18} /> F1 Hub</span>
+            <span>{t("about_text")}</span>
+            <span>{t("img_credit_wiki")}</span>
+          </footer>
+        </main>
+      </div>
 
-      {menuOpen && (
-        <div className="search-overlay" onClick={() => setMenuOpen(false)}>
-          <div className="search-box" role="dialog" aria-label={t("nav_more")} onClick={(e) => e.stopPropagation()}>
-            {NAV.filter((n) => !n.primary && !n.menu).map((n) => (
-              <div className="search-results" key={n.to} style={{ borderTop: "none" }}>
-                <Link to={n.to} onClick={() => setMenuOpen(false)}>
-                  <span className="search-ico" aria-hidden="true"><n.icon /></span>
-                  <b>{t(n.key)}</b>
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <MNavBar items={barItems} value={MOBILE_PRIMARY.includes(activeKey) ? activeKey : "__more"} onChange={go} ariaLabel={t("nav_home")} />
 
-      {searchOpen && <SearchOverlay onClose={() => setSearchOpen(false)} />}
+      <MBottomSheet open={moreOpen} onClose={() => setMoreOpen(false)} title={t("nav_more")}>
+        <MList ariaLabel={t("nav_more")}>
+          {moreItems.map((n) => (
+            <MListItem
+              key={n.to}
+              headline={t(n.key)}
+              leading={<MIcon name={n.icon} />}
+              selected={activeKey === n.to}
+              onClick={() => {
+                setMoreOpen(false);
+                navigate(n.to);
+              }}
+            />
+          ))}
+        </MList>
+      </MBottomSheet>
+
+      {searchOpen && <SearchDialog onClose={() => setSearchOpen(false)} />}
     </div>
   );
 }
 
 /* ---------------- global search ---------------- */
 
-interface Hit { kind: string; label: string; sub: string; to: string; icon: LucideIcon }
+interface Hit { kind: string; label: string; sub: string; to: string; icon: MIconName }
 
-function SearchOverlay({ onClose }: { onClose: () => void }) {
+function SearchDialog({ onClose }: { onClose: () => void }) {
   const { t, season } = useSettings();
   const [q, setQ] = useState("");
   const [data, setData] = useState<{ drivers: DriverRef[]; teams: ConstructorRef[]; races: RaceInfo[]; circuits: CircuitRef[]; news: NewsItem[] } | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    inputRef.current?.focus();
     let cancelled = false;
     Promise.all([
       jolpica.drivers(season).catch(() => [] as DriverRef[]),
@@ -158,6 +166,14 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
     return () => { cancelled = true; };
   }, [season]);
 
+  // autofocus the search input when the dialog opens (focus trap is active)
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      document.querySelector<HTMLElement>(".m3-search__input")?.focus();
+    }, 60);
+    return () => window.clearTimeout(id);
+  }, []);
+
   const hits = useMemo<Hit[]>(() => {
     const query = q.trim().toLowerCase();
     if (!data || query.length < 2) return [];
@@ -165,71 +181,81 @@ function SearchOverlay({ onClose }: { onClose: () => void }) {
     for (const d of data.drivers) {
       const label = `${d.givenName} ${d.familyName}`;
       if (label.toLowerCase().includes(query) || (d.code ?? "").toLowerCase() === query) {
-        out.push({ kind: t("nav_drivers"), label, sub: d.nationality, to: `/piloti/${d.driverId}?season=${season}`, icon: Users });
+        out.push({ kind: t("nav_drivers"), label, sub: d.nationality, to: `/piloti/${d.driverId}?season=${season}`, icon: "person" });
       }
     }
     for (const c of data.teams) {
       if (c.name.toLowerCase().includes(query)) {
-        out.push({ kind: t("nav_teams"), label: c.name, sub: c.nationality, to: `/team/${c.constructorId}?season=${season}`, icon: Building2 });
+        out.push({ kind: t("nav_teams"), label: c.name, sub: c.nationality, to: `/team/${c.constructorId}?season=${season}`, icon: "corporate_fare" });
       }
     }
     for (const r of data.races) {
       if (r.raceName.toLowerCase().includes(query) || r.Circuit.Location.country.toLowerCase().includes(query)) {
-        out.push({ kind: t("nav_calendar"), label: r.raceName, sub: `${r.Circuit.Location.locality} · ${r.Circuit.Location.country}`, to: `/gara/${r.season}/${r.round}`, icon: Flag });
+        out.push({ kind: t("nav_calendar"), label: r.raceName, sub: `${r.Circuit.Location.locality} · ${r.Circuit.Location.country}`, to: `/gara/${r.season}/${r.round}`, icon: "flag" });
       }
     }
     for (const c of data.circuits) {
       if (c.circuitName.toLowerCase().includes(query)) {
-        out.push({ kind: t("nav_circuits"), label: c.circuitName, sub: `${c.Location.locality} · ${c.Location.country}`, to: `/circuiti`, icon: Route });
+        out.push({ kind: t("nav_circuits"), label: c.circuitName, sub: `${c.Location.locality} · ${c.Location.country}`, to: `/circuiti`, icon: "route" });
       }
     }
     for (const n of data.news) {
       if (n.title.toLowerCase().includes(query)) {
-        out.push({ kind: t("nav_news"), label: n.title, sub: n.source, to: `/news`, icon: Newspaper });
+        out.push({ kind: t("nav_news"), label: n.title, sub: n.source, to: `/news`, icon: "newspaper" });
       }
     }
     return out.slice(0, 24);
   }, [q, data, t, season]);
 
+  const goFirst = () => {
+    if (hits.length > 0) {
+      navigate(hits[0].to);
+      onClose();
+    }
+  };
+
   return (
-    <div className="search-overlay" onClick={onClose} role="presentation">
-      <div className="search-box" role="dialog" aria-label={t("search_placeholder")} onClick={(e) => e.stopPropagation()}>
-        <input
-          ref={inputRef}
-          type="search"
-          placeholder={t("search_placeholder")}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && hits.length > 0) {
-              navigate(hits[0].to);
-              onClose();
-            }
-          }}
-          aria-label={t("search_placeholder")}
-        />
-        <div className="search-results">
-          {q.trim().length >= 2 && hits.length === 0 && (
-            <div style={{ padding: "18px", color: "var(--text-2)" }}>{t("no_results")}</div>
-          )}
-          {q.trim().length < 2 && (
-            <div style={{ padding: "18px", color: "var(--text-3)", fontSize: "0.88rem" }}>{t("search_hint")}</div>
-          )}
-          {hits.map((h, i) => (
-            <Link key={i} to={h.to} onClick={onClose}>
-              <span className="search-ico" aria-hidden="true"><h.icon /></span>
-              <span>
-                <b style={{ display: "block", fontSize: "0.95rem" }}>{h.label}</b>
-                <span className="small muted">{h.sub}</span>
-              </span>
-              <span className="kind" style={{ marginLeft: "auto" }}>{h.kind}</span>
-            </Link>
-          ))}
-        </div>
+    <MDialog open onClose={onClose} headline={t("search_placeholder")} icon="search">
+      <MSearchBar
+        value={q}
+        onChange={setQ}
+        onSubmit={goFirst}
+        placeholder={t("search_placeholder")}
+        label={t("search_placeholder")}
+        trailing={
+          q ? (
+            <MIconButton icon="close" label={t("search_clear")} onClick={() => setQ("")} />
+          ) : undefined
+        }
+      />
+      <div className="m3-search-results">
+        {q.trim().length >= 2 && hits.length === 0 && (
+          <p className="m3-muted" style={{ padding: "18px 4px" }}>{t("no_results")}</p>
+        )}
+        {q.trim().length < 2 && (
+          <p className="m3-muted" style={{ padding: "18px 4px", fontSize: "0.88rem" }}>{t("search_hint")}</p>
+        )}
+        {hits.length > 0 && (
+          <MList ariaLabel={t("search_placeholder")}>
+            {hits.map((h, i) => (
+              <MListItem
+                key={i}
+                headline={h.label}
+                supportingText={h.sub}
+                leading={<MIcon name={h.icon} />}
+                trailing={<span className="m3-search-kind">{h.kind}</span>}
+                onClick={() => {
+                  navigate(h.to);
+                  onClose();
+                }}
+              />
+            ))}
+          </MList>
+        )}
       </div>
-    </div>
+    </MDialog>
   );
 }
 
-export { SearchOverlay };
+export { SearchDialog as SearchOverlay };
 export type { Hit };

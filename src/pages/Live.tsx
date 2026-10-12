@@ -3,16 +3,13 @@
    needsSubscription is shown as-is, never simulated; missing data -> n/d).
    Owned by the race-center core agent. */
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
-import {
-  ArrowLeft, CloudSun, CreditCard, Gauge, History, Layers, ListOrdered, Map as MapIcon,
-  MoreHorizontal, Radio as RadioIcon, RefreshCw, Scale, Timer, TriangleAlert, User, Wrench,
-} from "lucide-react";
 import { findLiveSession, type OFSession } from "../api/openf1";
 import { useRaceCenterSession } from "../api/openf1live";
 import { useSettings } from "../store/settings";
-import { Badge, EmptyState, ErrorState, PageHeader, Skeleton, fmtDateTime } from "../components/ui";
+import type { DictKey } from "../i18n/dict";
+import { Badge, PageHeader, fmtDateTime } from "../components/ui";
+import { MButton, MEmptyState, MErrorState, MIcon, MSkeleton, MTabs, type MIconName } from "../design";
 import { FlagBanner } from "../components/racecenter/core-FlagBanner";
 import { TimingTower } from "../components/racecenter/core-TimingTower";
 import { WeatherPanel } from "../components/racecenter/core-Weather";
@@ -35,10 +32,34 @@ const ComparePanel = lazy(() => import("../components/racecenter/ComparePanel").
 type PanelTab = "events" | "strategy" | "pits" | "laps" | "map" | "telemetry" | "radio" | "replay" | "compare";
 type MobileTab = "timing" | "map" | "events" | "tyres" | "replay" | "radio" | "weather" | "driver" | "more";
 
+const MOBILE_TABS: { id: MobileTab; key: DictKey; icon: MIconName }[] = [
+  { id: "timing", key: "rc_tab_timing", icon: "timer" },
+  { id: "map", key: "rc_tab_map", icon: "map" },
+  { id: "events", key: "rc_tab_events", icon: "format_list_numbered" },
+  { id: "tyres", key: "rc_tab_tyres", icon: "layers" },
+  { id: "replay", key: "rc_tab_replay", icon: "history" },
+  { id: "radio", key: "rc_tab_radio", icon: "radio" },
+  { id: "weather", key: "rc_tab_weather", icon: "thermometer" },
+  { id: "driver", key: "rc_tab_driver", icon: "person" },
+  { id: "more", key: "rc_tab_more", icon: "more_horiz" },
+];
+
+const PANEL_TABS: { id: PanelTab; key: DictKey; icon: MIconName }[] = [
+  { id: "events", key: "rc_tab_events", icon: "format_list_numbered" },
+  { id: "map", key: "rc_tab_map", icon: "map" },
+  { id: "strategy", key: "rc_tab_tyres", icon: "layers" },
+  { id: "pits", key: "rc_pit_timeline", icon: "build" },
+  { id: "laps", key: "rc_lap_timing", icon: "timer" },
+  { id: "telemetry", key: "rc_tab_telemetry", icon: "activity_zone" },
+  { id: "radio", key: "rc_tab_radio", icon: "radio" },
+  { id: "replay", key: "rc_tab_replay", icon: "history" },
+  { id: "compare", key: "rc_tab_compare", icon: "compare_arrows" },
+];
+
 function AdvFallback() {
   return (
     <div style={{ display: "grid", gap: 10, padding: "8px 0" }} aria-busy="true">
-      <Skeleton h={220} />
+      <MSkeleton height={220} />
     </div>
   );
 }
@@ -144,14 +165,14 @@ export default function Live() {
               <Badge kind="warn">{t("rc_state_upcoming")}</Badge>
             )}
             {rc.stale && (
-              <span className="rc-stale"><TriangleAlert aria-hidden="true" />{t("rc_stale")}</span>
+              <span className="rc-stale"><MIcon name="warning" size={13} />{t("rc_stale")}</span>
             )}
-            <button className="btn ghost small" onClick={rc.refresh} aria-label={t("refresh")}>
-              <RefreshCw size={14} aria-hidden="true" />{t("refresh")}
-            </button>
-            <button className="btn ghost small" onClick={backToBrowser}>
-              <ArrowLeft size={14} aria-hidden="true" />{t("rc_choose_session")}
-            </button>
+            <MButton variant="outlined" small icon="refresh" onClick={rc.refresh} aria-label={t("refresh")}>
+              {t("refresh")}
+            </MButton>
+            <MButton variant="outlined" small icon="arrow_back" onClick={backToBrowser}>
+              {t("rc_choose_session")}
+            </MButton>
           </span>
         }
       />
@@ -160,29 +181,29 @@ export default function Live() {
 
       {rc.state === "loading" && (
         <div className="rc-tower" aria-busy="true" style={{ marginTop: 14 }}>
-          <div className="rc-tower-head"><h3><Timer aria-hidden="true" />{t("live_positions")}</h3></div>
+          <div className="rc-tower-head"><h3><MIcon name="timer" />{t("live_positions")}</h3></div>
           <div style={{ padding: 16, display: "grid", gap: 10 }}>
-            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} h={30} />)}
+            {Array.from({ length: 8 }).map((_, i) => <MSkeleton key={i} height={30} />)}
           </div>
         </div>
       )}
 
       {rc.state === "needsSubscription" && (
         <div className="rc-needs">
-          <div className="ic"><CreditCard aria-hidden="true" /></div>
+          <div className="ic"><MIcon name="credit_card" size={26} /></div>
           <h2>{t("rc_needs_sub_title")}</h2>
           <p>{t("rc_needs_sub_body")}</p>
-          <button className="btn primary" onClick={backToBrowser}>{t("rc_browse_replay")}</button>
+          <MButton variant="filled" onClick={backToBrowser}>{t("rc_browse_replay")}</MButton>
         </div>
       )}
 
       {rc.state === "error" && (
-        <ErrorState onRetry={rc.refresh} />
+        <MErrorState onRetry={rc.refresh} />
       )}
 
       {(rc.state === "ready" || rc.state === "live") && info && (info.state === "upcoming" || info.state === "scheduled") && (
-        <EmptyState
-          icon={<Timer aria-hidden="true" />}
+        <MEmptyState
+          icon="timer"
           title={t("rc_state_upcoming")}
           body={`${info.normalizedName} · ${fmtDateTime(new Date(info.startUtc), lang)}`}
         />
@@ -192,25 +213,14 @@ export default function Live() {
         mobile ? (
           /* ------------------------- mobile tab layout ------------------------- */
           <div style={{ marginTop: 12 }}>
-            <div className="rc-tabs" role="tablist" aria-label={t("nav_live")}>
-              {(
-                [
-                  { id: "timing", key: "rc_tab_timing", icon: <Timer aria-hidden="true" /> },
-                  { id: "map", key: "rc_tab_map", icon: <MapIcon aria-hidden="true" /> },
-                  { id: "events", key: "rc_tab_events", icon: <ListOrdered aria-hidden="true" /> },
-                  { id: "tyres", key: "rc_tab_tyres", icon: <Layers aria-hidden="true" /> },
-                  { id: "replay", key: "rc_tab_replay", icon: <History aria-hidden="true" /> },
-                  { id: "radio", key: "rc_tab_radio", icon: <RadioIcon aria-hidden="true" /> },
-                  { id: "weather", key: "rc_tab_weather", icon: <CloudSun aria-hidden="true" /> },
-                  { id: "driver", key: "rc_tab_driver", icon: <User aria-hidden="true" /> },
-                  { id: "more", key: "rc_tab_more", icon: <MoreHorizontal aria-hidden="true" /> },
-                ] as { id: MobileTab; key: "rc_tab_timing" | "rc_tab_map" | "rc_tab_events" | "rc_tab_tyres" | "rc_tab_replay" | "rc_tab_radio" | "rc_tab_weather" | "rc_tab_driver" | "rc_tab_more"; icon: ReactNode }[]
-              ).map((tb) => (
-                <button key={tb.id} role="tab" aria-selected={mtab === tb.id}
-                  className={`rc-tab${mtab === tb.id ? " on" : ""}`} onClick={() => setMtab(tb.id)}>
-                  {tb.icon}{t(tb.key)}
-                </button>
-              ))}
+            <div style={{ marginBottom: 12 }}>
+              <MTabs
+                tabs={MOBILE_TABS.map((tb) => ({ key: tb.id, label: t(tb.key), icon: tb.icon }))}
+                value={mtab}
+                onChange={(k) => setMtab(k as MobileTab)}
+                variant="secondary"
+                ariaLabel={t("nav_live")}
+              />
             </div>
 
             {mtab === "timing" && (
@@ -266,25 +276,14 @@ export default function Live() {
           <div className="rc-shell" style={{ marginTop: 12 }}>
             <div style={{ display: "grid", gap: 14, minWidth: 0 }}>
               <TimingTower timing={rc.timing} drivers={rc.drivers} selected={selDriver} onSelect={setSelDriver} />
-              <div className="rc-tabs" role="tablist" aria-label={t("rc_unified_timeline")}>
-                {(
-                  [
-                    { id: "events", key: "rc_tab_events", icon: <ListOrdered aria-hidden="true" /> },
-                    { id: "map", key: "rc_tab_map", icon: <MapIcon aria-hidden="true" /> },
-                    { id: "strategy", key: "rc_tab_tyres", icon: <Layers aria-hidden="true" /> },
-                    { id: "pits", key: "rc_pit_timeline", icon: <Wrench aria-hidden="true" /> },
-                    { id: "laps", key: "rc_lap_timing", icon: <Timer aria-hidden="true" /> },
-                    { id: "telemetry", key: "rc_tab_telemetry", icon: <Gauge aria-hidden="true" /> },
-                    { id: "radio", key: "rc_tab_radio", icon: <RadioIcon aria-hidden="true" /> },
-                    { id: "replay", key: "rc_tab_replay", icon: <History aria-hidden="true" /> },
-                    { id: "compare", key: "rc_tab_compare", icon: <Scale aria-hidden="true" /> },
-                  ] as { id: PanelTab; key: "rc_tab_events" | "rc_tab_map" | "rc_tab_tyres" | "rc_pit_timeline" | "rc_lap_timing" | "rc_tab_telemetry" | "rc_tab_radio" | "rc_tab_replay" | "rc_tab_compare"; icon: ReactNode }[]
-                ).map((tb) => (
-                  <button key={tb.id} role="tab" aria-selected={panel === tb.id}
-                    className={`rc-tab${panel === tb.id ? " on" : ""}`} onClick={() => setPanel(tb.id)}>
-                    {tb.icon}{t(tb.key)}
-                  </button>
-                ))}
+              <div style={{ marginBottom: 12 }}>
+                <MTabs
+                  tabs={PANEL_TABS.map((tb) => ({ key: tb.id, label: t(tb.key), icon: tb.icon }))}
+                  value={panel}
+                  onChange={(k) => setPanel(k as PanelTab)}
+                  variant="secondary"
+                  ariaLabel={t("rc_unified_timeline")}
+                />
               </div>
               {panel === "events" && (
                 <UnifiedTimeline raceControl={rc.raceControl} pits={rc.pits} overtakes={rc.overtakes} laps={rc.laps} drivers={rc.drivers} />
@@ -332,12 +331,8 @@ export default function Live() {
         )
       )}
 
-      {/* Driver detail: side panel (desktop) / bottom sheet (mobile) */}
-      {!mobile && (
-        <DriverPanel number={selDriver} onClose={() => setSelDriver(null)}
-          timing={rc.timing} drivers={rc.drivers} laps={rc.laps} stints={rc.stints} pits={rc.pits} />
-      )}
-      {mobile && selDriver != null && mtab !== "driver" && (
+      {/* Driver detail: M3 bottom sheet (mobile + desktop), portaled by the design system */}
+      {selDriver != null && mtab !== "driver" && (
         <DriverPanel number={selDriver} onClose={() => setSelDriver(null)}
           timing={rc.timing} drivers={rc.drivers} laps={rc.laps} stints={rc.stints} pits={rc.pits} />
       )}

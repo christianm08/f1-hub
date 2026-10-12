@@ -3,6 +3,7 @@
      import { MButton, MIcon, useToast } from "../design";
    (adjust the relative path to the importing file's location). */
 import "./tokens.css";
+import "./pages.css";
 
 export * from "./icons";
 export * from "./components";

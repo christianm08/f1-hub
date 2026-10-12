@@ -72,6 +72,7 @@ import location_on_svg from "@material-symbols/svg-400/outlined/location_on.svg?
 import navigation_svg from "@material-symbols/svg-400/outlined/navigation.svg?raw";
 import route_svg from "@material-symbols/svg-400/outlined/route.svg?raw";
 import speed_svg from "@material-symbols/svg-400/outlined/speed.svg?raw";
+import credit_card_svg from "@material-symbols/svg-400/outlined/credit_card.svg?raw";
 import corporate_fare_svg from "@material-symbols/svg-400/outlined/corporate_fare.svg?raw";
 import language_svg from "@material-symbols/svg-400/outlined/language.svg?raw";
 import public_svg from "@material-symbols/svg-400/outlined/public.svg?raw";
@@ -207,6 +208,7 @@ const OUTLINE: Record<string, string> = {
   "navigation": navigation_svg,
   "route": route_svg,
   "speed": speed_svg,
+  "credit_card": credit_card_svg,
   "corporate_fare": corporate_fare_svg,
   "language": language_svg,
   "public": public_svg,
@@ -345,6 +347,7 @@ export type MIconName =
   | "navigation"
   | "route"
   | "speed"
+  | "credit_card"
   | "corporate_fare"
   | "language"
   | "public"
