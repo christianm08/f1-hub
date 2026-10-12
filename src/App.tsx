@@ -5,6 +5,7 @@ import { HashRouter, Route, Routes, Navigate } from "react-router-dom";
 import { SettingsProvider } from "./store/settings";
 import { Layout } from "./components/Layout";
 import { Skeleton } from "./components/ui";
+import { ToastProvider } from "./design";
 
 const Home = lazy(() => import("./pages/Home"));
 const Calendar = lazy(() => import("./pages/Calendar"));
@@ -32,6 +33,7 @@ function PageFallback() {
 export default function App() {
   return (
     <SettingsProvider>
+      <ToastProvider>
       <HashRouter>
         <Suspense fallback={<PageFallback />}>
           <Routes>
@@ -54,6 +56,7 @@ export default function App() {
           </Routes>
         </Suspense>
       </HashRouter>
+      </ToastProvider>
     </SettingsProvider>
   );
 }

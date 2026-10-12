@@ -1,5 +1,4 @@
 /* Standings: drivers + constructors with season selector (API-supported seasons only). */
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { jolpica } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
@@ -7,6 +6,7 @@ import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, PageHeader, SkeletonCard } from "../components/ui";
 import { MIcon } from "../design";
 import { SeasonSelect } from "../components/SeasonSelect";
+import { useSeasonParam } from "../hooks/useSeasonParam";
 import { DriverPhoto } from "../components/DriverPhoto";
 import { TeamLogo } from "../components/TeamLogo";
 import { MDetails, MobileTable, MTable, ResponsiveTable, TeamDot, type MobileRow } from "../components/ResponsiveTable";
@@ -14,8 +14,8 @@ import { nationalityCode, teamColor } from "../data/meta";
 import { FlagIcon } from "../components/FlagIcon";
 
 export default function Standings() {
-  const { t, season: defaultSeason } = useSettings();
-  const [season, setSeason] = useState(defaultSeason);
+  const { t } = useSettings();
+  const [season, setSeason] = useSeasonParam();
 
   const { status, data, retry } = useApi(
     () => Promise.all([

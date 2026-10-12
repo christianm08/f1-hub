@@ -69,10 +69,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    document.documentElement.lang = lang;
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#0a0e14" : "#f4f6fa");
     save("theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const setTheme = useCallback((v: Theme) => setThemeState(v), []);
   const setLang = useCallback((v: Lang) => { setLangState(v); save("lang", v); }, []);

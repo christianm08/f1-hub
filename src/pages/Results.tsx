@@ -10,6 +10,7 @@ import { EmptyState, ErrorState, PageHeader, SkeletonCard, gapText } from "../co
 import { MSelect, MTabs, type MTab } from "../design";
 import { MDetails, MobileTable, MTable, ResponsiveTable, TeamDot, type MobileRow } from "../components/ResponsiveTable";
 import { SeasonSelect } from "../components/SeasonSelect";
+import { useSeasonParam } from "../hooks/useSeasonParam";
 import { nationalityCode, teamColor } from "../data/meta";
 import { FlagIcon } from "../components/FlagIcon";
 type SessionKind = "race" | "qualifying" | "sprint" | "practice";
@@ -44,8 +45,8 @@ async function loadPracticeBest(season: string, race: RaceInfo, which: 0 | 1 | 2
 }
 
 export default function Results() {
-  const { t, season: defaultSeason } = useSettings();
-  const [season, setSeason] = useState(defaultSeason);
+  const { t } = useSettings();
+  const [season, setSeason] = useSeasonParam();
   const [round, setRound] = useState("");
   const [session, setSession] = useState<SessionKind>("race");
   const [fpIdx, setFpIdx] = useState<0 | 1 | 2>(0);
