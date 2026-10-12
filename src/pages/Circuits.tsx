@@ -3,13 +3,13 @@
  * the winner of THAT season's race at the circuit. Track outlines:
  * bacinger/f1-circuits (MIT). */
 import { useMemo } from "react";
-import { ArrowUpRight, Flag, Info, Trophy } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { jolpica, raceStatus, type RaceInfo } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
 import { useSeasonParam } from "../hooks/useSeasonParam";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
+import { MButton, MCard, MIcon } from "../design";
 import { SeasonSelect } from "../components/SeasonSelect";
 import { TrackMap } from "../components/TrackMap";
 import { findTrack, formatTrackLength } from "../data/circuits";
@@ -49,6 +49,7 @@ function fmtDate(iso: string | undefined, lang: "it" | "en"): string {
 
 export default function Circuits() {
   const { t, lang, units } = useSettings();
+  const navigate = useNavigate();
   const [season, setSeason] = useSeasonParam();
   const { status, data, retry } = useApi((signal) => load(season, { signal }), [season]);
 
@@ -70,41 +71,41 @@ export default function Circuits() {
   );
 
   if (status === "loading") {
-    return <div>{header}<div className="grid grid-3"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div></div>;
+    return <div>{header}<div className="m3-grid m3-grid--3"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div></div>;
   }
   if (status === "error" || !data) return <div>{header}<ErrorState onRetry={retry} /></div>;
-  if (circuits.length === 0) return <div>{header}<EmptyState title={t("empty_title")} body={t("empty_body")} /></div>;
+  if (circuits.length === 0) return <div>{header}<EmptyState icon="search_off" title={t("empty_title")} body={t("empty_body")} /></div>;
 
   return (
     <div>
       {header}
-      <div className="grid grid-3">
+      <div className="m3-grid m3-grid--3">
         {circuits.map((r) => {
           const c = r.Circuit;
           const track = findTrack(c.circuitId, c.circuitName);
           return (
-            <div className="card" key={c.circuitId}>
-              <div className="spread">
+            <MCard variant="outlined" key={c.circuitId}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
                 <h3 style={{ margin: 0, fontSize: "1.02rem" }}>{c.circuitName}</h3>
                 <FavButton item={{ kind: "circuit", id: c.circuitId, label: c.circuitName }} />
               </div>
-              <p className="muted small" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <p className="m3-muted" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.88rem" }}>
                 <FlagIcon code={countryCode(c.Location.country)} />
                 <span>{c.Location.locality}, {c.Location.country}</span>
               </p>
-              <p className="small" style={{ display: "flex", alignItems: "center", gap: 6, margin: "0 0 8px" }}>
-                <Flag size={13} aria-hidden="true" style={{ color: "var(--accent)" }} />
+              <p style={{ display: "flex", alignItems: "center", gap: 6, margin: "0 0 8px", fontSize: "0.88rem", flexWrap: "wrap" }}>
+                <MIcon name="flag" size={14} className="m3-leader-mark" />
                 <b>R{r.round}</b>
-                <span className="muted">·</span>
+                <span className="m3-muted">·</span>
                 <span>{r.raceName}</span>
-                <span className="muted">·</span>
-                <span className="num muted">{fmtDate(r.date, lang)}</span>
+                <span className="m3-muted">·</span>
+                <span className="num m3-muted">{fmtDate(r.date, lang)}</span>
               </p>
               <TrackMap circuitId={c.circuitId} circuitName={c.circuitName} />
-              <dl className="kv mt">
+              <dl className="m3-kv" style={{ marginTop: 12 }}>
                 <dt>{t("winner")} · {season}</dt>
-                <dd>
-                  <Trophy size={14} aria-hidden="true" style={{ color: "var(--gold)", verticalAlign: "-2px", marginRight: 6 }} />
+                <dd style={{ display: "inline-flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
+                  <MIcon name="trophy" size={14} className="m3-leader-mark" />
                   {data.winners[c.circuitId] ?? t("not_available")}
                 </dd>
                 <dt>Lat/Long</dt>
@@ -112,20 +113,20 @@ export default function Circuits() {
                 <dt>{t("length")}</dt>
                 <dd className="num">{track ? formatTrackLength(track.lengthM, lang, units === "imperial") : t("not_available")}</dd>
               </dl>
-              <div className="row mt" style={{ gap: 8 }}>
-                <Link className="btn ghost small" to={`/gara/${season}/${r.round}`}>
+              <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+                <MButton variant="outlined" small onClick={() => navigate(`/gara/${season}/${r.round}`)}>
                   {t("race")} · {season}
-                </Link>
-                <a className="btn ghost small" href={c.url} target="_blank" rel="noopener noreferrer">
-                  Wikipedia <ArrowUpRight size={13} aria-hidden="true" />
-                </a>
+                </MButton>
+                <MButton variant="text" small trailingIcon="arrow_outward" onClick={() => window.open(c.url, "_blank", "noopener,noreferrer")}>
+                  Wikipedia
+                </MButton>
               </div>
-            </div>
+            </MCard>
           );
         })}
       </div>
-      <p className="small muted mt row" style={{ alignItems: "flex-start" }}>
-        <Info size={14} aria-hidden="true" style={{ color: "var(--text-3)", flex: "0 0 auto", marginTop: 2 }} />
+      <p className="m3-muted" style={{ display: "flex", gap: 8, marginTop: 16, fontSize: "0.85rem", alignItems: "flex-start" }}>
+        <MIcon name="info" size={16} style={{ flex: "0 0 auto", marginTop: 2 }} />
         <span>{t("track_attribution")}</span>
       </p>
     </div>
