@@ -2,13 +2,13 @@
    + practice best laps via OpenF1 (recent seasons only, honest fallback). */
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Timer } from "lucide-react";
 import { jolpica, raceStatus, type RaceInfo, type RaceResult, type QualiResult } from "../api/jolpica";
 import { openf1, formatLapTime, type OFDriver } from "../api/openf1";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, PageHeader, SkeletonCard, gapText } from "../components/ui";
-import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
+import { MSelect, MTabs, type MTab } from "../design";
+import { MDetails, MobileTable, MTable, ResponsiveTable, TeamDot, type MobileRow } from "../components/ResponsiveTable";
 import { SeasonSelect } from "../components/SeasonSelect";
 import { nationalityCode, teamColor } from "../data/meta";
 import { FlagIcon } from "../components/FlagIcon";
@@ -80,54 +80,56 @@ export default function Results() {
     return `${race.raceName}`;
   }, [race, t]);
 
+  const sessionTabs: MTab[] = useMemo(() => {
+    const tabs: MTab[] = [
+      { key: "race", label: t("race"), icon: "flag" },
+      { key: "qualifying", label: t("qualifying"), icon: "timer" },
+    ];
+    if (hasSprint) tabs.push({ key: "sprint", label: t("sprint"), icon: "bolt" });
+    tabs.push({ key: "practice", label: t("practice"), icon: "build" });
+    return tabs;
+  }, [hasSprint, t]);
+
   return (
     <div>
       <PageHeader title={t("nav_results")} sub={title} />
-      <div className="filters" role="group" aria-label="filters">
-        <div className="field">
-          <label htmlFor="r-season">{t("season")}</label>
-          <SeasonSelect id="r-season" value={season} onChange={setSeason} />
-        </div>
-        <div className="field">
-          <label htmlFor="r-gp">{t("gp")}</label>
-          <select id="r-gp" value={round} onChange={(e) => setRound(e.target.value)}>
-            {races.map((r) => (
-              <option key={r.round} value={r.round}>R{r.round} · {r.raceName}</option>
-            ))}
-          </select>
-        </div>
-        <div className="field">
-          <label htmlFor="r-sess">{t("session")}</label>
-          <select id="r-sess" value={session} onChange={(e) => setSession(e.target.value as SessionKind)}>
-            <option value="race">{t("race")}</option>
-            <option value="qualifying">{t("qualifying")}</option>
-            {hasSprint && <option value="sprint">{t("sprint")}</option>}
-            <option value="practice">{t("practice")}</option>
-          </select>
-        </div>
+      <div className="m3-filters" role="group" aria-label="filters">
+        <SeasonSelect id="r-season" value={season} onChange={setSeason} />
+        <MSelect
+          label={t("gp")}
+          value={round}
+          onChange={setRound}
+          options={races.map((r) => ({ value: r.round, label: `R${r.round} · ${r.raceName}` }))}
+        />
         {session === "practice" && (
-          <div className="field">
-            <label htmlFor="r-fp">FP</label>
-            <select id="r-fp" value={fpIdx} onChange={(e) => setFpIdx(parseInt(e.target.value, 10) as 0 | 1 | 2)}>
-              <option value={0}>FP1</option>
-              <option value={1}>FP2</option>
-              <option value={2}>FP3</option>
-            </select>
-          </div>
+          <MSelect
+            label="FP"
+            value={String(fpIdx)}
+            onChange={(v) => setFpIdx(parseInt(v, 10) as 0 | 1 | 2)}
+            options={[
+              { value: "0", label: "FP1" },
+              { value: "1", label: "FP2" },
+              { value: "2", label: "FP3" },
+            ]}
+          />
         )}
       </div>
 
-      {schedule.status === "loading" || results.status === "loading" ? (
-        <div className="grid grid-2"><SkeletonCard /><SkeletonCard /></div>
-      ) : schedule.status === "error" ? (
-        <ErrorState onRetry={schedule.retry} />
-      ) : results.status === "error" ? (
-        <ErrorState onRetry={results.retry} />
-      ) : !results.data ? (
-        <EmptyState title={t("empty_title")} body={t("empty_body")} />
-      ) : (
-        <ResultsTable data={results.data} season={season} />
-      )}
+      <MTabs tabs={sessionTabs} value={session} onChange={(k) => setSession(k as SessionKind)} ariaLabel={t("session")} />
+
+      <div style={{ marginTop: 16 }}>
+        {schedule.status === "loading" || results.status === "loading" ? (
+          <div className="m3-grid m3-grid--2"><SkeletonCard /><SkeletonCard /></div>
+        ) : schedule.status === "error" ? (
+          <ErrorState onRetry={schedule.retry} />
+        ) : results.status === "error" ? (
+          <ErrorState onRetry={results.retry} />
+        ) : !results.data ? (
+          <EmptyState icon="search_off" title={t("empty_title")} body={t("empty_body")} />
+        ) : (
+          <ResultsTable data={results.data} season={season} />
+        )}
+      </div>
     </div>
   );
 }
@@ -137,7 +139,7 @@ function ResultsTable({ data, season }: { data: SessionData; season: string }) {
 
   if (data.kind === "practice") {
     if (!data.rows || data.rows.length === 0) {
-      return <EmptyState icon={<Timer aria-hidden="true" />} title={t("empty_title")} body={t("not_available")} />;
+      return <EmptyState icon="timer" title={t("empty_title")} body={t("not_available")} />;
     }
     const rows: MobileRow[] = data.rows.map((r, i) => ({
       key: r.acronym,
@@ -150,24 +152,19 @@ function ResultsTable({ data, season }: { data: SessionData; season: string }) {
     return (
       <ResponsiveTable
         desktop={
-      <div className="tbl-wrap"><table className="tbl">
-        <thead><tr>
-          <th>{t("position")}</th>
-          <th>{t("driver")}</th>
-          <th>{t("team")}</th>
-          <th className="num">{t("best_lap")}</th>
-        </tr></thead>
-        <tbody>
-          {data.rows.map((r, i) => (
-            <tr key={r.acronym} className={i === 0 ? "leader" : ""}>
-              <td className="pos num">{i + 1}</td>
-              <td><b>{r.acronym}</b></td>
-              <td><span className="team-cell"><span className="team-dot" style={{ background: r.color }} aria-hidden="true" />{r.team}</span></td>
-              <td className="num mono">{formatLapTime(r.lap)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table></div>
+          <MTable
+            ariaLabel={t("practice")}
+            head={<><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th className="num">{t("best_lap")}</th></>}
+          >
+            {data.rows.map((r, i) => (
+              <tr key={r.acronym} className={i === 0 ? "leader" : ""}>
+                <td className="num"><b>{i + 1}</b></td>
+                <td><b>{r.acronym}</b></td>
+                <td><TeamDot color={r.color} />{r.team}</td>
+                <td className="num mono">{formatLapTime(r.lap)}</td>
+              </tr>
+            ))}
+          </MTable>
         }
         mobile={<MobileTable rows={rows} />}
       />
@@ -175,7 +172,7 @@ function ResultsTable({ data, season }: { data: SessionData; season: string }) {
   }
 
   if (data.kind === "qualifying") {
-    if (data.rows.length === 0) return <EmptyState title={t("empty_title")} body={t("empty_body")} />;
+    if (data.rows.length === 0) return <EmptyState icon="search_off" title={t("empty_title")} body={t("empty_body")} />;
     const rows: MobileRow[] = data.rows.map((r, i) => {
       const best = r.Q3 ?? r.Q2 ?? r.Q1 ?? "—";
       return {
@@ -186,7 +183,7 @@ function ResultsTable({ data, season }: { data: SessionData; season: string }) {
           <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
             <FlagIcon code={nationalityCode(r.Driver.nationality)} />{" "}
             <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
-            <span className="muted">{r.Driver.givenName} {r.Driver.familyName}</span>
+            <span className="m3-muted">{r.Driver.givenName} {r.Driver.familyName}</span>
           </Link>
         ),
         subtitle: r.Constructor.name,
@@ -204,41 +201,34 @@ function ResultsTable({ data, season }: { data: SessionData; season: string }) {
     return (
       <ResponsiveTable
         desktop={
-      <div className="tbl-wrap"><table className="tbl">
-        <thead><tr>
-          <th>{t("position")}</th>
-          <th>{t("driver")}</th>
-          <th>{t("team")}</th>
-          <th className="num">Q1</th>
-          <th className="num">Q2</th>
-          <th className="num">Q3</th>
-        </tr></thead>
-        <tbody>
-          {data.rows.map((r, i) => (
-            <tr key={r.Driver.driverId} className={i === 0 ? "leader" : ""}>
-              <td className="pos num">{r.positionText}</td>
-              <td>
-                <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
-                  <FlagIcon code={nationalityCode(r.Driver.nationality)} />{" "}
-                  <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
-                  <span className="muted small">{r.Driver.givenName} {r.Driver.familyName}</span>
-                </Link>
-              </td>
-              <td><span className="team-cell"><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} aria-hidden="true" />{r.Constructor.name}</span></td>
-              <td className="num mono">{r.Q1 ?? "—"}</td>
-              <td className="num mono">{r.Q2 ?? "—"}</td>
-              <td className="num mono">{r.Q3 ?? "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table></div>
+          <MTable
+            ariaLabel={t("qualifying")}
+            head={<><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th className="num">Q1</th><th className="num">Q2</th><th className="num">Q3</th></>}
+          >
+            {data.rows.map((r, i) => (
+              <tr key={r.Driver.driverId} className={i === 0 ? "leader" : ""}>
+                <td className="num"><b>{r.positionText}</b></td>
+                <td>
+                  <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
+                    <FlagIcon code={nationalityCode(r.Driver.nationality)} />{" "}
+                    <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
+                    <span className="m3-muted" style={{ fontSize: "0.85rem" }}>{r.Driver.givenName} {r.Driver.familyName}</span>
+                  </Link>
+                </td>
+                <td><TeamDot color={teamColor(r.Constructor.constructorId)} />{r.Constructor.name}</td>
+                <td className="num mono">{r.Q1 ?? "—"}</td>
+                <td className="num mono">{r.Q2 ?? "—"}</td>
+                <td className="num mono">{r.Q3 ?? "—"}</td>
+              </tr>
+            ))}
+          </MTable>
         }
         mobile={<MobileTable rows={rows} />}
       />
     );
   }
 
-  if (data.rows.length === 0) return <EmptyState title={t("empty_title")} body={t("empty_body")} />;
+  if (data.rows.length === 0) return <EmptyState icon="search_off" title={t("empty_title")} body={t("empty_body")} />;
   const rows: MobileRow[] = data.rows.map((r, i) => ({
     key: r.Driver.driverId,
     rowClass: i === 0 ? "leader" : undefined,
@@ -247,7 +237,7 @@ function ResultsTable({ data, season }: { data: SessionData; season: string }) {
       <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
         <FlagIcon code={nationalityCode(r.Driver.nationality)} />{" "}
         <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
-        <span className="muted">{r.Driver.givenName} {r.Driver.familyName}</span>
+        <span className="m3-muted">{r.Driver.givenName} {r.Driver.familyName}</span>
       </Link>
     ),
     subtitle: r.Constructor.name,
@@ -263,34 +253,27 @@ function ResultsTable({ data, season }: { data: SessionData; season: string }) {
   return (
     <ResponsiveTable
       desktop={
-    <div className="tbl-wrap"><table className="tbl">
-      <thead><tr>
-        <th>{t("position")}</th>
-        <th>{t("driver")}</th>
-        <th>{t("team")}</th>
-        <th className="num">{t("time_gap")}</th>
-        <th className="num">{t("points")}</th>
-        <th>{t("status")}</th>
-      </tr></thead>
-      <tbody>
-        {data.rows.map((r, i) => (
-          <tr key={r.Driver.driverId} className={i === 0 ? "leader" : ""}>
-            <td className="pos num">{r.positionText}</td>
-            <td>
-              <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
-                <FlagIcon code={nationalityCode(r.Driver.nationality)} />{" "}
-                <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
-                <span className="muted small">{r.Driver.givenName} {r.Driver.familyName}</span>
-              </Link>
-            </td>
-            <td><span className="team-cell"><span className="team-dot" style={{ background: teamColor(r.Constructor.constructorId) }} aria-hidden="true" />{r.Constructor.name}</span></td>
-            <td className="num mono">{gapText(r)}</td>
-            <td className="num"><b>{r.points}</b></td>
-            <td className="small muted">{r.status}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table></div>
+        <MTable
+          ariaLabel={t("race")}
+          head={<><th>{t("position")}</th><th>{t("driver")}</th><th>{t("team")}</th><th className="num">{t("time_gap")}</th><th className="num">{t("points")}</th><th>{t("status")}</th></>}
+        >
+          {data.rows.map((r, i) => (
+            <tr key={r.Driver.driverId} className={i === 0 ? "leader" : ""}>
+              <td className="num"><b>{r.positionText}</b></td>
+              <td>
+                <Link to={`/piloti/${r.Driver.driverId}?season=${season}`}>
+                  <FlagIcon code={nationalityCode(r.Driver.nationality)} />{" "}
+                  <b>{r.Driver.code ?? r.Driver.familyName}</b>{" "}
+                  <span className="m3-muted" style={{ fontSize: "0.85rem" }}>{r.Driver.givenName} {r.Driver.familyName}</span>
+                </Link>
+              </td>
+              <td><TeamDot color={teamColor(r.Constructor.constructorId)} />{r.Constructor.name}</td>
+              <td className="num mono">{gapText(r)}</td>
+              <td className="num"><b>{r.points}</b></td>
+              <td className="m3-muted" style={{ fontSize: "0.85rem" }}>{r.status}</td>
+            </tr>
+          ))}
+        </MTable>
       }
       mobile={<MobileTable rows={rows} />}
     />
