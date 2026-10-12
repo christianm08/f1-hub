@@ -8,6 +8,8 @@ import { useApi } from "../hooks/useApi";
 import { useSeasonParam } from "../hooks/useSeasonParam";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
+import { MCard } from "../design";
+import { Badge } from "../components/ui";
 import { SeasonSelect } from "../components/SeasonSelect";
 import { DriverPhoto } from "../components/DriverPhoto";
 import { nationalityCode, teamColor } from "../data/meta";
@@ -34,41 +36,44 @@ export default function Drivers() {
   );
 
   if (status === "loading") {
-    return <div>{header}<div className="grid grid-3"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div></div>;
+    return <div>{header}<div className="m3-grid m3-grid--3"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div></div>;
   }
   if (status === "error" || !data) return <div>{header}<ErrorState onRetry={retry} /></div>;
 
   const ordered = data;
-  if (ordered.length === 0) return <div>{header}<EmptyState title={t("empty_title")} body={t("empty_body")} /></div>;
+  if (ordered.length === 0) return <div>{header}<EmptyState icon="search_off" title={t("empty_title")} body={t("empty_body")} /></div>;
 
   return (
     <div>
       {header}
-      <div className="grid grid-3">
+      <div className="m3-grid m3-grid--3">
         {ordered.map((d) => {
           const color = teamColor(d.teamId ?? "");
           return (
-            <Link key={d.id} to={`/piloti/${d.id}?season=${season}`} className="card driver-card">
-              <div className="spread">
-                <DriverPhoto driverId={d.id} wikiUrl={d.wikiUrl} name={d.fullName} size={56} tint={color} historic={parseInt(season, 10) < 2000} />
-                <FavButton item={{ kind: "driver", id: d.id, label: d.fullName, season }} />
-              </div>
-              <h3 className="card-title" style={{ margin: "12px 0 4px" }}>
-                <FlagIcon code={nationalityCode(d.nationality)} />
-                <span>{d.fullName}</span>
-              </h3>
-              <p className="muted small" style={{ margin: 0 }}>#{d.number ?? "–"}</p>
-              <div className="team-chips" aria-label={t("team")}>
-                {d.teams.length > 0 ? d.teams.map((tm) => (
-                  <span key={tm.id} className="chip" style={{ ["--chip-color" as string]: teamColor(tm.id) }}>
-                    {tm.name}
-                  </span>
-                )) : <span className="muted small">–</span>}
-              </div>
-              <div className="spread mt">
-                <span className="badge">{d.position ? `P${d.position}` : "–"}</span>
-                <b className="num">{d.points ? `${d.points} ${t("points").toLowerCase()}` : ""}</b>
-              </div>
+            <Link key={d.id} to={`/piloti/${d.id}?season=${season}`} className="m3-card-link">
+              <MCard variant="outlined">
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                  <DriverPhoto driverId={d.id} wikiUrl={d.wikiUrl} name={d.fullName} size={56} tint={color} historic={parseInt(season, 10) < 2000} />
+                  <FavButton item={{ kind: "driver", id: d.id, label: d.fullName, season }} />
+                </div>
+                <h3 style={{ margin: "12px 0 4px", fontSize: "1.05rem", display: "flex", alignItems: "center", gap: 8 }}>
+                  <FlagIcon code={nationalityCode(d.nationality)} />
+                  <span>{d.fullName}</span>
+                </h3>
+                <p className="m3-muted num" style={{ margin: 0, fontSize: "0.88rem" }}>#{d.number ?? "–"}</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }} aria-label={t("team")}>
+                  {d.teams.length > 0 ? d.teams.map((tm) => (
+                    <span key={tm.id} className="m3-pill">
+                      <span className="m3-team-dot" style={{ background: teamColor(tm.id), marginRight: 0 }} aria-hidden="true" />
+                      {tm.name}
+                    </span>
+                  )) : <span className="m3-muted" style={{ fontSize: "0.85rem" }}>–</span>}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
+                  <Badge>{d.position ? `P${d.position}` : "–"}</Badge>
+                  <b className="num">{d.points ? `${d.points} ${t("points").toLowerCase()}` : ""}</b>
+                </div>
+              </MCard>
             </Link>
           );
         })}

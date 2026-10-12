@@ -1,4 +1,4 @@
-/* Tiny SVG charts — no dependencies. */
+/* Tiny SVG charts — no dependencies. M3-styled. */
 
 export function Sparkline({
   values,
@@ -49,19 +49,19 @@ export function Sparkline({
   );
 }
 
-/** Bar comparison (e.g. points per team). */
+/** Bar comparison (e.g. points per race). M3 linear progress rows. */
 export function BarList({ items, max }: { items: { label: string; value: number; color?: string }[]; max?: number }) {
   const m = max ?? Math.max(...items.map((i) => i.value), 1);
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {items.map((i) => (
         <div key={i.label}>
-          <div className="spread small" style={{ marginBottom: 4 }}>
-            <span className="muted">{i.label}</span>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
+            <span className="m3-muted ellip" style={{ fontSize: "0.85rem" }}>{i.label}</span>
             <b className="num">{i.value}</b>
           </div>
-          <div className="progress" role="img" aria-label={`${i.label}: ${i.value}`}>
-            <i style={{ width: `${(i.value / m) * 100}%`, background: i.color ?? "var(--accent)" }} />
+          <div className="m3-progress-track" role="img" aria-label={`${i.label}: ${i.value}`}>
+            <span className="m3-progress-fill" style={{ width: `${(i.value / m) * 100}%`, background: i.color ?? undefined }} />
           </div>
         </div>
       ))}

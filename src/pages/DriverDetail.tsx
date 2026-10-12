@@ -1,8 +1,7 @@
 /* Driver detail: season stats, race-by-race table, points progression chart.
  * Driver identity: normalized DriverModel (Jolpica + f1api.dev enrichment). */
-import { useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
-import { Database, Flag, Medal, Sigma, Timer, TrendingUp, Trophy, User } from "lucide-react";
+import { useMemo, type CSSProperties } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { jolpica, type RaceInfo, type RaceResult } from "../api/jolpica";
 import { loadDriverModels, resolveDriver, type DriverModel } from "../api/model";
 import { ApiError } from "../api/client";
@@ -10,7 +9,8 @@ import { useApi } from "../hooks/useApi";
 import { useSeasonParam } from "../hooks/useSeasonParam";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, gapText } from "../components/ui";
-import { MDetails, MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
+import { MButton, MCard, MDivider, MIcon, type MIconName } from "../design";
+import { MDetails, MobileTable, MTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { Sparkline } from "../components/charts";
 import { DriverPhoto } from "../components/DriverPhoto";
 import type { FetchOpts } from "../api/client";
@@ -51,6 +51,7 @@ function fmtBirthday(iso: string | undefined, lang: "it" | "en"): string {
 
 export default function DriverDetail() {
   const { driverId = "" } = useParams();
+  const navigate = useNavigate();
   const { t, lang } = useSettings();
   // ?season= in the URL preserves the season context from the list page.
   const [season] = useSeasonParam();
@@ -77,7 +78,7 @@ export default function DriverDetail() {
   }, [data]);
 
   if (status === "loading") {
-    return <div><PageHeader title={t("loading")} /><div className="grid grid-2"><SkeletonCard /><SkeletonCard /></div></div>;
+    return <div><PageHeader title={t("loading")} /><div className="m3-grid m3-grid--2"><SkeletonCard /><SkeletonCard /></div></div>;
   }
   if (status === "error" || !data || !stats) {
     if (error?.message === "driver_not_found") {
@@ -85,13 +86,14 @@ export default function DriverDetail() {
         <div>
           <PageHeader title={t("nav_drivers")} sub={`${t("season")} ${season}`} />
           <EmptyState
+            icon="person"
             title={t("driver_not_in_season_title")}
             body={t("driver_not_in_season_body")}
           />
           <p style={{ marginTop: 12 }}>
-            <Link to={`/piloti?season=${season}`} className="btn primary">
+            <MButton variant="filled" onClick={() => navigate(`/piloti?season=${season}`)}>
               {t("back_to_drivers")}
-            </Link>
+            </MButton>
           </p>
         </div>
       );
@@ -108,11 +110,11 @@ export default function DriverDetail() {
   const progMin = stats.progression.length ? Math.min(...stats.progression) : 0;
   const progMax = stats.progression.length ? Math.max(...stats.progression) : 0;
 
-  const kpis: { icon: React.ReactNode; label: string; value: string | number }[] = [
-    { icon: <Sigma size={13} aria-hidden="true" />, label: t("points"), value: stats.points },
-    { icon: <Trophy size={13} aria-hidden="true" />, label: t("wins"), value: stats.wins },
-    { icon: <Medal size={13} aria-hidden="true" />, label: t("podiums"), value: stats.podiums },
-    { icon: <Timer size={13} aria-hidden="true" />, label: t("poles"), value: stats.poles },
+  const kpis: { icon: MIconName; label: string; value: string | number }[] = [
+    { icon: "functions", label: t("points"), value: stats.points },
+    { icon: "trophy", label: t("wins"), value: stats.wins },
+    { icon: "military_tech", label: t("podiums"), value: stats.podiums },
+    { icon: "timer", label: t("poles"), value: stats.poles },
   ];
 
   return (
@@ -120,30 +122,30 @@ export default function DriverDetail() {
       <PageHeader
         title={name}
         sub={`#${data.driver.number ?? "–"} · ${teamLabel}${age != null ? ` · ${t("age")}: ${age}` : ""}`}
-        right={<><span className="season-badge">{t("season")} {season}</span><FavButton item={{ kind: "driver", id: data.driver.id, label: name, season }} /></>}
+        right={<><span className="m3-pill">{t("season")} {season}</span><FavButton item={{ kind: "driver", id: data.driver.id, label: name, season }} /></>}
       />
 
-      <div className="grid grid-4">
+      <div className="m3-grid m3-grid--4">
         {kpis.map((k) => (
-          <div className="stat" key={k.label} style={{ "--stat-accent": color } as React.CSSProperties}>
-            <div className="stat-value num">{k.value}</div>
-            <div className="stat-label">{k.icon}{k.label}</div>
-          </div>
+          <MCard key={k.label} variant="filled" className="m3-kpi" style={{ "--m3-kpi-accent": color } as CSSProperties}>
+            <div className="m3-kpi-value num">{k.value}</div>
+            <div className="m3-kpi-label"><MIcon name={k.icon} size={18} />{k.label}</div>
+          </MCard>
         ))}
       </div>
 
-      <div className="grid grid-2 mt">
-        <div className="card">
-          <h3 className="card-title"><User size={17} aria-hidden="true" />{t("driver")}</h3>
-          <div className="row">
+      <div className="m3-grid m3-grid--2" style={{ marginTop: 16 }}>
+        <MCard variant="outlined">
+          <h3 className="m3-card-title"><MIcon name="person" />{t("driver")}</h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <DriverPhoto driverId={data.driver.id} wikiUrl={data.driver.wikiUrl} name={name} size={72} tint={color} historic={parseInt(season, 10) < 2000} />
             <div>
               <b style={{ fontSize: "0.98rem" }}>{name}</b>
-              <p className="muted small" style={{ margin: "2px 0 0" }}>{teamLabel}</p>
+              <p className="m3-muted" style={{ margin: "2px 0 0", fontSize: "0.88rem" }}>{teamLabel}</p>
             </div>
           </div>
-          <hr className="divider" />
-          <dl className="kv">
+          <MDivider />
+          <dl className="m3-kv">
             <dt>{t("team")}</dt><dd>{teamLabel}</dd>
             <dt>{t("number")}</dt><dd className="num">#{data.driver.number ?? "–"}</dd>
             <dt>{t("code")}</dt><dd><span className="mono" style={{ fontWeight: 700 }}>{data.driver.code}</span></dd>
@@ -151,41 +153,43 @@ export default function DriverDetail() {
             <dt>{t("birthday")}</dt><dd className="num">{fmtBirthday(data.driver.dateOfBirth, lang)}</dd>
             <dt>{t("age")}</dt><dd className="num">{age ?? "–"}</dd>
           </dl>
-        </div>
-        <div className="card">
-          <h3 className="card-title"><TrendingUp size={17} aria-hidden="true" />{t("points_progression")}</h3>
+        </MCard>
+        <MCard variant="outlined">
+          <h3 className="m3-card-title"><MIcon name="trending_up" />{t("points_progression")}</h3>
           <Sparkline values={stats.progression} width={420} height={140} stroke={color} ariaLabel={t("points_progression")} />
-          <div className="spread small muted num" style={{ marginTop: 6 }}>
+          <div className="num m3-muted" style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: "0.85rem" }}>
             <span>{progMin}</span>
             <span>{progMax}</span>
           </div>
-          <p className="small muted" style={{ marginBottom: 0 }}>
+          <p className="m3-muted" style={{ marginBottom: 0, fontSize: "0.88rem" }}>
             {t("dnfs")}: <b className="num">{stats.dnfs}</b> · {t("best_result")}: <b className="num">{stats.best ? `P${stats.best}` : "–"}</b>
           </p>
-        </div>
+        </MCard>
       </div>
 
-      <h2 className="section-title"><Flag size={18} aria-hidden="true" />{t("race_by_race")}</h2>
+      <div className="m3-section-head">
+        <h2 className="m3-section-title"><MIcon name="flag" />{t("race_by_race")}</h2>
+      </div>
       {stats.rows.length === 0 ? (
-        <EmptyState title={t("empty_title")} body={t("empty_body")} />
+        <EmptyState icon="search_off" title={t("empty_title")} body={t("empty_body")} />
       ) : (
         <ResponsiveTable
           desktop={
-        <div className="tbl-wrap"><table className="tbl">
-          <thead><tr><th>{t("round")}</th><th>{t("gp")}</th><th>{t("position")}</th><th>{t("time_gap")}</th><th>{t("points")}</th><th>{t("status")}</th></tr></thead>
-          <tbody>
-            {stats.rows.map(({ race, res }) => (
-              <tr key={race.round} className={res.positionText === "1" ? "leader" : undefined}>
-                <td className="num">{race.round}</td>
-                <td><Link to={`/gara/${race.season}/${race.round}`}><FlagIcon code={countryCode(race.Circuit.Location.country)} />{race.raceName}</Link></td>
-                <td className="pos num">{res.positionText}</td>
-                <td className="mono num">{gapText(res)}</td>
-                <td className="num">{res.points}</td>
-                <td className="small muted">{res.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table></div>
+            <MTable
+              ariaLabel={t("race_by_race")}
+              head={<><th>{t("round")}</th><th>{t("gp")}</th><th>{t("position")}</th><th className="num">{t("time_gap")}</th><th className="num">{t("points")}</th><th>{t("status")}</th></>}
+            >
+              {stats.rows.map(({ race, res }) => (
+                <tr key={race.round} className={res.positionText === "1" ? "leader" : undefined}>
+                  <td className="num">{race.round}</td>
+                  <td><Link to={`/gara/${race.season}/${race.round}`}><FlagIcon code={countryCode(race.Circuit.Location.country)} /> {race.raceName}</Link></td>
+                  <td className="num"><b>{res.positionText}</b></td>
+                  <td className="mono num">{gapText(res)}</td>
+                  <td className="num">{res.points}</td>
+                  <td className="m3-muted" style={{ fontSize: "0.85rem" }}>{res.status}</td>
+                </tr>
+              ))}
+            </MTable>
           }
           mobile={
             <MobileTable rows={stats.rows.map(({ race, res }): MobileRow => ({
@@ -210,8 +214,8 @@ export default function DriverDetail() {
           }
         />
       )}
-      <p className="small muted mt row">
-        <Database size={14} aria-hidden="true" />
+      <p className="m3-muted" style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16, fontSize: "0.85rem" }}>
+        <MIcon name="database" size={16} />
         <span>{lang === "it" ? "Dati: Jolpica F1 API" : "Data: Jolpica F1 API"}{data.driver.enriched ? " · f1api.dev" : ""}</span>
       </p>
     </div>
