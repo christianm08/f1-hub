@@ -1,21 +1,37 @@
 /* Settings: theme, language, default season, units, favourites, refresh, notifications (UI only). */
 import { useEffect, useState } from "react";
-import { Bell, CalendarDays, Database, Heart, Info, Palette, RefreshCw, X } from "lucide-react";
 import { jolpica, type ConstructorRef, type DriverRef } from "../api/jolpica";
 import { clearCache } from "../api/client";
 import { clearModelCache } from "../api/model";
 import { useSettings } from "../store/settings";
 import { Badge, PageHeader } from "../components/ui";
+import { MButton, MCard, MIcon, MIconButton, MList, MListItem, MSelect, type MIconName } from "../design";
 import { SeasonSelect } from "../components/SeasonSelect";
 
 const NOTIF_KEYS = ["notif_quali", "notif_race", "notif_results", "notif_news", "notif_driver", "notif_team"] as const;
 
-function CardTitle({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
+function CardTitle({ icon, children }: { icon: MIconName; children: React.ReactNode }) {
   return (
-    <h3 className="card-title">
-      <span className="settings-ico" aria-hidden="true">{icon}</span>
+    <h3 className="m3-card-title">
+      <MIcon name={icon} />
       <span>{children}</span>
     </h3>
+  );
+}
+
+/** M3 switch (the design library has no switch component). */
+function MSwitch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      className="m3-switch"
+      onClick={() => onChange(!checked)}
+    >
+      <span className="m3-switch__thumb" aria-hidden="true" />
+    </button>
   );
 }
 
@@ -45,110 +61,139 @@ export default function Settings() {
     <div>
       <PageHeader title={t("nav_settings")} />
 
-      <div className="grid grid-2">
-        <div className="card">
-          <CardTitle icon={<Palette />}>{t("settings_theme")} / {t("settings_language")}</CardTitle>
-          <div className="field">
-            <label htmlFor="s-theme">{t("settings_theme")}</label>
-            <select id="s-theme" value={theme} onChange={(e) => setTheme(e.target.value as "dark" | "light")}>
-              <option value="dark">{t("theme_dark")}</option>
-              <option value="light">{t("theme_light")}</option>
-            </select>
+      <div className="m3-grid m3-grid--2">
+        <MCard variant="outlined">
+          <CardTitle icon="palette">{t("settings_theme")} / {t("settings_language")}</CardTitle>
+          <div className="m3-setting-field">
+            <span id="s-theme-lbl">{t("settings_theme")}</span>
+            <MSelect
+              label={t("settings_theme")}
+              value={theme}
+              onChange={(v) => setTheme(v as "dark" | "light")}
+              leadingIcon={theme === "dark" ? "dark_mode" : "light_mode"}
+              options={[
+                { value: "dark", label: t("theme_dark") },
+                { value: "light", label: t("theme_light") },
+              ]}
+            />
           </div>
-          <div className="field">
-            <label htmlFor="s-lang">{t("settings_language")}</label>
-            <select id="s-lang" value={lang} onChange={(e) => setLang(e.target.value as "it" | "en")}>
-              <option value="it">Italiano</option>
-              <option value="en">English</option>
-            </select>
+          <div className="m3-setting-field">
+            <span>{t("settings_language")}</span>
+            <MSelect
+              label={t("settings_language")}
+              value={lang}
+              onChange={(v) => setLang(v as "it" | "en")}
+              leadingIcon="language"
+              options={[
+                { value: "it", label: "Italiano" },
+                { value: "en", label: "English" },
+              ]}
+            />
           </div>
-          <div className="field">
-            <label htmlFor="s-units">{t("settings_units")}</label>
-            <select id="s-units" value={units} onChange={(e) => setUnits(e.target.value as "metric" | "imperial")}>
-              <option value="metric">{t("units_metric")}</option>
-              <option value="imperial">{t("units_imperial")}</option>
-            </select>
+          <div className="m3-setting-field" style={{ marginBottom: 0 }}>
+            <span>{t("settings_units")}</span>
+            <MSelect
+              label={t("settings_units")}
+              value={units}
+              onChange={(v) => setUnits(v as "metric" | "imperial")}
+              leadingIcon="speed"
+              options={[
+                { value: "metric", label: t("units_metric") },
+                { value: "imperial", label: t("units_imperial") },
+              ]}
+            />
           </div>
-        </div>
+        </MCard>
 
-        <div className="card">
-          <CardTitle icon={<CalendarDays />}>{t("settings_season")}</CardTitle>
-          <div className="field">
-            <label htmlFor="s-season">{t("settings_season")}</label>
-            <SeasonSelect id="s-season" value={season} onChange={setSeason} />
+        <MCard variant="outlined">
+          <CardTitle icon="calendar_month">{t("settings_season")}</CardTitle>
+          <div className="m3-setting-field">
+            <span>{t("settings_season")}</span>
+            <div><SeasonSelect id="s-season" value={season} onChange={setSeason} /></div>
           </div>
-          <div className="field">
-            <label htmlFor="s-favd">{t("settings_fav_driver")}</label>
-            <select id="s-favd" value={favDriverId} onChange={(e) => setFavDriverId(e.target.value)}>
-              <option value="">—</option>
-              {drivers.map((d) => (
-                <option key={d.driverId} value={d.driverId}>{d.givenName} {d.familyName}</option>
-              ))}
-            </select>
+          <div className="m3-setting-field">
+            <span>{t("settings_fav_driver")}</span>
+            <MSelect
+              label={t("settings_fav_driver")}
+              value={favDriverId}
+              onChange={setFavDriverId}
+              leadingIcon="person"
+              options={[
+                { value: "", label: "—" },
+                ...drivers.map((d) => ({ value: d.driverId, label: `${d.givenName} ${d.familyName}` })),
+              ]}
+            />
           </div>
-          <div className="field">
-            <label htmlFor="s-favt">{t("settings_fav_team")}</label>
-            <select id="s-favt" value={favTeamId} onChange={(e) => setFavTeamId(e.target.value)}>
-              <option value="">—</option>
-              {teams.map((c) => (
-                <option key={c.constructorId} value={c.constructorId}>{c.name}</option>
-              ))}
-            </select>
+          <div className="m3-setting-field" style={{ marginBottom: 0 }}>
+            <span>{t("settings_fav_team")}</span>
+            <MSelect
+              label={t("settings_fav_team")}
+              value={favTeamId}
+              onChange={setFavTeamId}
+              leadingIcon="corporate_fare"
+              options={[
+                { value: "", label: "—" },
+                ...teams.map((c) => ({ value: c.constructorId, label: c.name })),
+              ]}
+            />
           </div>
-        </div>
+        </MCard>
 
-        <div className="card">
-          <CardTitle icon={<Bell />}>{t("settings_notifications")}</CardTitle>
-          <p className="small muted">{t("settings_notifications_sub")}</p>
+        <MCard variant="outlined">
+          <CardTitle icon="notifications">{t("settings_notifications")}</CardTitle>
+          <p className="m3-muted" style={{ fontSize: "0.88rem", marginTop: 0 }}>{t("settings_notifications_sub")}</p>
           {NOTIF_KEYS.map((key) => (
-            <label key={key} className="switch-row">
-              <span>{t(key)}</span>
-              <input
-                type="checkbox"
-                checked={!!notifPrefs[key]}
-                onChange={(e) => setNotifPref(key, e.target.checked)}
-                aria-label={t(key)}
-              />
-            </label>
+            <div key={key} className="m3-switch-row">
+              <span style={{ fontSize: "0.95rem" }}>{t(key)}</span>
+              <MSwitch checked={!!notifPrefs[key]} onChange={(v) => setNotifPref(key, v)} label={t(key)} />
+            </div>
           ))}
-        </div>
+        </MCard>
 
-        <div className="card">
-          <CardTitle icon={<Heart />}>{t("favorites")}</CardTitle>
+        <MCard variant="outlined">
+          <CardTitle icon="favorite">{t("favorites")}</CardTitle>
           {favorites.length === 0 ? (
-            <p className="muted small">{t("no_favorites")}</p>
+            <p className="m3-muted" style={{ fontSize: "0.88rem" }}>{t("no_favorites")}</p>
           ) : (
-            favorites.map((f) => (
-              <div key={`${f.kind}-${f.id}`} className="spread" style={{ padding: "6px 0" }}>
-                <span className="row"><Badge>{f.kind}</Badge><span>{f.label}</span></span>
-                <button className="btn ghost small danger-ghost" onClick={() => toggleFav(f)} aria-label={t("removed_fav")}>
-                  <X size={14} aria-hidden="true" />
-                </button>
-              </div>
-            ))
+            <MList ariaLabel={t("favorites")}>
+              {favorites.map((f) => (
+                <MListItem
+                  key={`${f.kind}-${f.id}`}
+                  headline={f.label}
+                  leading={<Badge>{f.kind}</Badge>}
+                  trailing={
+                    <MIconButton icon="close" label={t("removed_fav")} onClick={() => toggleFav(f)} />
+                  }
+                />
+              ))}
+            </MList>
           )}
-          <div className="mt">
-            <label className="switch-row">
-              <span className="row">
-                <span className="settings-ico neutral" aria-hidden="true"><RefreshCw /></span>
-                <span>{t("settings_autorefresh")}<br /><span className="small muted">{t("settings_autorefresh_sub")}</span></span>
+          <div style={{ marginTop: 8 }}>
+            <div className="m3-switch-row">
+              <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <MIcon name="refresh" />
+                <span>
+                  {t("settings_autorefresh")}
+                  <br />
+                  <span className="m3-muted" style={{ fontSize: "0.82rem" }}>{t("settings_autorefresh_sub")}</span>
+                </span>
               </span>
-              <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} aria-label={t("settings_autorefresh")} />
-            </label>
+              <MSwitch checked={autoRefresh} onChange={setAutoRefresh} label={t("settings_autorefresh")} />
+            </div>
           </div>
-        </div>
+        </MCard>
       </div>
 
-      <div className="grid grid-2 mt">
-        <div className="card">
-          <CardTitle icon={<Database />}>{t("settings_cache")}</CardTitle>
-          <button className="btn" onClick={onClearCache}>{t("clear_cache")}</button>
-          {cacheMsg && <p className="small" style={{ color: "var(--live)", margin: "8px 0 0" }}>{cacheMsg}</p>}
-        </div>
-        <div className="card">
-          <CardTitle icon={<Info />}>{t("settings_about")}</CardTitle>
-          <p className="small muted" style={{ marginBottom: 0 }}>{t("about_text")}</p>
-        </div>
+      <div className="m3-grid m3-grid--2" style={{ marginTop: 16 }}>
+        <MCard variant="outlined">
+          <CardTitle icon="database">{t("settings_cache")}</CardTitle>
+          <MButton variant="outlined" onClick={onClearCache}>{t("clear_cache")}</MButton>
+          {cacheMsg && <p style={{ color: "var(--md-sys-color-primary)", margin: "8px 0 0", fontSize: "0.88rem" }}>{cacheMsg}</p>}
+        </MCard>
+        <MCard variant="outlined">
+          <CardTitle icon="info">{t("settings_about")}</CardTitle>
+          <p className="m3-muted" style={{ marginBottom: 0, fontSize: "0.9rem" }}>{t("about_text")}</p>
+        </MCard>
       </div>
     </div>
   );
