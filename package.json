@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@material-symbols/svg-400": "^0.48.0",
+    "@material/material-color-utilities": "^0.4.0",
     "flag-icons": "^7.5.0",
     "lucide-react": "^1.52.0",
     "react": "^19.2.8",

@@ -1,10 +1,25 @@
-/* Shared UI primitives: skeletons, states, countdown, badges, favorites, toasts. */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { AlertTriangle, CheckCircle2, Flag, Heart } from "lucide-react";
+/* Shared UI primitives — adapters over the M3 design system (src/design/*).
+   API-compatible with the previous version: existing pages keep working
+   unchanged until they migrate to the M3 components directly.
+   New code should import from "../design" instead. */
+import type { ReactNode } from "react";
 import { useSettings, type FavItem } from "../store/settings";
+import {
+  MSkeleton,
+  MErrorState as M3ErrorState,
+  MEmptyState as M3EmptyState,
+  MIconButton,
+  CountdownCells as M3CountdownCells,
+  useCountdown,
+  ToastProvider,
+  useToast,
+  type MIconName,
+} from "../design";
+
+export { useCountdown, ToastProvider, useToast };
 
 export function Skeleton({ h = 20, w }: { h?: number; w?: string | number }) {
-  return <div className="skel" style={{ height: h, width: w ?? "100%" }} aria-hidden="true" />;
+  return <MSkeleton height={h} width={w ?? "100%"} />;
 }
 
 export function SkeletonCard() {
@@ -22,19 +37,24 @@ export function SkeletonCard() {
 export function ErrorState({ onRetry, message }: { onRetry: () => void; message?: string }) {
   const { t } = useSettings();
   return (
-    <div className="state" role="alert">
-      <div className="state-icon error" aria-hidden="true"><AlertTriangle /></div>
-      <h3>{t("error_title")}</h3>
-      <p>{message ?? t("error_body")}</p>
-      <button className="btn primary" onClick={onRetry}>{t("retry")}</button>
-    </div>
+    <M3ErrorState
+      title={t("error_title")}
+      message={message ?? t("error_body")}
+      retryLabel={t("retry")}
+      onRetry={onRetry}
+    />
   );
 }
 
-export function EmptyState({ icon, title, body }: { icon?: ReactNode; title: string; body?: string }) {
+/** Accepts either an MIcon name (new) or a legacy ReactNode icon (old pages). */
+export function EmptyState({ icon, title, body }: { icon?: ReactNode | MIconName; title: string; body?: string }) {
+  if (typeof icon === "string") {
+    return <M3EmptyState icon={icon as MIconName} title={title} body={body} />;
+  }
+  // legacy path: custom icon node (e.g. lucide) — kept until pages migrate
   return (
     <div className="state">
-      <div className="state-icon" aria-hidden="true">{icon ?? <Flag />}</div>
+      <div className="state-icon" aria-hidden="true">{icon}</div>
       <h3>{title}</h3>
       {body && <p>{body}</p>}
     </div>
@@ -62,44 +82,18 @@ export function PageHeader({ title, sub, right }: { title: string; sub?: string;
   );
 }
 
-/** Live countdown to a target date; calls onTick each second. */
-export function useCountdown(target: Date | null) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (!target) return;
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [target]);
-  if (!target) return null;
-  const diff = Math.max(0, target.getTime() - now);
-  return {
-    d: Math.floor(diff / 86400000),
-    h: Math.floor(diff / 3600000) % 24,
-    m: Math.floor(diff / 60000) % 60,
-    s: Math.floor(diff / 1000) % 60,
-    done: diff <= 0,
-  };
-}
-
 export function CountdownCells({ target }: { target: Date }) {
-  const cd = useCountdown(target);
   const { t, lang } = useSettings();
-  if (!cd || cd.done) return null;
-  const cells: [number, string][] = [
-    [cd.d, lang === "it" ? "giorni" : "days"],
-    [cd.h, lang === "it" ? "ore" : "hrs"],
-    [cd.m, lang === "it" ? "min" : "min"],
-    [cd.s, lang === "it" ? "sec" : "sec"],
-  ];
   return (
-    <div className="countdown" role="timer" aria-label={t("next_session")}>
-      {cells.map(([v, l]) => (
-        <div className="cd-cell" key={l}>
-          <b>{String(v).padStart(2, "0")}</b>
-          <span>{l}</span>
-        </div>
-      ))}
-    </div>
+    <M3CountdownCells
+      target={target}
+      variant="hero"
+      ariaLabel={t("next_session")}
+      daysLabel={lang === "it" ? "giorni" : "days"}
+      hoursLabel={lang === "it" ? "ore" : "hrs"}
+      minutesLabel={lang === "it" ? "min" : "min"}
+      secondsLabel={lang === "it" ? "sec" : "sec"}
+    />
   );
 }
 
@@ -109,48 +103,21 @@ export function FavButton({ item }: { item: FavItem }) {
   const active = isFav(item.kind, item.id);
   const { push } = useToast();
   return (
-    <button
-      className="icon-btn fav-btn"
-      aria-pressed={active}
-      aria-label={active ? t("removed_fav") : t("added_fav")}
-      title={active ? t("removed_fav") : t("added_fav")}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const added = toggleFav(item);
-        push(added ? t("added_fav") : t("removed_fav"));
-      }}
-    >
-      <Heart aria-hidden="true" />
-    </button>
+    <span className="fav-btn">
+      <MIconButton
+        icon="favorite"
+        label={active ? t("removed_fav") : t("added_fav")}
+        selected={active}
+        variant={active ? "tonal" : "standard"}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const added = toggleFav(item);
+          push(added ? t("added_fav") : t("removed_fav"));
+        }}
+      />
+    </span>
   );
-}
-
-/* ---------- toasts ---------- */
-const ToastCtx = createContext<{ push: (msg: string) => void }>({ push: () => {} });
-
-export function ToastProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<{ id: number; msg: string }[]>([]);
-  const push = useCallback((msg: string) => {
-    const id = Date.now() + Math.random();
-    setItems((list) => [...list, { id, msg }]);
-    setTimeout(() => setItems((list) => list.filter((x) => x.id !== id)), 2600);
-  }, []);
-  const value = useMemo(() => ({ push }), [push]);
-  return (
-    <ToastCtx.Provider value={value}>
-      {children}
-      <div className="toast-wrap" aria-live="polite">
-        {items.map((i) => (
-          <div className="toast" key={i.id}><CheckCircle2 aria-hidden="true" />{i.msg}</div>
-        ))}
-      </div>
-    </ToastCtx.Provider>
-  );
-}
-
-export function useToast() {
-  return useContext(ToastCtx);
 }
 
 /* ---------- date formatting ---------- */
