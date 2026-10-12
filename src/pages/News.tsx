@@ -36,7 +36,7 @@ export default function News() {
       <PageHeader title={t("nav_news")} />
 
       <div
-        style={{ display: "flex", gap: 8, overflowX: "auto", padding: "4px 2px 12px", marginBottom: 4 }}
+        className="m3-chipbar"
         role="group"
         aria-label={t("news_categories_all")}
       >
@@ -60,8 +60,8 @@ export default function News() {
       {status === "ok" && items.length === 0 && <EmptyState icon="search_off" title={t("empty_title")} body={t("empty_body")} />}
       {status === "ok" && items.length > 0 && (
         <div className="m3-grid m3-grid--2">
-          {items.map((n) => (
-            <MCard variant="outlined" className="m3-news-card" key={n.id}>
+          {items.map((n, i) => (
+            <MCard variant="outlined" className="m3-news-card m3-enter" key={n.id} style={{ animationDelay: `${Math.min(i, 7) * 50}ms` }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                 <Badge kind="accent"><MIcon name={catIcon(n.category)} size={14} />{catLabel(n.category)}</Badge>
                 <span className="m3-muted num" style={{ fontSize: "0.82rem" }}>

@@ -8,7 +8,7 @@ import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
 import { SeasonSelect } from "../components/SeasonSelect";
 import {
-  Badge, CountdownCells, EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, fmtDateTime, gapText,
+  Badge, CountdownCells, EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard, SkeletonHero, fmtDateTime, gapText,
 } from "../components/ui";
 import {
   MButton, MCard, MIcon, MList, MListItem,
@@ -55,6 +55,7 @@ export default function Home() {
     return (
       <div>
         <PageHeader title={t("nav_home")} />
+        <SkeletonHero />
         <div className="m3-grid m3-grid--2"><SkeletonCard /><SkeletonCard /></div>
       </div>
     );
@@ -67,7 +68,7 @@ export default function Home() {
 
       {liveRace ? (
         <div
-          className="m3-hero"
+          className="m3-hero m3-enter"
           role="button"
           tabIndex={0}
           aria-label={t("view_race_center")}
@@ -89,7 +90,7 @@ export default function Home() {
           </div>
         </div>
       ) : next ? (
-        <div className="m3-hero">
+        <div className="m3-hero m3-enter">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <Badge kind="accent">{t("next_gp")}</Badge>
             <span className="m3-muted">{t("round")} {next.race.round}</span>
@@ -127,7 +128,7 @@ export default function Home() {
       ) : null}
 
       {favorites.length > 0 && (
-        <>
+        <section className="m3-enter m3-enter-1">
           <div className="m3-section-head" style={{ marginTop: 0 }}>
             <h2 className="m3-section-title"><MIcon name="favorite" /> {t("favorites")}</h2>
           </div>
@@ -150,10 +151,10 @@ export default function Home() {
               </Link>
             ))}
           </div>
-        </>
+        </section>
       )}
 
-      <div className="m3-grid m3-grid--2">
+      <div className="m3-grid m3-grid--2 m3-enter m3-enter-2">
         <div>
           <div className="m3-section-head">
             <h2 className="m3-section-title"><MIcon name="trophy" /> {t("driver_standings")}</h2>
@@ -219,7 +220,7 @@ export default function Home() {
       </div>
 
       {data.lastResults && (
-        <>
+        <section className="m3-enter m3-enter-2">
           <div className="m3-section-head">
             <h2 className="m3-section-title"><MIcon name="flag" /> {t("latest_results")}: {data.lastResults.race.raceName}</h2>
             <MButton variant="text" trailingIcon="arrow_forward" onClick={() => navigate("/risultati")}>
@@ -227,9 +228,10 @@ export default function Home() {
             </MButton>
           </div>
           <LastResultsTable rows={data.lastResults.rows.slice(0, 5)} season={season} />
-        </>
+        </section>
       )}
 
+      <section className="m3-enter m3-enter-3">
       <div className="m3-section-head">
         <h2 className="m3-section-title"><MIcon name="newspaper" /> {t("latest_news")}</h2>
         <MButton variant="text" trailingIcon="arrow_forward" onClick={() => navigate("/news")}>
@@ -257,6 +259,7 @@ export default function Home() {
           ))}
         </div>
       )}
+      </section>
     </div>
   );
 }

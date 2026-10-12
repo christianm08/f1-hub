@@ -256,25 +256,7 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
     <MCard className="rcx-panel" aria-label={t("rcx_map_title")}>
       <div className="rcx-head">
         <h2 className="rcx-title"><MIcon name="map" />{t("rcx_map_title")}</h2>
-        <div className="rcx-head-actions">
-          {info?.isLive && <Badge kind="live">LIVE</Badge>}
-          {!info?.isLive && (
-            <MIconButton
-              icon={replayPlaying ? "pause" : "play_arrow"}
-              label={replayPlaying ? t("rcx_map_pause") : t("rcx_map_play")}
-              variant="tonal"
-              onClick={() => setReplayPlaying((v) => !v)}
-            />
-          )}
-          <MChip
-            variant="filter"
-            selected={showPositions}
-            leadingIcon="format_list_numbered"
-            onClick={() => setShowPositions((v) => !v)}
-          >
-            {t("rcx_map_toggle_positions")}
-          </MChip>
-        </div>
+        {info?.isLive && <Badge kind="live">LIVE</Badge>}
       </div>
 
       <div className="rcx-mapwrap">
@@ -315,7 +297,7 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
                   {num}
                 </text>
                 {drs && (
-                  <circle cx={2.7} cy={-2.7} r={1.25} fill="#22c55e" stroke="#fff" strokeWidth={0.4} className="rcx-drsdot">
+                  <circle cx={2.7} cy={-2.7} r={1.25} style={{ fill: "var(--rc-ok)" }} stroke="#fff" strokeWidth={0.4} className="rcx-drsdot">
                     <title>{t("rcx_map_drs_open")}</title>
                   </circle>
                 )}
@@ -328,6 +310,25 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
             );
           })}
         </svg>
+        {/* Translucent control cluster overlaid on the map (not over data). */}
+        <div className="rcx-map-overlay">
+          {!info?.isLive && (
+            <MIconButton
+              icon={replayPlaying ? "pause" : "play_arrow"}
+              label={replayPlaying ? t("rcx_map_pause") : t("rcx_map_play")}
+              variant="tonal"
+              onClick={() => setReplayPlaying((v) => !v)}
+            />
+          )}
+          <MChip
+            variant="filter"
+            selected={showPositions}
+            leadingIcon="format_list_numbered"
+            onClick={() => setShowPositions((v) => !v)}
+          >
+            {t("rcx_map_toggle_positions")}
+          </MChip>
+        </div>
       </div>
 
       <div className="rcx-mapbar">

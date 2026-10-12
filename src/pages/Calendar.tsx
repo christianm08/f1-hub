@@ -117,11 +117,11 @@ export default function Calendar() {
         <EmptyState icon="search_off" title={t("empty_title")} body={t("empty_body")} />
       ) : (
         <div className="m3-grid m3-grid--3">
-          {filtered.map((r) => {
+          {filtered.map((r, i) => {
             const s = raceStatus(r);
             return (
               <Link key={r.round} to={`/gara/${r.season}/${r.round}`} className="m3-card-link">
-                <MCard variant="outlined">
+                <MCard variant="outlined" className="m3-enter" style={{ animationDelay: `${Math.min(i, 11) * 40}ms` }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                     <Badge>{t("round")} {r.round}</Badge>
                     {s === "live" ? <Badge kind="live">{t("live_now")}</Badge>

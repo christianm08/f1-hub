@@ -53,7 +53,7 @@ export function RaceControlPanel({ events, drivers, live }: Props) {
       <div className="rc-panel-head">
         <h3><MIcon name="radio" />{t("rc_race_control")}</h3>
       </div>
-      <div style={{ padding: "10px 14px 0" }}>
+      <div className="rc-filterbar">
         <div className="rc-chips" role="group" aria-label={t("rc_race_control")}>
           {FILTERS.map((f) => (
             <MChip key={f.id} variant="filter" selected={filter === f.id} onClick={() => setFilter(f.id)}>

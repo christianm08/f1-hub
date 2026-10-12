@@ -6,7 +6,7 @@ import { jolpica, raceStatus, type RaceInfo, type RaceResult, type QualiResult }
 import { openf1, formatLapTime, type OFDriver } from "../api/openf1";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
-import { EmptyState, ErrorState, PageHeader, SkeletonCard, gapText } from "../components/ui";
+import { EmptyState, ErrorState, PageHeader, SkeletonTable, gapText } from "../components/ui";
 import { MSelect, MTabs, type MTab } from "../design";
 import { MDetails, MobileTable, MTable, ResponsiveTable, TeamDot, type MobileRow } from "../components/ResponsiveTable";
 import { SeasonSelect } from "../components/SeasonSelect";
@@ -120,7 +120,7 @@ export default function Results() {
 
       <div style={{ marginTop: 16 }}>
         {schedule.status === "loading" || results.status === "loading" ? (
-          <div className="m3-grid m3-grid--2"><SkeletonCard /><SkeletonCard /></div>
+          <SkeletonTable />
         ) : schedule.status === "error" ? (
           <ErrorState onRetry={schedule.retry} />
         ) : results.status === "error" ? (

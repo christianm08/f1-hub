@@ -13,7 +13,7 @@ import { Badge } from "../components/ui";
 import { SeasonSelect } from "../components/SeasonSelect";
 import { DriverPhoto } from "../components/DriverPhoto";
 import { nationalityCode, teamColor } from "../data/meta";
-import { useEffect } from "react";
+import { useEffect, type CSSProperties } from "react";
 import { FlagIcon } from "../components/FlagIcon";
 
 export default function Drivers() {
@@ -47,13 +47,17 @@ export default function Drivers() {
     <div>
       {header}
       <div className="m3-grid m3-grid--3">
-        {ordered.map((d) => {
+        {ordered.map((d, i) => {
           const color = teamColor(d.teamId ?? "");
           return (
             <Link key={d.id} to={`/piloti/${d.id}?season=${season}`} className="m3-card-link">
-              <MCard variant="outlined">
+              <MCard
+                variant="outlined"
+                className="m3-driver-card m3-enter"
+                style={{ "--m3-card-accent": color, animationDelay: `${Math.min(i, 11) * 45}ms` } as CSSProperties}
+              >
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-                  <DriverPhoto driverId={d.id} wikiUrl={d.wikiUrl} name={d.fullName} size={56} tint={color} historic={parseInt(season, 10) < 2000} />
+                  <DriverPhoto driverId={d.id} wikiUrl={d.wikiUrl} name={d.fullName} size={76} tint={color} historic={parseInt(season, 10) < 2000} />
                   <FavButton item={{ kind: "driver", id: d.id, label: d.fullName, season }} />
                 </div>
                 <h3 style={{ margin: "12px 0 4px", fontSize: "1.05rem", display: "flex", alignItems: "center", gap: 8 }}>

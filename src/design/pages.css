@@ -395,3 +395,191 @@ a.m3-card-link { display: block; color: inherit; text-decoration: none; }
   .m3-pill-dot, .dphoto-sk { animation: none; }
   .m3-progress-fill { transition: none; }
 }
+
+/* =====================================================================
+   "Android next-gen" floating layer — redesign of pages & cards.
+   Consumes the glass token contract (tokens.css) additively:
+   --glass-bg-panel/menu, --glass-border-subtle/strong, --glass-shadow-1..4,
+   --glass-blur-sm/md, --glass-saturate, --motion-*, --z-*.
+   Only transform/opacity animations. The @supports fallback for
+   --glass-bg-* (opaque values when backdrop-filter is unsupported) lives
+   in tokens.css, so these rules degrade automatically.
+   ===================================================================== */
+
+/* ---------- entrance motion (staggered, subtle) ---------- */
+@keyframes m3-enter { from { opacity: 0; transform: translateY(14px); } }
+.m3-enter {
+  animation: m3-enter var(--motion-duration-normal) var(--motion-easing-emphasized-decelerate) backwards;
+}
+.m3-enter-1 { animation-delay: 60ms; }
+.m3-enter-2 { animation-delay: 120ms; }
+.m3-enter-3 { animation-delay: 180ms; }
+
+/* ---------- floating glass panel (opt-in on MCard) ---------- */
+/* Specificity (0,2,0) intentionally beats .m3-card--* (0,1,0) from
+   components.css, which loads after this file. */
+.m3-card.m3-float-panel {
+  background: var(--glass-bg-panel);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--glass-shadow-2);
+}
+
+/* ---------- hero: floats above the page ---------- */
+.m3-hero {
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--glass-shadow-3);
+}
+
+/* ---------- floating filter panels ---------- */
+.m3-filters {
+  align-items: center;
+  background: var(--glass-bg-panel);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-large);
+  box-shadow: var(--glass-shadow-2);
+  padding: var(--md-sys-spacing-3) var(--md-sys-spacing-4);
+}
+
+/* filter chip bar (News): floating strip, chips scroll inside */
+.m3-chipbar {
+  display: flex; gap: var(--md-sys-spacing-2);
+  overflow-x: auto; scrollbar-width: thin;
+  background: var(--glass-bg-panel);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-large);
+  box-shadow: var(--glass-shadow-2);
+  padding: var(--md-sys-spacing-2) var(--md-sys-spacing-3);
+  margin-bottom: var(--md-sys-spacing-4);
+}
+.m3-chipbar .m3-chip { flex: 0 0 auto; }
+
+/* ---------- season selector trigger floats ---------- */
+.m3-season-anchor .m3-btn {
+  background: var(--glass-bg-panel);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--glass-shadow-1);
+}
+
+/* ---------- glass dropdown menus (MSelect + SeasonSelect desktop) ---------- */
+/* Doubled class (0,2,0) beats components.css .m3-menu (0,1,0), which loads
+   later. MMenu already clamps the menu inside the viewport (flips up/down). */
+.m3-menu.m3-menu {
+  background: var(--glass-bg-menu);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-small);
+  box-shadow: var(--glass-shadow-2);
+}
+
+/* ---------- card interactivity: lift on hover (desktop), press feedback ---------- */
+/* Only the container is animated — media inside is never scaled/distorted. */
+.m3-card-link .m3-card, .m3-news-card {
+  position: relative;
+  transition: transform var(--motion-duration-normal) var(--motion-easing-emphasized),
+    box-shadow var(--motion-duration-normal) var(--motion-easing-emphasized),
+    border-color var(--motion-duration-fast) var(--motion-easing-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .m3-card-link:hover .m3-card, .m3-news-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--glass-border-strong);
+    box-shadow: var(--glass-shadow-3);
+  }
+}
+.m3-card-link:active .m3-card {
+  transform: translateY(-1px);
+  box-shadow: var(--glass-shadow-1);
+  transition-duration: var(--motion-duration-fast);
+}
+.m3-card-link:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 3px;
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+
+/* ---------- driver / team cards: expressive team-color accent ---------- */
+.m3-driver-card, .m3-team-card { position: relative; overflow: hidden; }
+.m3-driver-card::before, .m3-team-card::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 4px;
+  background: var(--m3-card-accent, var(--md-sys-color-primary));
+  opacity: 0.9; pointer-events: none;
+}
+/* translucent secondary overlay on the media on interaction (desktop) */
+.m3-driver-card .dphoto, .m3-team-card .tlogo { position: relative; }
+.m3-driver-card .dphoto::after, .m3-team-card .tlogo::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: var(--md-sys-color-primary);
+  opacity: 0; transition: opacity var(--motion-duration-fast) var(--motion-easing-standard);
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .m3-driver-card:hover .dphoto::after, .m3-team-card:hover .tlogo::after { opacity: 0.08; }
+}
+
+/* ---------- car image: translucent info overlay on the image ---------- */
+.carimg { position: relative; }
+.carimg figcaption {
+  position: absolute; inset: auto 0 0 0; z-index: 1;
+  padding: var(--md-sys-spacing-6) var(--md-sys-spacing-3) var(--md-sys-spacing-2);
+  background: linear-gradient(to top, rgba(10, 6, 5, 0.78) 0%, rgba(10, 6, 5, 0) 100%);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---------- circuit map: floating map panel with overlay badge ---------- */
+.m3-circuit-map {
+  position: relative;
+  margin-top: var(--md-sys-spacing-3);
+  padding: var(--md-sys-spacing-4);
+  background: var(--glass-bg-map);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-medium);
+  box-shadow: var(--glass-shadow-1);
+}
+.m3-circuit-map .trackmap { max-height: 170px; }
+.m3-circuit-badge {
+  position: absolute; top: var(--md-sys-spacing-2); inset-inline-start: var(--md-sys-spacing-2);
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: var(--md-sys-spacing-1) var(--md-sys-spacing-3);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--glass-bg-panel);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--glass-shadow-1);
+  font-size: var(--md-sys-typescale-label-large-size); font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- home standings panels float ---------- */
+.m3-standlist {
+  background: var(--glass-bg-panel);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--glass-shadow-2);
+}
+
+/* ---------- mobile table: expanding details animate in ---------- */
+.m3-mtable-row.open .m3-mtable-details {
+  animation: m3-enter var(--motion-duration-fast) var(--motion-easing-emphasized-decelerate) backwards;
+}
+
+/* ---------- reduced motion: kill the new motion, keep content static ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .m3-enter, .m3-mtable-row.open .m3-mtable-details { animation: none; }
+  .m3-card-link:hover .m3-card, .m3-news-card:hover { transform: none; }
+  .m3-card-link .m3-card, .m3-news-card,
+  .m3-driver-card .dphoto::after, .m3-team-card .tlogo::after { transition: none; }
+}

@@ -62,7 +62,7 @@ export default function Settings() {
       <PageHeader title={t("nav_settings")} />
 
       <div className="m3-grid m3-grid--2">
-        <MCard variant="outlined">
+        <MCard variant="outlined" className="m3-float-panel">
           <CardTitle icon="palette">{t("settings_theme")} / {t("settings_language")}</CardTitle>
           <div className="m3-setting-field">
             <span id="s-theme-lbl">{t("settings_theme")}</span>
@@ -105,7 +105,7 @@ export default function Settings() {
           </div>
         </MCard>
 
-        <MCard variant="outlined">
+        <MCard variant="outlined" className="m3-float-panel">
           <CardTitle icon="calendar_month">{t("settings_season")}</CardTitle>
           <div className="m3-setting-field">
             <span>{t("settings_season")}</span>
@@ -139,7 +139,7 @@ export default function Settings() {
           </div>
         </MCard>
 
-        <MCard variant="outlined">
+        <MCard variant="outlined" className="m3-float-panel">
           <CardTitle icon="notifications">{t("settings_notifications")}</CardTitle>
           <p className="m3-muted" style={{ fontSize: "0.88rem", marginTop: 0 }}>{t("settings_notifications_sub")}</p>
           {NOTIF_KEYS.map((key) => (
@@ -150,7 +150,7 @@ export default function Settings() {
           ))}
         </MCard>
 
-        <MCard variant="outlined">
+        <MCard variant="outlined" className="m3-float-panel">
           <CardTitle icon="favorite">{t("favorites")}</CardTitle>
           {favorites.length === 0 ? (
             <p className="m3-muted" style={{ fontSize: "0.88rem" }}>{t("no_favorites")}</p>
@@ -185,12 +185,12 @@ export default function Settings() {
       </div>
 
       <div className="m3-grid m3-grid--2" style={{ marginTop: 16 }}>
-        <MCard variant="outlined">
+        <MCard variant="outlined" className="m3-float-panel">
           <CardTitle icon="database">{t("settings_cache")}</CardTitle>
           <MButton variant="outlined" onClick={onClearCache}>{t("clear_cache")}</MButton>
           {cacheMsg && <p style={{ color: "var(--md-sys-color-primary)", margin: "8px 0 0", fontSize: "0.88rem" }}>{cacheMsg}</p>}
         </MCard>
-        <MCard variant="outlined">
+        <MCard variant="outlined" className="m3-float-panel">
           <CardTitle icon="info">{t("settings_about")}</CardTitle>
           <p className="m3-muted" style={{ marginBottom: 0, fontSize: "0.9rem" }}>{t("about_text")}</p>
         </MCard>

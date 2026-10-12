@@ -11,10 +11,12 @@
 :root {
   --rc-ok: #1e7a34;
   --rc-info: #0b6fc4;
+  --rc-pb: #a855f7; /* personal best purple */
 }
 [data-theme="dark"] {
   --rc-ok: #78dc82;
   --rc-info: #82c8ff;
+  --rc-pb: #c084fc;
 }
 
 .rc-shell {
@@ -131,7 +133,7 @@ table.rc-tbl { width: 100%; border-collapse: collapse; min-width: 680px; font-si
 .rc-mono { font-family: var(--md-sys-typescale-mono); font-size: 0.83rem; font-variant-numeric: tabular-nums; }
 .rc-gap-leader { color: var(--md-sys-color-on-surface-variant); font-size: 0.75rem; letter-spacing: 0.05em; font-weight: 700; }
 .rc-sector { display: inline-block; min-width: 44px; }
-.rc-best-pb { color: #a855f7; font-weight: 700; }
+.rc-best-pb { color: var(--rc-pb); font-weight: 700; }
 .rc-best-sb { color: var(--rc-ok); font-weight: 700; }
 .rc-status {
   display: inline-block;
@@ -246,7 +248,7 @@ table.rc-tbl { width: 100%; border-collapse: collapse; min-width: 680px; font-si
 .rc-tl-item.sev-info::before { background: var(--rc-info); }
 .rc-tl-item.sev-pit::before { background: var(--md-sys-color-outline); border-radius: 3px; }
 .rc-tl-item.sev-over::before { background: var(--rc-ok); border-radius: 3px; }
-.rc-tl-item.sev-best::before { background: #a855f7; }
+.rc-tl-item.sev-best::before { background: var(--rc-pb); }
 .rc-tl-time { font-family: var(--md-sys-typescale-mono); font-size: 0.74rem; color: var(--md-sys-color-on-surface-variant); margin-right: 8px; }
 .rc-tl-cat { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; color: var(--md-sys-color-on-surface-variant); }
 .rc-tl-msg { margin: 3px 0 0; color: var(--md-sys-color-on-surface-variant); font-size: 0.85rem; }
@@ -295,14 +297,14 @@ table.rc-tbl { width: 100%; border-collapse: collapse; min-width: 680px; font-si
 }
 .rc-laps th:first-child, .rc-laps td:first-child { text-align: left; }
 .rc-laps td { padding: 6px 10px; border-bottom: 1px solid var(--md-sys-color-outline-variant); font-family: var(--md-sys-typescale-mono); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.rc-laps tr.is-pb td.laptime { color: #a855f7; font-weight: 800; }
+.rc-laps tr.is-pb td.laptime { color: var(--rc-pb); font-weight: 800; }
 .rc-laps tr.is-sb td.laptime { color: var(--rc-ok); font-weight: 800; }
 .rc-laps tr.is-pitout td { color: var(--md-sys-color-on-surface-variant); }
 .rc-segbar { display: inline-flex; gap: 1.5px; height: 8px; vertical-align: middle; }
 .rc-segbar i { display: inline-block; width: 7px; height: 8px; border-radius: 1.5px; background: var(--md-sys-color-surface-container-highest); }
 .rc-segbar i.s2048 { background: var(--md-sys-color-tertiary); }
 .rc-segbar i.s2049 { background: var(--rc-ok); }
-.rc-segbar i.s2051 { background: #a855f7; }
+.rc-segbar i.s2051 { background: var(--rc-pb); }
 
 /* ---------------- driver panel (bottom sheet content) ---------------- */
 
@@ -390,3 +392,95 @@ table.rc-tbl { width: 100%; border-collapse: collapse; min-width: 680px; font-si
 
 /* MTabs as a direct grid item: scrolls internally instead of overflowing the column. */
 .rc-mtabs { margin-bottom: 12px; min-width: 0; }
+
+/* ================= Android next-gen layer (additive) =================
+   Glass + motion via the token contract (--glass-*, --motion-*).
+   The timing tower keeps SOLID tonal surfaces: no blur is ever applied
+   over critical timing data. Reduced-motion and no-backdrop-filter
+   fallbacks come from the tokens themselves (durations collapse to 1ms,
+   backgrounds fall back to opaque). */
+
+/* Floating translucent filter bar (MChip rows: race-control severity,
+   timeline kinds). Lives inside solid panels; the blur only softens the
+   panel surface behind the chips, never data. */
+.rc-filterbar {
+  margin: 10px 14px 0;
+  padding: 8px 10px;
+  background: var(--glass-bg-race);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-medium);
+  box-shadow: var(--glass-shadow-1);
+}
+
+/* Crossfade wrapper for panel/tab switches (keyed remount in Live.tsx). */
+.rc-xfade {
+  min-width: 0;
+  animation: rc-x-in var(--motion-duration-normal) var(--motion-easing-emphasized-decelerate);
+}
+@keyframes rc-x-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Numeric fade for updated times/sectors: opacity only, tabular numerals,
+   inline-block so there is never a layout shift. */
+.rc-numfade {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  animation: rc-num-in var(--motion-duration-fast) var(--motion-easing-emphasized-decelerate);
+}
+@keyframes rc-num-in {
+  from { opacity: 0.25; }
+  to { opacity: 1; }
+}
+
+/* Timeline event entry: subtle slide-in on mount (stable keys mean only
+   genuinely new events animate). */
+.rc-tl-item {
+  animation: rc-tl-in var(--motion-duration-normal) var(--motion-easing-emphasized-decelerate);
+}
+@keyframes rc-tl-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---- urgent track statuses: icon + text + border/pattern, never colour alone ---- */
+.rc-flag.red {
+  border: 4px double var(--md-sys-color-error);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0 12px,
+    color-mix(in srgb, currentColor 10%, transparent) 12px 24px
+  );
+}
+.rc-flag.sc,
+.rc-flag.yellow {
+  border: 2px dashed var(--md-sys-color-tertiary);
+}
+
+/* ---- timeline severity dots: distinct SHAPES, not just colours ---- */
+.rc-tl-item.sev-flag::before {
+  outline: 2px dashed color-mix(in srgb, var(--md-sys-color-tertiary) 75%, transparent);
+  outline-offset: 2px;
+}
+.rc-tl-item.sev-sc::before {
+  border-radius: 2px; /* square + existing glow ring */
+}
+.rc-tl-item.sev-incident::before {
+  transform: rotate(45deg) scale(0.9); /* diamond */
+}
+
+/* ---- driver bottom sheet: glass dialog treatment + content entrance ----
+   MBottomSheet is portaled to <body> by the design system (verified in
+   src/design/components.tsx), so no transformed ancestor can break it. */
+.rc-dp-sheet.m3-sheet {
+  background: var(--glass-bg-dialog);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+}
+.rc-dp-open {
+  animation: rc-x-in var(--motion-duration-normal) var(--motion-easing-emphasized-decelerate);
+}

@@ -19,13 +19,17 @@ interface PanelProps {
   onSelectDriver?: (driverNumber: number) => void;
 }
 
+/* Official F1 compound colours — aligned with the core.css .cmp-* palette
+   (same hues, single source of truth for the semantics). */
 const COMPOUND_COLORS: Record<string, string> = {
   SOFT: "#e10600",
-  MEDIUM: "#eab308",
-  HARD: "#e5e7eb",
-  INTERMEDIATE: "#22c55e",
-  WET: "#3b82f6",
+  MEDIUM: "#f5b301",
+  HARD: "#e8ecf1",
+  INTERMEDIATE: "#16a34a",
+  WET: "#0ea5e9",
 };
+/** Light compounds need dark text for AA contrast on the swatch. */
+const COMPOUND_DARK_TEXT = new Set(["MEDIUM", "HARD"]);
 
 interface Pt {
   x: number;
@@ -264,7 +268,7 @@ export function ComparePanel({ sessionKey, onSelectDriver }: PanelProps) {
           <div className="rcx-stint" key={st.stintNumber}>
             <span
               className="rcx-compound"
-              style={{ background: COMPOUND_COLORS[st.compound] ?? "#8892a3", color: st.compound === "HARD" ? "#0b0e13" : "#fff" }}
+              style={{ background: COMPOUND_COLORS[st.compound] ?? "#8892a3", color: COMPOUND_DARK_TEXT.has(st.compound) ? "#0b0e13" : "#fff" }}
             >
               {st.compound.slice(0, 1)}
             </span>

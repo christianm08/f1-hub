@@ -1,12 +1,12 @@
 /* Race Center core — timing tower. Memoized rows, position-change flash,
    leader badge, PB (purple) / session-best (green) highlights. Owned by the
    race-center core agent. */
-import { memo } from "react";
+import { memo, useRef } from "react";
 import type { DriverEntry, TimingRow } from "../../api/openf1model";
 import type { DictKey } from "../../i18n/dict";
 import { useSettings } from "../../store/settings";
 import { MIcon, MSkeleton } from "../../design";
-import { TYRE_LETTER, formatGap, formatLapTime, useIsMobile } from "./core-shared";
+import { TYRE_LETTER, formatGap, formatLapTime, NumFade, useFlipRows, useIsMobile } from "./core-shared";
 import "./core.css";
 
 interface RowProps {
@@ -51,6 +51,7 @@ const TowerRow = memo(function TowerRow({ row, driver, sessionBest, selected, on
   return (
     <tr
       className={`${flash}${selected ? " sel" : ""}${row.status === "retired" ? " is-ret" : ""}`}
+      data-rc-row={row.number}
       onClick={() => onSelect(row.number)}
       aria-label={acr}
     >
@@ -64,14 +65,16 @@ const TowerRow = memo(function TowerRow({ row, driver, sessionBest, selected, on
         {driver?.fullName && <span className="fname">{driver.fullName}</span>}
         {statusBadge(row, t)}
       </td>
-      <td className="rc-mono">{row.position === 1 ? <span className="rc-gap-leader">{t("rc_leader")}</span> : formatGap(row.gapToLeader)}</td>
-      <td className="rc-mono r">{row.interval ?? "n/d"}</td>
-      <td className="rc-mono r">{row.lastLap != null ? formatLapTime(row.lastLap) : "n/d"}</td>
-      <td className={`rc-mono r ${bestCls}`}>{row.bestLap != null ? formatLapTime(row.bestLap) : "n/d"}</td>
+      <td className="rc-mono">{row.position === 1
+        ? <span className="rc-gap-leader">{t("rc_leader")}</span>
+        : <NumFade key={formatGap(row.gapToLeader)} value={formatGap(row.gapToLeader)} />}</td>
+      <td className="rc-mono r"><NumFade key={row.interval ?? "nd"} value={row.interval ?? "n/d"} /></td>
+      <td className="rc-mono r"><NumFade key={row.lastLap ?? "nd"} value={row.lastLap != null ? formatLapTime(row.lastLap) : "n/d"} /></td>
+      <td className={`rc-mono r ${bestCls}`}><NumFade key={row.bestLap ?? "nd"} value={row.bestLap != null ? formatLapTime(row.bestLap) : "n/d"} /></td>
       <td className="rc-mono r">
-        <span className="rc-sector">{s1 != null ? formatLapTime(s1) : "–"}</span>{" "}
-        <span className="rc-sector">{s2 != null ? formatLapTime(s2) : "–"}</span>{" "}
-        <span className="rc-sector">{s3 != null ? formatLapTime(s3) : "–"}</span>
+        <span className="rc-sector"><NumFade key={s1 ?? "nd"} value={s1 != null ? formatLapTime(s1) : "–"} /></span>{" "}
+        <span className="rc-sector"><NumFade key={s2 ?? "nd"} value={s2 != null ? formatLapTime(s2) : "–"} /></span>{" "}
+        <span className="rc-sector"><NumFade key={s3 ?? "nd"} value={s3 != null ? formatLapTime(s3) : "–"} /></span>
       </td>
       <td>
         {row.compound ? (
@@ -99,7 +102,7 @@ const MobileRow = memo(function MobileRow({ row, driver, selected, onSelect, t }
   const colour = driver?.teamColour ?? "#8892a3";
   const acr = driver?.acronym ?? `#${row.number}`;
   return (
-    <div className={`rc-mrow ${flash}${selected ? " sel" : ""}`} onClick={() => onSelect(row.number)} role="button" tabIndex={0}
+    <div className={`rc-mrow ${flash}${selected ? " sel" : ""}`} data-rc-row={row.number} onClick={() => onSelect(row.number)} role="button" tabIndex={0}
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onSelect(row.number); }} aria-label={acr}>
       <span className="rc-pos" style={{ borderLeftColor: colour }}>{row.position}</span>
       <span className="rc-driver">
@@ -113,7 +116,7 @@ const MobileRow = memo(function MobileRow({ row, driver, selected, onSelect, t }
             {TYRE_LETTER[row.compound] ?? "?"}
           </i>
         )}
-        <span className="rc-mono">{row.position === 1 ? t("rc_leader") : formatGap(row.gapToLeader)}</span>
+        <span className="rc-mono"><NumFade key={row.position === 1 ? "leader" : formatGap(row.gapToLeader)} value={row.position === 1 ? t("rc_leader") : formatGap(row.gapToLeader)} /></span>
       </span>
     </div>
   );
@@ -130,6 +133,9 @@ interface Props {
 export function TimingTower({ timing, drivers, selected, onSelect, loading }: Props) {
   const { t } = useSettings();
   const mobile = useIsMobile();
+  const sectionRef = useRef<HTMLElement | null>(null);
+  // FLIP: smooth position-change motion on the rows; data/logic untouched.
+  useFlipRows(sectionRef, timing);
   const byNum = new Map(drivers.map((d) => [d.number, d]));
   const sessionBest = timing.reduce<number | null>(
     (m, r) => (r.bestLap != null && (m == null || r.bestLap < m) ? r.bestLap : m),
@@ -137,7 +143,7 @@ export function TimingTower({ timing, drivers, selected, onSelect, loading }: Pr
   );
 
   return (
-    <section className="rc-tower" aria-label={t("live_positions")}>
+    <section className="rc-tower" ref={sectionRef} aria-label={t("live_positions")}>
       <div className="rc-tower-head">
         <h3><MIcon name="timer" />{t("live_positions")}</h3>
         <span className="spacer" />

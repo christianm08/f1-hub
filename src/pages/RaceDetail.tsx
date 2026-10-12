@@ -157,7 +157,7 @@ export default function RaceDetail() {
       <div style={{ marginTop: 16 }}>
         {tab === "info" && (
           <div className="m3-grid m3-grid--2">
-            <MCard variant="outlined">
+            <MCard variant="outlined" className="m3-float-panel m3-enter">
               <h3 style={{ marginTop: 0, fontSize: "1.1rem" }}>{race.Circuit.circuitName}</h3>
               <TrackMap circuitId={race.Circuit.circuitId} circuitName={race.Circuit.circuitName} />
               <dl className="m3-kv" style={{ marginTop: 12 }}>
@@ -176,7 +176,7 @@ export default function RaceDetail() {
                 </MButton>
               </div>
             </MCard>
-            <MCard variant="outlined">
+            <MCard variant="outlined" className="m3-float-panel m3-enter m3-enter-1">
               <h3 style={{ marginTop: 0, fontSize: "1.1rem" }}>{t("weekend_schedule")}</h3>
               <MList ariaLabel={t("weekend_schedule")}>
                 {sessions.map((s) => (

@@ -84,13 +84,13 @@ export function WeatherPanel({ latest, series, hasWeather }: Props) {
                 {airSeries.length > 1 && (
                   <div style={{ marginBottom: 8 }}>
                     <span className="small muted">{t("air")}</span>
-                    <Sparkline values={airSeries} width={300} height={52} stroke="#38bdf8" ariaLabel={t("air")} />
+                    <Sparkline values={airSeries} width={300} height={52} stroke="var(--rc-info)" ariaLabel={t("air")} />
                   </div>
                 )}
                 {trackSeries.length > 1 && (
                   <div>
                     <span className="small muted">{t("track")}</span>
-                    <Sparkline values={trackSeries} width={300} height={52} stroke="#f59e0b" ariaLabel={t("track")} />
+                    <Sparkline values={trackSeries} width={300} height={52} stroke="var(--md-sys-color-tertiary)" ariaLabel={t("track")} />
                   </div>
                 )}
               </div>

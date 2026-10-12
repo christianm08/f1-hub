@@ -443,11 +443,58 @@ export function MNavRail({ items, ariaLabel = "Navigazione principale", classNam
   );
 }
 
-/** M3 navigation bar (mobile bottom). Hidden on >=601px. Fixed bottom, portaled-safe (no transform ancestors). */
+/** M3 navigation bar (mobile bottom): floating glass bar with a sliding active
+ *  indicator (transform-animated pill). Hidden on >=601px.
+ *  Fixed bottom, portaled-safe (no transform ancestors). */
 export function MNavBar({ items, ariaLabel = "Navigazione principale", className, ...rest }: MNavProps) {
   const props: MNavProps = { items, ...rest };
+  const barRef = useRef<HTMLElement>(null);
+  const indRef = useRef<HTMLSpanElement>(null);
+  const [indReady, setIndReady] = useState(false);
+
+  // Position the single indicator pill over the active destination's icon pill.
+  // The slide transition is enabled only after the first measurement so the
+  // indicator never sweeps across the bar on mount.
+  useLayoutEffect(() => {
+    const bar = barRef.current;
+    const ind = indRef.current;
+    if (!bar || !ind) return;
+    let cancelled = false;
+    const place = () => {
+      if (cancelled) return;
+      const pill = bar.querySelector<HTMLElement>(".m3-nav-dest--active .m3-nav-dest__pill");
+      if (!pill) {
+        ind.style.opacity = "0";
+        return;
+      }
+      const b = bar.getBoundingClientRect();
+      const p = pill.getBoundingClientRect();
+      ind.style.opacity = "1";
+      ind.style.width = `${p.width}px`;
+      ind.style.height = `${p.height}px`;
+      ind.style.transform = `translate(${p.left - b.left}px, ${p.top - b.top}px)`;
+    };
+    place();
+    const raf = requestAnimationFrame(() => {
+      if (!cancelled) setIndReady(true);
+    });
+    // re-measure once webfonts settle (label metrics can shift the pills)
+    document.fonts?.ready.then(place).catch(() => {});
+    window.addEventListener("resize", place);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", place);
+    };
+  }, [props.value, items.length]);
+
   return (
-    <nav className={["m3-nav-bar", className ?? ""].filter(Boolean).join(" ")} aria-label={ariaLabel}>
+    <nav ref={barRef} className={["m3-nav-bar", className ?? ""].filter(Boolean).join(" ")} aria-label={ariaLabel}>
+      <span
+        ref={indRef}
+        aria-hidden
+        className={["m3-nav-bar__indicator", indReady ? "m3-nav-bar__indicator--ready" : ""].filter(Boolean).join(" ")}
+      />
       {items.map((item) => {
         const { active, onSelect } = navState(props, item);
         return <MNavDestination key={item.key} item={item} active={active} onSelect={onSelect} />;
@@ -471,11 +518,31 @@ export interface MTopAppBarProps {
   style?: CSSProperties;
 }
 
-/** M3 top app bar: 64dp, sticky, surface-container. */
+/** M3 top app bar: 64dp, sticky. Solid at the top of the page, translucent glass
+ *  (blur + border + shadow) once the user scrolls past a small threshold. */
 export function MTopAppBar({ variant = "small", title, leading, actions, className, style }: MTopAppBarProps) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setScrolled(window.scrollY > 8));
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", update);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
   return (
     <header
-      className={["m3-top-app-bar", variant === "center-aligned" ? "m3-top-app-bar--center" : "", className ?? ""]
+      className={[
+        "m3-top-app-bar",
+        scrolled ? "m3-top-app-bar--scrolled" : "",
+        variant === "center-aligned" ? "m3-top-app-bar--center" : "",
+        className ?? "",
+      ]
         .filter(Boolean)
         .join(" ")}
       style={style}

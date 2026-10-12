@@ -108,7 +108,7 @@ export default function TeamDetail() {
         right={<><span className="m3-pill">{season}</span><FavButton item={{ kind: "team", id: data.team.id, label: data.team.name, season }} /></>}
       />
 
-      <div className="m3-grid m3-grid--4">
+      <div className="m3-grid m3-grid--4 m3-enter">
         {kpis.map((k) => (
           <MCard key={k.label} variant="filled" className="m3-kpi" style={{ "--m3-kpi-accent": color } as CSSProperties}>
             <div className="m3-kpi-value num">{k.value}</div>
@@ -117,8 +117,8 @@ export default function TeamDetail() {
         ))}
       </div>
 
-      <div className="m3-grid m3-grid--2" style={{ marginTop: 16 }}>
-        <MCard variant="outlined">
+      <div className="m3-grid m3-grid--2 m3-enter m3-enter-1" style={{ marginTop: 16 }}>
+        <MCard variant="outlined" className="m3-float-panel">
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <TeamLogo constructorId={data.team.id} name={data.team.name} size={64} tint={color} />
             <div>
@@ -133,7 +133,7 @@ export default function TeamDetail() {
           <h3 className="m3-card-title"><MIcon name="directions_car" />{t("monoposto")} · {season}</h3>
           <CarImage constructorId={data.team.id} season={season} teamName={data.team.name} tint={color} />
         </MCard>
-        <MCard variant="outlined">
+        <MCard variant="outlined" className="m3-float-panel">
           <h3 className="m3-card-title"><MIcon name="group" />{t("nav_drivers")}</h3>
           <MList ariaLabel={t("nav_drivers")}>
             {stats.drivers.map((d) => (
@@ -165,7 +165,7 @@ export default function TeamDetail() {
             </>
           )}
         </MCard>
-        <MCard variant="outlined">
+        <MCard variant="outlined" className="m3-float-panel">
           <h3 className="m3-card-title"><MIcon name="bar_chart" />{t("points")} {t("race_by_race").toLowerCase()}</h3>
           <BarList
             items={stats.perRace.map((p) => ({

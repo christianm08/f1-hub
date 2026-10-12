@@ -103,7 +103,17 @@
   font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.05rem;
   letter-spacing: 0.02em; font-family: var(--md-sys-typescale-mono);
 }
-.rcx-controls { display: flex; gap: var(--md-sys-spacing-2); align-items: center; flex-wrap: wrap; }
+/* Floating translucent control bar (play/pause, step, speed, clock). */
+.rcx-controls {
+  display: flex; gap: var(--md-sys-spacing-2); align-items: center; flex-wrap: wrap;
+  background: var(--glass-bg-race);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-medium);
+  box-shadow: var(--glass-shadow-1);
+  padding: 8px 10px;
+}
 .rcx-slider { width: 100%; accent-color: var(--md-sys-color-primary); height: 28px; }
 .rcx-timerange { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--md-sys-color-on-surface-variant); font-variant-numeric: tabular-nums; }
 .rcx-eventlist { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; scroll-behavior: smooth; }
@@ -114,10 +124,14 @@
 }
 .rcx-event time { font-variant-numeric: tabular-nums; color: var(--md-sys-color-on-surface-variant); font-size: 0.72rem; flex: none; padding-top: 2px; }
 .rcx-event .sev { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; background: var(--md-sys-color-outline); }
-.rcx-event .sev.flag { background: var(--md-sys-color-tertiary); }
-.rcx-event .sev.sc { background: var(--md-sys-color-error); }
-.rcx-event .sev.penalty { background: #a855f7; }
-.rcx-event .sev.incident { background: var(--md-sys-color-error); }
+.rcx-event .sev.flag {
+  background: var(--md-sys-color-tertiary);
+  outline: 2px dashed color-mix(in srgb, var(--md-sys-color-tertiary) 75%, transparent);
+  outline-offset: 1px;
+}
+.rcx-event .sev.sc { background: var(--md-sys-color-tertiary); border-radius: 2px; }
+.rcx-event .sev.penalty { background: var(--rc-pb); }
+.rcx-event .sev.incident { background: var(--md-sys-color-error); transform: rotate(45deg) scale(0.9); }
 .rcx-tower { display: flex; flex-direction: column; }
 .rcx-tower-row {
   display: grid; grid-template-columns: 34px 52px 1fr auto;
@@ -155,4 +169,60 @@
   .rcx-cmp-cols { grid-template-columns: 1fr; }
   .rcx-tower-row { grid-template-columns: 28px 46px 1fr auto; }
   .rcx-field { flex: 1 1 100%; }
+}
+
+/* ================= Android next-gen layer (additive) =================
+   Floating glass controls over the circuit map, glass control rows, and
+   discrete event entry. Chart/map DATA surfaces stay solid and crisp —
+   translucency is only on controls, filters and secondary info. */
+
+/* Translucent control cluster overlaid on the circuit map (play/pause,
+   position-labels toggle). Sits above the track SVG, never over data. */
+.rcx-mapwrap { /* position:relative already declared above */ }
+.rcx-map-overlay {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px 5px 5px;
+  background: var(--glass-bg-map);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-full);
+  box-shadow: var(--glass-shadow-2);
+}
+
+/* Secondary map info as a floating glass bar. */
+.rcx-mapbar {
+  background: var(--glass-bg-panel);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-medium);
+  box-shadow: var(--glass-shadow-1);
+  padding: 7px 12px;
+}
+
+/* Telemetry driver/lap selectors as a floating glass control row. */
+.rcx-glassrow {
+  background: var(--glass-bg-panel);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-large);
+  box-shadow: var(--glass-shadow-1);
+  padding: 10px 12px;
+}
+
+/* Replay event feed entry: subtle slide-in on mount (stable keys). */
+.rcx-event {
+  animation: rcx-ev-in var(--motion-duration-normal) var(--motion-easing-emphasized-decelerate);
+}
+@keyframes rcx-ev-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: none; }
 }

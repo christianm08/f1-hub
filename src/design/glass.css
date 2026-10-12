@@ -1,0 +1,72 @@
+/* F1 Hub — glass utility classes ("Android next-gen" layer).
+   Optional helpers: pair a .glass-* surface class with .glass for the blur.
+   All visuals come from tokens.css (--glass-*, --md-sys-shape-*); no hardcoded colors. */
+
+.glass,
+.glass-sm,
+.glass-lg {
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(var(--glass-saturate));
+}
+.glass-sm {
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+}
+.glass-lg {
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(var(--glass-saturate));
+}
+
+/* bottom nav bar (floating) */
+.glass-nav {
+  background: var(--glass-bg-nav);
+  border-top: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--glass-shadow-1);
+}
+
+/* top app bar when scrolled */
+.glass-appbar {
+  background: var(--glass-bg-appbar);
+  border-bottom: 1px solid var(--glass-border-subtle);
+  box-shadow: var(--glass-shadow-1);
+}
+
+/* menus / dropdowns */
+.glass-menu {
+  background: var(--glass-bg-menu);
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-small);
+  box-shadow: var(--glass-shadow-2);
+}
+
+/* dialogs / bottom sheets */
+.glass-dialog {
+  background: var(--glass-bg-dialog);
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  box-shadow: var(--glass-shadow-3);
+}
+
+/* floating panels (cards flottanti, drawers leggeri) */
+.glass-panel {
+  background: var(--glass-bg-panel);
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-large);
+  box-shadow: var(--glass-shadow-2);
+}
+
+/* overlays on maps (circuit map, overlays Race Center) */
+.glass-map {
+  background: var(--glass-bg-map);
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-medium);
+  box-shadow: var(--glass-shadow-2);
+}
+
+/* Race Center floating controls */
+.glass-race {
+  background: var(--glass-bg-race);
+  border: 1px solid var(--glass-border-subtle);
+  border-radius: var(--md-sys-shape-corner-medium);
+  box-shadow: var(--glass-shadow-1);
+}

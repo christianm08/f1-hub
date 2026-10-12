@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { jolpica } from "../api/jolpica";
 import { useApi } from "../hooks/useApi";
 import { useSettings } from "../store/settings";
-import { EmptyState, ErrorState, PageHeader, SkeletonCard } from "../components/ui";
+import { EmptyState, ErrorState, PageHeader, SkeletonTable } from "../components/ui";
 import { MIcon } from "../design";
 import { SeasonSelect } from "../components/SeasonSelect";
 import { useSeasonParam } from "../hooks/useSeasonParam";
@@ -27,7 +27,7 @@ export default function Standings() {
 
   const renderBody = () => {
     if (status === "loading") {
-      return <div className="m3-grid m3-grid--2"><SkeletonCard /><SkeletonCard /></div>;
+      return <div className="m3-grid m3-grid--2"><SkeletonTable /><SkeletonTable /></div>;
     }
     if (status === "error" || !data) return <ErrorState onRetry={retry} />;
     const [drivers, constructors] = data;
@@ -86,7 +86,7 @@ export default function Standings() {
     }));
 
     return (
-      <div className="m3-grid m3-grid--2">
+      <div className="m3-grid m3-grid--2 m3-enter">
         <div>
           <div className="m3-section-head" style={{ marginTop: 0 }}>
             <h2 className="m3-section-title"><MIcon name="trophy" /> {t("driver_standings")}</h2>

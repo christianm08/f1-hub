@@ -2,7 +2,7 @@
  * (see useSeasonParam). Shows the constructors of the selected season with
  * their drivers of that year and the season-exact car photo. Data:
  * normalized TeamModel/DriverModel (Jolpica + f1api.dev). */
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { loadDriverModels, loadTeamModels } from "../api/model";
 import { useApi } from "../hooks/useApi";
@@ -55,14 +55,18 @@ export default function Teams() {
     <div>
       {header}
       <div className="m3-grid m3-grid--3">
-        {ordered.map((c) => {
+        {ordered.map((c, i) => {
           const color = teamColor(c.id);
           const lineup = driversByTeam.get(c.id) ?? [];
           return (
             <Link key={c.id} to={`/team/${c.id}?season=${season}`} className="m3-card-link">
-              <MCard variant="outlined">
+              <MCard
+                variant="outlined"
+                className="m3-team-card m3-enter"
+                style={{ "--m3-card-accent": color, animationDelay: `${Math.min(i, 11) * 45}ms` } as CSSProperties}
+              >
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-                  <TeamLogo constructorId={c.id} name={c.name} size={52} tint={color} />
+                  <TeamLogo constructorId={c.id} name={c.name} size={56} tint={color} />
                   <FavButton item={{ kind: "team", id: c.id, label: c.name, season }} />
                 </div>
                 <h3 style={{ margin: "12px 0 4px", fontSize: "1.05rem", display: "flex", alignItems: "center", gap: 8 }}>

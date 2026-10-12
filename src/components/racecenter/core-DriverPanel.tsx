@@ -138,8 +138,8 @@ export function DriverPanel({ number, onClose, timing, drivers, laps, stints, pi
   }
 
   return (
-    <MBottomSheet open onClose={onClose} title={title}>
-      {body}
+    <MBottomSheet open onClose={onClose} title={title} className="rc-dp-sheet">
+      <div className="rc-dp-open">{body}</div>
     </MBottomSheet>
   );
 }

@@ -80,11 +80,11 @@ export default function Circuits() {
     <div>
       {header}
       <div className="m3-grid m3-grid--3">
-        {circuits.map((r) => {
+        {circuits.map((r, i) => {
           const c = r.Circuit;
           const track = findTrack(c.circuitId, c.circuitName);
           return (
-            <MCard variant="outlined" key={c.circuitId}>
+            <MCard variant="outlined" key={c.circuitId} className="m3-enter" style={{ animationDelay: `${Math.min(i, 11) * 40}ms` }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
                 <h3 style={{ margin: 0, fontSize: "1.02rem" }}>{c.circuitName}</h3>
                 <FavButton item={{ kind: "circuit", id: c.circuitId, label: c.circuitName }} />
@@ -95,13 +95,14 @@ export default function Circuits() {
               </p>
               <p style={{ display: "flex", alignItems: "center", gap: 6, margin: "0 0 8px", fontSize: "0.88rem", flexWrap: "wrap" }}>
                 <MIcon name="flag" size={14} className="m3-leader-mark" />
-                <b>R{r.round}</b>
-                <span className="m3-muted">·</span>
                 <span>{r.raceName}</span>
                 <span className="m3-muted">·</span>
                 <span className="num m3-muted">{fmtDate(r.date, lang)}</span>
               </p>
-              <TrackMap circuitId={c.circuitId} circuitName={c.circuitName} />
+              <div className="m3-circuit-map">
+                <span className="m3-circuit-badge">R{r.round}</span>
+                <TrackMap circuitId={c.circuitId} circuitName={c.circuitName} />
+              </div>
               <dl className="m3-kv" style={{ marginTop: 12 }}>
                 <dt>{t("winner")} · {season}</dt>
                 <dd style={{ display: "inline-flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>

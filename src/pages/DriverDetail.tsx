@@ -125,7 +125,7 @@ export default function DriverDetail() {
         right={<><span className="m3-pill">{t("season")} {season}</span><FavButton item={{ kind: "driver", id: data.driver.id, label: name, season }} /></>}
       />
 
-      <div className="m3-grid m3-grid--4">
+      <div className="m3-grid m3-grid--4 m3-enter">
         {kpis.map((k) => (
           <MCard key={k.label} variant="filled" className="m3-kpi" style={{ "--m3-kpi-accent": color } as CSSProperties}>
             <div className="m3-kpi-value num">{k.value}</div>
@@ -134,8 +134,8 @@ export default function DriverDetail() {
         ))}
       </div>
 
-      <div className="m3-grid m3-grid--2" style={{ marginTop: 16 }}>
-        <MCard variant="outlined">
+      <div className="m3-grid m3-grid--2 m3-enter m3-enter-1" style={{ marginTop: 16 }}>
+        <MCard variant="outlined" className="m3-float-panel">
           <h3 className="m3-card-title"><MIcon name="person" />{t("driver")}</h3>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <DriverPhoto driverId={data.driver.id} wikiUrl={data.driver.wikiUrl} name={name} size={72} tint={color} historic={parseInt(season, 10) < 2000} />
@@ -154,7 +154,7 @@ export default function DriverDetail() {
             <dt>{t("age")}</dt><dd className="num">{age ?? "–"}</dd>
           </dl>
         </MCard>
-        <MCard variant="outlined">
+        <MCard variant="outlined" className="m3-float-panel">
           <h3 className="m3-card-title"><MIcon name="trending_up" />{t("points_progression")}</h3>
           <Sparkline values={stats.progression} width={420} height={140} stroke={color} ariaLabel={t("points_progression")} />
           <div className="num m3-muted" style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: "0.85rem" }}>
@@ -167,7 +167,7 @@ export default function DriverDetail() {
         </MCard>
       </div>
 
-      <div className="m3-section-head">
+      <div className="m3-section-head m3-enter m3-enter-2">
         <h2 className="m3-section-title"><MIcon name="flag" />{t("race_by_race")}</h2>
       </div>
       {stats.rows.length === 0 ? (

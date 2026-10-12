@@ -165,12 +165,12 @@ function TelemetryChart({
                 </text>
               ))}
               {geom.runs.map((run, i) => (
-                <path key={i} d={geom.linePath(run)} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+                <path key={i} d={geom.linePath(run)} fill="none" style={{ stroke: color }} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
               ))}
               {hover != null && geom.flat[hover] && (
                 <g>
-                  <line x1={geom.X(geom.flat[hover].t)} y1={PADT} x2={geom.X(geom.flat[hover].t)} y2={H - PADB} stroke={color} strokeWidth={1} strokeDasharray="3 3" opacity={0.7} />
-                  <circle cx={geom.X(geom.flat[hover].t)} cy={geom.Y(geom.flat[hover].v as number)} r={4} fill={color} stroke="#fff" strokeWidth={1.5} />
+                  <line x1={geom.X(geom.flat[hover].t)} y1={PADT} x2={geom.X(geom.flat[hover].t)} y2={H - PADB} style={{ stroke: color }} strokeWidth={1} strokeDasharray="3 3" opacity={0.7} />
+                  <circle cx={geom.X(geom.flat[hover].t)} cy={geom.Y(geom.flat[hover].v as number)} r={4} style={{ fill: color }} stroke="#fff" strokeWidth={1.5} />
                 </g>
               )}
             </svg>
@@ -295,7 +295,7 @@ export function TelemetryPanel({ sessionKey, onSelectDriver }: PanelProps) {
     <MCard className="rcx-panel" aria-label={t("rcx_tel_title")}>
       {head}
 
-      <div className="rcx-row">
+      <div className="rcx-row rcx-glassrow">
         <MSelect
           label={t("rcx_tel_driver")}
           leadingIcon="person"
@@ -331,15 +331,16 @@ export function TelemetryPanel({ sessionKey, onSelectDriver }: PanelProps) {
       {points.length === 0 ? (
         <div className="rcx-note" role="note"><MIcon name="info" />{t("rcx_tel_no_driver_data")}</div>
       ) : (
-        <>
+        /* Keyed wrapper: driver change crossfades the chart set (data untouched). */
+        <div key={selDrv ?? "none"} className="rc-xfade" style={{ display: "grid", gap: "var(--md-sys-spacing-3)" }}>
           <TelemetryChart title={t("rcx_tel_speed")} unit="km/h" color={teamColour} values={series.speed} formatY={(v) => v.toFixed(0)} lang={lang} emptyLabel={t("rcx_nd")} />
-          <TelemetryChart title={t("rcx_tel_throttle")} unit="%" color="#22c55e" values={series.throttle} formatY={(v) => v.toFixed(0)} yDomain={[0, 100]} lang={lang} emptyLabel={t("rcx_nd")} />
-          <TelemetryChart title={t("rcx_tel_brake")} unit="%" color="#ef4444" values={series.brake} formatY={(v) => v.toFixed(0)} yDomain={[0, 100]} lang={lang} emptyLabel={t("rcx_nd")} />
-          <TelemetryChart title={t("rcx_tel_gear")} unit="" color="#a855f7" values={series.gear} formatY={(v) => v.toFixed(0)} step yDomain={[1, 8]} lang={lang} emptyLabel={t("rcx_nd")} />
+          <TelemetryChart title={t("rcx_tel_throttle")} unit="%" color="var(--rc-ok)" values={series.throttle} formatY={(v) => v.toFixed(0)} yDomain={[0, 100]} lang={lang} emptyLabel={t("rcx_nd")} />
+          <TelemetryChart title={t("rcx_tel_brake")} unit="%" color="var(--md-sys-color-error)" values={series.brake} formatY={(v) => v.toFixed(0)} yDomain={[0, 100]} lang={lang} emptyLabel={t("rcx_nd")} />
+          <TelemetryChart title={t("rcx_tel_gear")} unit="" color="var(--rc-pb)" values={series.gear} formatY={(v) => v.toFixed(0)} step yDomain={[1, 8]} lang={lang} emptyLabel={t("rcx_nd")} />
           <TelemetryChart
             title={t("rcx_tel_drs")}
             unit=""
-            color="#eab308"
+            color="var(--md-sys-color-tertiary)"
             values={series.drs}
             formatY={(v) => (v >= 0.5 ? t("rcx_tel_drs_open") : t("rcx_tel_drs_closed"))}
             step
@@ -348,7 +349,7 @@ export function TelemetryPanel({ sessionKey, onSelectDriver }: PanelProps) {
             emptyLabel={t("rcx_nd")}
           />
           <p className="rcx-caption">{t("rcx_tel_live_trace")} · {t("rcx_tel_lap_window_note")}</p>
-        </>
+        </div>
       )}
     </MCard>
   );

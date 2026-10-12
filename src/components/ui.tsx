@@ -35,6 +35,39 @@ export function SkeletonCard() {
   );
 }
 
+/** Hero-shaped shimmer skeleton (home / detail headers). */
+export function SkeletonHero() {
+  return (
+    <div className="m3-hero" aria-hidden="true" style={{ marginBottom: 24 }}>
+      <Skeleton h={20} w="34%" />
+      <div style={{ height: 14 }} />
+      <Skeleton h={36} w="72%" />
+      <div style={{ height: 12 }} />
+      <Skeleton h={16} w="52%" />
+      <div style={{ height: 16 }} />
+      <div style={{ display: "flex", gap: 8 }}>
+        <Skeleton h={52} w={64} />
+        <Skeleton h={52} w={64} />
+        <Skeleton h={52} w={64} />
+        <Skeleton h={52} w={64} />
+      </div>
+    </div>
+  );
+}
+
+/** Table-shaped shimmer skeleton (standings / results / detail tables). */
+export function SkeletonTable({ rows = 8 }: { rows?: number }) {
+  return (
+    <div className="m3-table-wrap" aria-hidden="true">
+      <div style={{ display: "grid", gap: 12, padding: 14 }}>
+        {Array.from({ length: rows }).map((_, i) => (
+          <Skeleton key={i} h={22} w={i % 4 === 3 ? "64%" : "100%"} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function ErrorState({ onRetry, message }: { onRetry: () => void; message?: string }) {
   const { t } = useSettings();
   return (

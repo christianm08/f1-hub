@@ -222,6 +222,8 @@ export default function Live() {
               ariaLabel={t("nav_live")}
             />
 
+            {/* Keyed wrapper: tab switches crossfade (data/logic untouched). */}
+            <div key={mtab} className="rc-xfade">
             {mtab === "timing" && (
               <TimingTower timing={rc.timing} drivers={rc.drivers} selected={selDriver} onSelect={setSelDriver} />
             )}
@@ -269,6 +271,7 @@ export default function Live() {
                 </Suspense>
               </div>
             )}
+            </div>
           </div>
         ) : (
           /* ------------------------- desktop grid layout ------------------------- */
@@ -283,6 +286,8 @@ export default function Live() {
                 variant="secondary"
                 ariaLabel={t("rc_unified_timeline")}
               />
+              {/* Keyed wrapper: panel switches crossfade (data/logic untouched). */}
+              <div key={panel} className="rc-xfade">
               {panel === "events" && (
                 <UnifiedTimeline raceControl={rc.raceControl} pits={rc.pits} overtakes={rc.overtakes} laps={rc.laps} drivers={rc.drivers} />
               )}
@@ -320,6 +325,7 @@ export default function Live() {
                   <ComparePanel sessionKey={sessionKey} />
                 </Suspense>
               )}
+              </div>
             </div>
             <div className="rc-side">
               <WeatherPanel latest={rc.weather.latest} series={rc.weather.series} hasWeather={rc.dataQuality.hasWeather} />
