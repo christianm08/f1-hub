@@ -83,7 +83,7 @@ export default function Home() {
             <span>{liveRace.Circuit.Location.locality}, {liveRace.Circuit.Location.country}</span>
           </p>
           <div className="m3-hero-actions">
-            <MButton variant="filled" trailingIcon="arrow_forward" onClick={() => navigate("/live")}>
+            <MButton variant="filled" trailingIcon="arrow_forward" onClick={(e) => { e.stopPropagation(); navigate("/live"); }}>
               {t("view_race_center")}
             </MButton>
           </div>
