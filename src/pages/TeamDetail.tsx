@@ -1,8 +1,7 @@
 /* Team detail: stats, drivers, race-by-race results.
  * Team identity: normalized TeamModel (Jolpica + f1api.dev enrichment). */
-import { useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
-import { BarChart3, Building2, CarFront, Flag, Medal, Sigma, Trophy, Users } from "lucide-react";
+import { useMemo, type CSSProperties } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { jolpica, type RaceInfo, type RaceResult } from "../api/jolpica";
 import { loadTeamModels, type TeamModel } from "../api/model";
 import { ApiError } from "../api/client";
@@ -10,7 +9,8 @@ import { useApi } from "../hooks/useApi";
 import { useSeasonParam } from "../hooks/useSeasonParam";
 import { useSettings } from "../store/settings";
 import { EmptyState, ErrorState, FavButton, PageHeader, SkeletonCard } from "../components/ui";
-import { MobileTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
+import { MButton, MCard, MDivider, MIcon, MList, MListItem, type MIconName } from "../design";
+import { MobileTable, MTable, ResponsiveTable, type MobileRow } from "../components/ResponsiveTable";
 import { BarList } from "../components/charts";
 import { DriverPhoto } from "../components/DriverPhoto";
 import { TeamLogo } from "../components/TeamLogo";
@@ -36,6 +36,7 @@ async function load(season: string, constructorId: string, o?: FetchOpts): Promi
 
 export default function TeamDetail() {
   const { constructorId = "" } = useParams();
+  const navigate = useNavigate();
   const { t } = useSettings();
   // ?season= in the URL preserves the season context from the list page.
   const [season] = useSeasonParam();
@@ -67,7 +68,7 @@ export default function TeamDetail() {
   }, [data]);
 
   if (status === "loading") {
-    return <div><PageHeader title={t("loading")} /><div className="grid grid-2"><SkeletonCard /><SkeletonCard /></div></div>;
+    return <div><PageHeader title={t("loading")} /><div className="m3-grid m3-grid--2"><SkeletonCard /><SkeletonCard /></div></div>;
   }
   if (status === "error" || !data || !stats) {
     if (error?.message === "team_not_found") {
@@ -75,13 +76,14 @@ export default function TeamDetail() {
         <div>
           <PageHeader title={t("nav_teams")} sub={`${t("season")} ${season}`} />
           <EmptyState
+            icon="corporate_fare"
             title={t("team_not_in_season_title")}
             body={t("team_not_in_season_body")}
           />
           <p style={{ marginTop: 12 }}>
-            <Link to={`/team?season=${season}`} className="btn primary">
+            <MButton variant="filled" onClick={() => navigate(`/team?season=${season}`)}>
               {t("back_to_teams")}
-            </Link>
+            </MButton>
           </p>
         </div>
       );
@@ -91,11 +93,11 @@ export default function TeamDetail() {
 
   const color = teamColor(data.team.id);
 
-  const kpis: { icon: React.ReactNode; label: string; value: string | number }[] = [
-    { icon: <Sigma size={13} aria-hidden="true" />, label: t("points"), value: stats.points },
-    { icon: <Trophy size={13} aria-hidden="true" />, label: t("wins"), value: stats.wins },
-    { icon: <Medal size={13} aria-hidden="true" />, label: t("podiums"), value: stats.podiums },
-    { icon: <Users size={13} aria-hidden="true" />, label: t("nav_drivers"), value: stats.drivers.length },
+  const kpis: { icon: MIconName; label: string; value: string | number }[] = [
+    { icon: "functions", label: t("points"), value: stats.points },
+    { icon: "trophy", label: t("wins"), value: stats.wins },
+    { icon: "military_tech", label: t("podiums"), value: stats.podiums },
+    { icon: "group", label: t("nav_drivers"), value: stats.drivers.length },
   ];
 
   return (
@@ -103,53 +105,58 @@ export default function TeamDetail() {
       <PageHeader
         title={data.team.name}
         sub={`${t("season")} ${season}`}
-        right={<><span className="season-badge">{season}</span><FavButton item={{ kind: "team", id: data.team.id, label: data.team.name, season }} /></>}
+        right={<><span className="m3-pill">{season}</span><FavButton item={{ kind: "team", id: data.team.id, label: data.team.name, season }} /></>}
       />
 
-      <div className="grid grid-4">
+      <div className="m3-grid m3-grid--4">
         {kpis.map((k) => (
-          <div className="stat" key={k.label} style={{ "--stat-accent": color } as React.CSSProperties}>
-            <div className="stat-value num">{k.value}</div>
-            <div className="stat-label">{k.icon}{k.label}</div>
-          </div>
+          <MCard key={k.label} variant="filled" className="m3-kpi" style={{ "--m3-kpi-accent": color } as CSSProperties}>
+            <div className="m3-kpi-value num">{k.value}</div>
+            <div className="m3-kpi-label"><MIcon name={k.icon} size={18} />{k.label}</div>
+          </MCard>
         ))}
       </div>
 
-      <div className="grid grid-2 mt">
-        <div className="card">
-          <div className="row">
+      <div className="m3-grid m3-grid--2" style={{ marginTop: 16 }}>
+        <MCard variant="outlined">
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <TeamLogo constructorId={data.team.id} name={data.team.name} size={64} tint={color} />
             <div>
-              <h3 className="card-title" style={{ margin: 0 }}>{data.team.name}</h3>
-              <p className="muted small" style={{ margin: "2px 0 0" }}>
+              <h3 style={{ margin: 0, fontSize: "1.15rem" }}>{data.team.name}</h3>
+              <p className="m3-muted" style={{ margin: "2px 0 0", fontSize: "0.88rem", display: "flex", alignItems: "center", gap: 6 }}>
                 <FlagIcon code={nationalityCode(data.team.nationality)} />{" "}
                 {data.team.nationality}
               </p>
             </div>
           </div>
-          <hr className="divider" />
-          <h3 className="card-title"><CarFront size={17} aria-hidden="true" />{t("monoposto")} · {season}</h3>
+          <MDivider />
+          <h3 className="m3-card-title"><MIcon name="directions_car" />{t("monoposto")} · {season}</h3>
           <CarImage constructorId={data.team.id} season={season} teamName={data.team.name} tint={color} />
-        </div>
-        <div className="card">
-          <h3 className="card-title"><Users size={17} aria-hidden="true" />{t("nav_drivers")}</h3>
-          {stats.drivers.map((d) => (
-            <Link key={d.id} to={`/piloti/${d.id}?season=${season}`} className="driver-row">
-              <DriverPhoto driverId={d.id} wikiUrl={d.wikiUrl} name={d.name} size={44} tint={color} historic={parseInt(season, 10) < 2000} />
-              <span>
-                <b style={{ display: "flex", alignItems: "center", fontSize: "0.92rem" }}>
-                  <FlagIcon code={nationalityCode(d.nat)} />{d.name}
-                </b>
-                <span className="small muted">{d.code}</span>
-              </span>
-              <b className="num" style={{ marginLeft: "auto" }}>{d.points}</b>
-            </Link>
-          ))}
+        </MCard>
+        <MCard variant="outlined">
+          <h3 className="m3-card-title"><MIcon name="group" />{t("nav_drivers")}</h3>
+          <MList ariaLabel={t("nav_drivers")}>
+            {stats.drivers.map((d) => (
+              <MListItem
+                key={d.id}
+                headline={
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <FlagIcon code={nationalityCode(d.nat)} />
+                    <b>{d.name}</b>
+                  </span>
+                }
+                supportingText={d.code}
+                leading={<DriverPhoto driverId={d.id} wikiUrl={d.wikiUrl} name={d.name} size={44} tint={color} historic={parseInt(season, 10) < 2000} />}
+                trailing={<b className="num">{d.points}</b>}
+                onClick={() => navigate(`/piloti/${d.id}?season=${season}`)}
+              />
+            ))}
+          </MList>
           {data.team.enriched && (
             <>
-              <hr className="divider" />
-              <h3 className="card-title"><Building2 size={17} aria-hidden="true" />{t("team_info")}</h3>
-              <dl className="kv">
+              <MDivider />
+              <h3 className="m3-card-title"><MIcon name="corporate_fare" />{t("team_info")}</h3>
+              <dl className="m3-kv">
                 {data.team.country && (<><dt>{t("country")}</dt><dd>{data.team.country}</dd></>)}
                 {data.team.firstSeason != null && (<><dt>{t("first_season")}</dt><dd className="num">{data.team.firstSeason}</dd></>)}
                 {data.team.constructorsTitles != null && (<><dt>{t("titles_constructors")}</dt><dd className="num">{data.team.constructorsTitles}</dd></>)}
@@ -157,9 +164,9 @@ export default function TeamDetail() {
               </dl>
             </>
           )}
-        </div>
-        <div className="card">
-          <h3 className="card-title"><BarChart3 size={17} aria-hidden="true" />{t("points")} {t("race_by_race").toLowerCase()}</h3>
+        </MCard>
+        <MCard variant="outlined">
+          <h3 className="m3-card-title"><MIcon name="bar_chart" />{t("points")} {t("race_by_race").toLowerCase()}</h3>
           <BarList
             items={stats.perRace.map((p) => ({
               label: `R${p.race.round} ${p.race.raceName.replace(" Grand Prix", "")}`,
@@ -167,31 +174,33 @@ export default function TeamDetail() {
               color,
             }))}
           />
-        </div>
+        </MCard>
       </div>
 
-      <h2 className="section-title"><Flag size={18} aria-hidden="true" />{t("race_by_race")}</h2>
+      <div className="m3-section-head">
+        <h2 className="m3-section-title"><MIcon name="flag" />{t("race_by_race")}</h2>
+      </div>
       {stats.perRace.length === 0 ? (
-        <EmptyState title={t("empty_title")} body={t("empty_body")} />
+        <EmptyState icon="search_off" title={t("empty_title")} body={t("empty_body")} />
       ) : (
         <ResponsiveTable
           desktop={
-        <div className="tbl-wrap"><table className="tbl">
-          <thead><tr><th>{t("round")}</th><th>{t("gp")}</th><th>{t("driver")}</th><th>{t("position")}</th><th>{t("points")}</th></tr></thead>
-          <tbody>
-            {stats.perRace.flatMap((p) =>
-              p.results.map((r) => (
-                <tr key={`${p.race.round}-${r.Driver.driverId}`} className={r.positionText === "1" ? "leader" : undefined}>
-                  <td className="num">{p.race.round}</td>
-                  <td><Link to={`/gara/${p.race.season}/${p.race.round}`}><FlagIcon code={countryCode(p.race.Circuit.Location.country)} />{p.race.raceName}</Link></td>
-                  <td><b>{r.Driver.code ?? r.Driver.familyName}</b></td>
-                  <td className="pos num">{r.positionText}</td>
-                  <td className="num">{r.points}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table></div>
+            <MTable
+              ariaLabel={t("race_by_race")}
+              head={<><th>{t("round")}</th><th>{t("gp")}</th><th>{t("driver")}</th><th>{t("position")}</th><th className="num">{t("points")}</th></>}
+            >
+              {stats.perRace.flatMap((p) =>
+                p.results.map((r) => (
+                  <tr key={`${p.race.round}-${r.Driver.driverId}`} className={r.positionText === "1" ? "leader" : undefined}>
+                    <td className="num">{p.race.round}</td>
+                    <td><Link to={`/gara/${p.race.season}/${p.race.round}`}><FlagIcon code={countryCode(p.race.Circuit.Location.country)} /> {p.race.raceName}</Link></td>
+                    <td><b>{r.Driver.code ?? r.Driver.familyName}</b></td>
+                    <td className="num"><b>{r.positionText}</b></td>
+                    <td className="num">{r.points}</td>
+                  </tr>
+                ))
+              )}
+            </MTable>
           }
           mobile={
             <MobileTable rows={stats.perRace.flatMap((p) =>
