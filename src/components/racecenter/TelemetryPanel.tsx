@@ -14,9 +14,9 @@
  * ========================================================================== */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Info } from "lucide-react";
 import { useRaceCenterSession } from "../../api/openf1live";
-import { ErrorState, Skeleton } from "../ui";
+import { Badge } from "../ui";
+import { MCard, MErrorState, MIcon, MSkeleton, MSelect } from "../../design";
 import { fmtLapTime, useAdv } from "./advStrings";
 import "./advanced.css";
 
@@ -253,38 +253,38 @@ export function TelemetryPanel({ sessionKey, onSelectDriver }: PanelProps) {
 
   const head = (
     <div className="rcx-head">
-      <h2 className="rcx-title"><Activity aria-hidden="true" />{t("rcx_tel_title")}</h2>
-      {info?.isLive && <span className="badge live"><span className="dot" aria-hidden="true" />LIVE</span>}
+      <h2 className="rcx-title"><MIcon name="activity_zone" />{t("rcx_tel_title")}</h2>
+      {info?.isLive && <Badge kind="live">LIVE</Badge>}
     </div>
   );
 
   if (state === "loading" || state === "idle") {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_tel_title")}>
+      <MCard className="rcx-panel" aria-label={t("rcx_tel_title")}>
         {head}
-        <Skeleton h={180} />
-      </section>
+        <MSkeleton height={180} />
+      </MCard>
     );
   }
   if (state === "error") {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_tel_title")}>
+      <MCard className="rcx-panel" aria-label={t("rcx_tel_title")}>
         {head}
-        <ErrorState onRetry={refresh} message={error ? `${t("rcx_error")}: ${error.message}` : t("rcx_error")} />
-      </section>
+        <MErrorState onRetry={refresh} message={error ? `${t("rcx_error")}: ${error.message}` : t("rcx_error")} />
+      </MCard>
     );
   }
 
   // Honest empty state: car_data exists only on live sessions (paid plan).
   if (!telemetryAvailable) {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_tel_title")}>
+      <MCard className="rcx-panel" aria-label={t("rcx_tel_title")}>
         {head}
         <div className="rcx-note" role="note">
-          <Info aria-hidden="true" />
+          <MIcon name="info" />
           <span><b>{t("rcx_tel_no_tel_title")}.</b> {t("rcx_tel_no_tel_body")}</span>
         </div>
-      </section>
+      </MCard>
     );
   }
 
@@ -292,55 +292,44 @@ export function TelemetryPanel({ sessionKey, onSelectDriver }: PanelProps) {
   const teamColour = drvEntry?.teamColour ?? "#e10600";
 
   return (
-    <section className="card rcx-panel" aria-label={t("rcx_tel_title")}>
+    <MCard className="rcx-panel" aria-label={t("rcx_tel_title")}>
       {head}
 
       <div className="rcx-row">
-        <label className="rcx-field">
-          <span>{t("rcx_tel_driver")}</span>
-          <select
-            className="rcx-select"
-            value={selDrv ?? ""}
-            onChange={(e) => selectDriver(Number(e.target.value))}
-            aria-label={t("rcx_tel_driver")}
-          >
-            {drivers.map((d) => (
-              <option key={d.number} value={d.number}>
-                {d.acronym} — {d.fullName}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="rcx-field">
-          <span>{t("rcx_tel_lap")}</span>
-          <select
-            className="rcx-select"
-            value={selLap ?? ""}
-            onChange={(e) => setLap(Number(e.target.value))}
-            aria-label={t("rcx_tel_lap")}
-            disabled={driverLaps.length === 0}
-          >
-            {driverLaps.map((l) => (
-              <option key={l.lap} value={l.lap}>
-                {t("rcx_tel_lap")} {l.lap} — {fmtLapTime(l.duration, t("rcx_nd"))}
-                {l.isPersonalBest ? ` (${t("rcx_tel_pb")})` : ""}
-              </option>
-            ))}
-          </select>
-        </label>
+        <MSelect
+          label={t("rcx_tel_driver")}
+          leadingIcon="person"
+          value={selDrv != null ? String(selDrv) : ""}
+          options={drivers.map((d) => ({
+            value: String(d.number),
+            label: `${d.acronym} — ${d.fullName}`,
+          }))}
+          onChange={(v) => selectDriver(Number(v))}
+        />
+        <MSelect
+          label={t("rcx_tel_lap")}
+          leadingIcon="timer"
+          value={selLap != null ? String(selLap) : ""}
+          options={driverLaps.map((l) => ({
+            value: String(l.lap),
+            label: `${t("rcx_tel_lap")} ${l.lap} — ${fmtLapTime(l.duration, t("rcx_nd"))}${l.isPersonalBest ? ` (${t("rcx_tel_pb")})` : ""}`,
+          }))}
+          onChange={(v) => setLap(Number(v))}
+          disabled={driverLaps.length === 0}
+        />
         {lapEntry && (
           <div className="rcx-lapcard" aria-label={`${t("rcx_tel_lap")} ${lapEntry.lap}`}>
             <span><b className="num">{fmtLapTime(lapEntry.duration, t("rcx_nd"))}</b></span>
             <span className="rcx-caption">S1 {fmtLapTime(lapEntry.s1, t("rcx_nd"))}</span>
             <span className="rcx-caption">S2 {fmtLapTime(lapEntry.s2, t("rcx_nd"))}</span>
             <span className="rcx-caption">S3 {fmtLapTime(lapEntry.s3, t("rcx_nd"))}</span>
-            {lapEntry.isPersonalBest && <span className="badge accent">{t("rcx_tel_pb")}</span>}
+            {lapEntry.isPersonalBest && <Badge kind="accent">{t("rcx_tel_pb")}</Badge>}
           </div>
         )}
       </div>
 
       {points.length === 0 ? (
-        <div className="rcx-note" role="note"><Info aria-hidden="true" />{t("rcx_tel_no_driver_data")}</div>
+        <div className="rcx-note" role="note"><MIcon name="info" />{t("rcx_tel_no_driver_data")}</div>
       ) : (
         <>
           <TelemetryChart title={t("rcx_tel_speed")} unit="km/h" color={teamColour} values={series.speed} formatY={(v) => v.toFixed(0)} lang={lang} emptyLabel={t("rcx_nd")} />
@@ -361,6 +350,6 @@ export function TelemetryPanel({ sessionKey, onSelectDriver }: PanelProps) {
           <p className="rcx-caption">{t("rcx_tel_live_trace")} · {t("rcx_tel_lap_window_note")}</p>
         </>
       )}
-    </section>
+    </MCard>
   );
 }

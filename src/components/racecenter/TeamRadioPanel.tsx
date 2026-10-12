@@ -6,10 +6,10 @@
  * ========================================================================== */
 
 import { useMemo } from "react";
-import { Info, Radio, Volume2 } from "lucide-react";
 import { useRaceCenterSession } from "../../api/openf1live";
 import { TEAM_RADIO_ATTRIBUTION } from "../../api/openf1model";
-import { ErrorState, Skeleton } from "../ui";
+import { Badge } from "../ui";
+import { MCard, MErrorState, MIcon, MSkeleton } from "../../design";
 import { useAdv } from "./advStrings";
 import "./advanced.css";
 
@@ -47,39 +47,39 @@ export function TeamRadioPanel({ sessionKey, onSelectDriver }: PanelProps) {
 
   const head = (
     <div className="rcx-head">
-      <h2 className="rcx-title"><Radio aria-hidden="true" />{t("rcx_radio_title")}</h2>
-      {items.length > 0 && <span className="badge info">{items.length}</span>}
+      <h2 className="rcx-title"><MIcon name="radio" />{t("rcx_radio_title")}</h2>
+      {items.length > 0 && <Badge kind="info">{items.length}</Badge>}
     </div>
   );
 
   if (state === "loading" || state === "idle") {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_radio_title")}>
+      <MCard className="rcx-panel" aria-label={t("rcx_radio_title")}>
         {head}
-        <Skeleton h={64} /><Skeleton h={64} />
-      </section>
+        <MSkeleton height={64} /><MSkeleton height={64} />
+      </MCard>
     );
   }
   if (state === "error") {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_radio_title")}>
+      <MCard className="rcx-panel" aria-label={t("rcx_radio_title")}>
         {head}
-        <ErrorState onRetry={refresh} message={error ? `${t("rcx_error")}: ${error.message}` : t("rcx_error")} />
-      </section>
+        <MErrorState onRetry={refresh} message={error ? `${t("rcx_error")}: ${error.message}` : t("rcx_error")} />
+      </MCard>
     );
   }
 
   if (items.length === 0) {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_radio_title")}>
+      <MCard className="rcx-panel" aria-label={t("rcx_radio_title")}>
         {head}
-        <div className="rcx-note" role="note"><Info aria-hidden="true" />{t("rcx_radio_empty")}</div>
-      </section>
+        <div className="rcx-note" role="note"><MIcon name="info" />{t("rcx_radio_empty")}</div>
+      </MCard>
     );
   }
 
   return (
-    <section className="card rcx-panel" aria-label={t("rcx_radio_title")}>
+    <MCard className="rcx-panel" aria-label={t("rcx_radio_title")}>
       {head}
       <div className="rcx-radio-list">
         {items.map((r, i) => {
@@ -103,7 +103,7 @@ export function TeamRadioPanel({ sessionKey, onSelectDriver }: PanelProps) {
           );
         })}
       </div>
-      <div className="rcx-credit"><Volume2 aria-hidden="true" />{TEAM_RADIO_ATTRIBUTION}</div>
-    </section>
+      <div className="rcx-credit"><MIcon name="volume_up" />{TEAM_RADIO_ATTRIBUTION}</div>
+    </MCard>
   );
 }

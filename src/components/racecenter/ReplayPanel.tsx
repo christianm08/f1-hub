@@ -18,12 +18,12 @@
  * ========================================================================== */
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, History, Info, Pause, Play } from "lucide-react";
 import { useRaceCenterSession } from "../../api/openf1live";
 import { formatGap } from "../../api/openf1";
 import type { LocationPoint } from "../../api/openf1model";
 import { fitLocationsToPath, resolveTrack } from "./mapFit";
-import { ErrorState, Skeleton } from "../ui";
+import { Badge } from "../ui";
+import { MCard, MErrorState, MIcon, MIconButton, MSegmentedButton, MSkeleton } from "../../design";
 import { useAdv } from "./advStrings";
 import "./advanced.css";
 
@@ -196,80 +196,67 @@ export function ReplayPanel({ sessionKey, onSelectDriver }: PanelProps) {
 
   const head = (
     <div className="rcx-head">
-      <h2 className="rcx-title"><History aria-hidden="true" />{t("rcx_replay_title")}</h2>
-      {info && <span className="badge done">{info.normalizedName} · {info.year}</span>}
+      <h2 className="rcx-title"><MIcon name="history" />{t("rcx_replay_title")}</h2>
+      {info && <Badge kind="done">{info.normalizedName} · {info.year}</Badge>}
     </div>
   );
 
   if (state === "loading" || state === "idle") {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_replay_title")}>
+      <MCard className="rcx-panel" aria-label={t("rcx_replay_title")}>
         {head}
-        <Skeleton h={200} />
-      </section>
+        <MSkeleton height={200} />
+      </MCard>
     );
   }
   if (state === "error") {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_replay_title")}>
+      <MCard className="rcx-panel" aria-label={t("rcx_replay_title")}>
         {head}
-        <ErrorState onRetry={refresh} message={error ? `${t("rcx_error")}: ${error.message}` : t("rcx_error")} />
-      </section>
+        <MErrorState onRetry={refresh} message={error ? `${t("rcx_error")}: ${error.message}` : t("rcx_error")} />
+      </MCard>
     );
   }
   if (!info || info.state !== "completed" || !validRange) {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_replay_title")}>
+      <MCard className="rcx-panel" aria-label={t("rcx_replay_title")}>
         {head}
-        <div className="rcx-note" role="note"><Info aria-hidden="true" />{t("rcx_replay_only_completed")}</div>
-      </section>
+        <div className="rcx-note" role="note"><MIcon name="info" />{t("rcx_replay_only_completed")}</div>
+      </MCard>
     );
   }
 
   return (
-    <section className="card rcx-panel" aria-label={t("rcx_replay_title")}>
+    <MCard className="rcx-panel" aria-label={t("rcx_replay_title")}>
       {head}
 
       <div className="rcx-controls">
-        <button
-          type="button"
-          className="rcx-iconbtn"
+        <MIconButton
+          icon={playing ? "pause" : "play_arrow"}
+          label={playing ? t("rcx_replay_pause") : t("rcx_replay_play")}
+          variant="filled"
           onClick={togglePlay}
-          aria-label={playing ? t("rcx_replay_pause") : t("rcx_replay_play")}
-        >
-          {playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
-        </button>
-        <button
-          type="button"
-          className="rcx-iconbtn ghost"
+        />
+        <MIconButton
+          icon="chevron_left"
+          label={t("rcx_replay_prev_event")}
+          variant="outlined"
           onClick={() => stepEvent(-1)}
-          aria-label={t("rcx_replay_prev_event")}
           disabled={eventTimes.length === 0}
-        >
-          <ChevronLeft aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          className="rcx-iconbtn ghost"
+        />
+        <MIconButton
+          icon="chevron_right"
+          label={t("rcx_replay_next_event")}
+          variant="outlined"
           onClick={() => stepEvent(1)}
-          aria-label={t("rcx_replay_next_event")}
           disabled={eventTimes.length === 0}
-        >
-          <ChevronRight aria-hidden="true" />
-        </button>
-        <div className="rcx-speeds" role="group" aria-label={t("rcx_replay_speed")}>
-          {SPEEDS.map((s) => (
-            <button
-              key={s}
-              type="button"
-              className="rcx-speed"
-              aria-pressed={speed === s}
-              onClick={() => setSpeed(s)}
-            >
-              {s}x
-            </button>
-          ))}
-        </div>
+        />
+        <MSegmentedButton
+          ariaLabel={t("rcx_replay_speed")}
+          value={String(speed)}
+          onChange={(v) => setSpeed(Number(v))}
+          options={SPEEDS.map((s) => ({ value: String(s), label: `${s}x` }))}
+        />
         <span className="rcx-replay-clock" aria-live="off">{fmtClock(cur)}</span>
       </div>
 
@@ -297,11 +284,11 @@ export function ReplayPanel({ sessionKey, onSelectDriver }: PanelProps) {
         <div>
           <div className="rcx-head" style={{ marginBottom: 6 }}>
             <h3 className="rcx-title" style={{ fontSize: "0.9rem" }}>{t("rcx_replay_tower")}</h3>
-            <span className={`badge ${atEnd ? "done" : "warn"}`}>{atEnd ? t("rcx_replay_final") : t("rcx_replay_partial")}</span>
+            {atEnd ? <Badge kind="done">{t("rcx_replay_final")}</Badge> : <Badge kind="warn">{t("rcx_replay_partial")}</Badge>}
           </div>
           {!atEnd && (
             <div className="rcx-note" role="note" style={{ marginBottom: 8 }}>
-              <Info aria-hidden="true" />{t("rcx_replay_partial_note")}
+              <MIcon name="info" />{t("rcx_replay_partial_note")}
             </div>
           )}
           <div className="rcx-tower">
@@ -358,7 +345,7 @@ export function ReplayPanel({ sessionKey, onSelectDriver }: PanelProps) {
               </svg>
             </div>
           ) : (
-            <div className="rcx-note" role="note"><Info aria-hidden="true" />{(() => {
+            <div className="rcx-note" role="note"><MIcon name="info" />{(() => {
               const reason = fitOutcome && !fitOutcome.ok ? fitOutcome.reason : null;
               if (!dataQuality.hasLocation) return t("rcx_replay_no_map");
               if (reason === "degenerate-bbox") return t("rcx_map_degenerate");
@@ -382,6 +369,6 @@ export function ReplayPanel({ sessionKey, onSelectDriver }: PanelProps) {
           </div>
         </div>
       </div>
-    </section>
+    </MCard>
   );
 }

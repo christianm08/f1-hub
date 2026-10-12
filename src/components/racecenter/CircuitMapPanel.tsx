@@ -20,7 +20,6 @@
  * ========================================================================== */
 
 import { useEffect, useMemo, useState } from "react";
-import { Info, ListOrdered, Map as MapIcon, Pause, Play, RotateCcw } from "lucide-react";
 import {
   LIVE_SUBSCRIPTION_MESSAGE_EN,
   LIVE_SUBSCRIPTION_MESSAGE_IT,
@@ -28,7 +27,8 @@ import {
 } from "../../api/openf1live";
 import { TrackMap } from "../TrackMap";
 import { fitLocationsToPath, resolveTrack } from "./mapFit";
-import { ErrorState, Skeleton } from "../ui";
+import { Badge } from "../ui";
+import { MButton, MCard, MChip, MErrorState, MIcon, MIconButton, MSkeleton } from "../../design";
 import { useAdv } from "./advStrings";
 import "./advanced.css";
 
@@ -194,28 +194,28 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
 
   if (state === "loading" || state === "idle") {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_map_title")}>
-        <div className="rcx-head"><h2 className="rcx-title"><MapIcon aria-hidden="true" />{t("rcx_map_title")}</h2></div>
-        <Skeleton h={280} />
-      </section>
+      <MCard className="rcx-panel" aria-label={t("rcx_map_title")}>
+        <div className="rcx-head"><h2 className="rcx-title"><MIcon name="map" />{t("rcx_map_title")}</h2></div>
+        <MSkeleton height={280} />
+      </MCard>
     );
   }
 
   if (state === "error") {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_map_title")}>
-        <div className="rcx-head"><h2 className="rcx-title"><MapIcon aria-hidden="true" />{t("rcx_map_title")}</h2></div>
-        <ErrorState onRetry={refresh} message={error ? `${t("rcx_error")}: ${error.message}` : t("rcx_error")} />
-      </section>
+      <MCard className="rcx-panel" aria-label={t("rcx_map_title")}>
+        <div className="rcx-head"><h2 className="rcx-title"><MIcon name="map" />{t("rcx_map_title")}</h2></div>
+        <MErrorState onRetry={refresh} message={error ? `${t("rcx_error")}: ${error.message}` : t("rcx_error")} />
+      </MCard>
     );
   }
 
   if (state === "needsSubscription") {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_map_title")}>
-        <div className="rcx-head"><h2 className="rcx-title"><MapIcon aria-hidden="true" />{t("rcx_map_title")}</h2></div>
-        <div className="rcx-note" role="note"><Info aria-hidden="true" />{lang === "it" ? LIVE_SUBSCRIPTION_MESSAGE_IT : LIVE_SUBSCRIPTION_MESSAGE_EN}</div>
-      </section>
+      <MCard className="rcx-panel" aria-label={t("rcx_map_title")}>
+        <div className="rcx-head"><h2 className="rcx-title"><MIcon name="map" />{t("rcx_map_title")}</h2></div>
+        <div className="rcx-note" role="note"><MIcon name="info" />{lang === "it" ? LIVE_SUBSCRIPTION_MESSAGE_IT : LIVE_SUBSCRIPTION_MESSAGE_EN}</div>
+      </MCard>
     );
   }
 
@@ -233,17 +233,17 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
             ? t("rcx_map_no_location")
             : t("rcx_map_fit_failed");
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_map_title")}>
-        <div className="rcx-head"><h2 className="rcx-title"><MapIcon aria-hidden="true" />{t("rcx_map_title")}</h2></div>
+      <MCard className="rcx-panel" aria-label={t("rcx_map_title")}>
+        <div className="rcx-head"><h2 className="rcx-title"><MIcon name="map" />{t("rcx_map_title")}</h2></div>
         <TrackMap circuitId="" circuitName={circuitLabel || undefined} />
-        <div className="rcx-note" role="note"><Info aria-hidden="true" />{note}</div>
+        <div className="rcx-note" role="note"><MIcon name="info" />{note}</div>
         <div className="rcx-mapbar">
           <span className="rcx-caption">{t("rcx_map_retry_hint")}</span>
-          <button type="button" className="rcx-toggle" onClick={refresh}>
-            <RotateCcw aria-hidden="true" />{t("rcx_retry")}
-          </button>
+          <MButton variant="outlined" small icon="refresh" onClick={refresh}>
+            {t("rcx_retry")}
+          </MButton>
         </div>
-      </section>
+      </MCard>
     );
   }
 
@@ -253,31 +253,27 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
   };
 
   return (
-    <section className="card rcx-panel" aria-label={t("rcx_map_title")}>
+    <MCard className="rcx-panel" aria-label={t("rcx_map_title")}>
       <div className="rcx-head">
-        <h2 className="rcx-title"><MapIcon aria-hidden="true" />{t("rcx_map_title")}</h2>
+        <h2 className="rcx-title"><MIcon name="map" />{t("rcx_map_title")}</h2>
         <div className="rcx-head-actions">
-          {info?.isLive && <span className="badge live"><span className="dot" aria-hidden="true" />LIVE</span>}
+          {info?.isLive && <Badge kind="live">LIVE</Badge>}
           {!info?.isLive && (
-            <button
-              type="button"
-              className="rcx-toggle"
-              aria-pressed={replayPlaying}
+            <MIconButton
+              icon={replayPlaying ? "pause" : "play_arrow"}
+              label={replayPlaying ? t("rcx_map_pause") : t("rcx_map_play")}
+              variant="tonal"
               onClick={() => setReplayPlaying((v) => !v)}
-              aria-label={replayPlaying ? t("rcx_map_pause") : t("rcx_map_play")}
-            >
-              {replayPlaying ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
-              {replayPlaying ? t("rcx_map_pause") : t("rcx_map_play")}
-            </button>
+            />
           )}
-          <button
-            type="button"
-            className="rcx-toggle"
-            aria-pressed={showPositions}
+          <MChip
+            variant="filter"
+            selected={showPositions}
+            leadingIcon="format_list_numbered"
             onClick={() => setShowPositions((v) => !v)}
           >
-            <ListOrdered aria-hidden="true" />{t("rcx_map_toggle_positions")}
-          </button>
+            {t("rcx_map_toggle_positions")}
+          </MChip>
         </div>
       </div>
 
@@ -340,6 +336,6 @@ export function CircuitMapPanel({ sessionKey, onSelectDriver }: PanelProps) {
       </div>
       <p className="rcx-caption">{t("rcx_map_interp_note")}</p>
       {!info?.isLive && <p className="rcx-caption">{t("rcx_map_window_note")}</p>}
-    </section>
+    </MCard>
   );
 }

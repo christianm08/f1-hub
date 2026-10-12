@@ -8,10 +8,9 @@
  * ========================================================================== */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { GitCompareArrows, Info } from "lucide-react";
 import { useRaceCenterSession } from "../../api/openf1live";
 import type { LapEntry } from "../../api/openf1model";
-import { ErrorState, Skeleton } from "../ui";
+import { MCard, MErrorState, MIcon, MSkeleton, MSelect } from "../../design";
 import { fmtLapTime, useAdv } from "./advStrings";
 import "./advanced.css";
 
@@ -215,24 +214,24 @@ export function ComparePanel({ sessionKey, onSelectDriver }: PanelProps) {
 
   const head = (
     <div className="rcx-head">
-      <h2 className="rcx-title"><GitCompareArrows aria-hidden="true" />{t("rcx_cmp_title")}</h2>
+      <h2 className="rcx-title"><MIcon name="compare_arrows" />{t("rcx_cmp_title")}</h2>
     </div>
   );
 
   if (state === "loading" || state === "idle") {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_cmp_title")}>
+      <MCard className="rcx-panel" aria-label={t("rcx_cmp_title")}>
         {head}
-        <Skeleton h={160} />
-      </section>
+        <MSkeleton height={160} />
+      </MCard>
     );
   }
   if (state === "error") {
     return (
-      <section className="card rcx-panel" aria-label={t("rcx_cmp_title")}>
+      <MCard className="rcx-panel" aria-label={t("rcx_cmp_title")}>
         {head}
-        <ErrorState onRetry={refresh} message={error ? `${t("rcx_error")}: ${error.message}` : t("rcx_error")} />
-      </section>
+        <MErrorState onRetry={refresh} message={error ? `${t("rcx_error")}: ${error.message}` : t("rcx_error")} />
+      </MCard>
     );
   }
 
@@ -279,26 +278,30 @@ export function ComparePanel({ sessionKey, onSelectDriver }: PanelProps) {
   );
 
   return (
-    <section className="card rcx-panel" aria-label={t("rcx_cmp_title")}>
+    <MCard className="rcx-panel" aria-label={t("rcx_cmp_title")}>
       {head}
 
       <div className="rcx-row">
-        <label className="rcx-field">
-          <span>{t("rcx_cmp_driver_a")}</span>
-          <select className="rcx-select" value={selA ?? ""} onChange={(e) => pick("a", Number(e.target.value))} aria-label={t("rcx_cmp_driver_a")}>
-            {ordered.filter((d) => d.number !== selB).map((d) => (
-              <option key={d.number} value={d.number}>{d.acronym} — {d.fullName}</option>
-            ))}
-          </select>
-        </label>
-        <label className="rcx-field">
-          <span>{t("rcx_cmp_driver_b")}</span>
-          <select className="rcx-select" value={selB ?? ""} onChange={(e) => pick("b", Number(e.target.value))} aria-label={t("rcx_cmp_driver_b")}>
-            {ordered.filter((d) => d.number !== selA).map((d) => (
-              <option key={d.number} value={d.number}>{d.acronym} — {d.fullName}</option>
-            ))}
-          </select>
-        </label>
+        <MSelect
+          label={t("rcx_cmp_driver_a")}
+          leadingIcon="person"
+          value={selA != null ? String(selA) : ""}
+          options={ordered.filter((d) => d.number !== selB).map((d) => ({
+            value: String(d.number),
+            label: `${d.acronym} — ${d.fullName}`,
+          }))}
+          onChange={(v) => pick("a", Number(v))}
+        />
+        <MSelect
+          label={t("rcx_cmp_driver_b")}
+          leadingIcon="person"
+          value={selB != null ? String(selB) : ""}
+          options={ordered.filter((d) => d.number !== selA).map((d) => ({
+            value: String(d.number),
+            label: `${d.acronym} — ${d.fullName}`,
+          }))}
+          onChange={(v) => pick("b", Number(v))}
+        />
       </div>
 
       {stats.a && stats.b ? (
@@ -330,7 +333,7 @@ export function ComparePanel({ sessionKey, onSelectDriver }: PanelProps) {
             {progression ? (
               <DuoChart series={progression} formatY={(v) => v.toFixed(1)} ariaLabel={t("rcx_cmp_lap_times")} />
             ) : (
-              <div className="rcx-note" role="note"><Info aria-hidden="true" />{t("rcx_cmp_no_laps")}</div>
+              <div className="rcx-note" role="note"><MIcon name="info" />{t("rcx_cmp_no_laps")}</div>
             )}
           </div>
 
@@ -342,14 +345,14 @@ export function ComparePanel({ sessionKey, onSelectDriver }: PanelProps) {
             {gapEvo ? (
               <DuoChart series={gapEvo} formatY={(v) => (v > 0 ? "+" : "") + v.toFixed(1)} zeroLine ariaLabel={t("rcx_cmp_gap")} />
             ) : (
-              <div className="rcx-note" role="note"><Info aria-hidden="true" />{t("rcx_cmp_no_laps")}</div>
+              <div className="rcx-note" role="note"><MIcon name="info" />{t("rcx_cmp_no_laps")}</div>
             )}
             <p className="rcx-caption" style={{ marginTop: 6 }}>{t("rcx_cmp_gap_note")}</p>
           </div>
         </>
       ) : (
-        <div className="rcx-note" role="note"><Info aria-hidden="true" />{t("rcx_cmp_no_laps")}</div>
+        <div className="rcx-note" role="note"><MIcon name="info" />{t("rcx_cmp_no_laps")}</div>
       )}
-    </section>
+    </MCard>
   );
 }
