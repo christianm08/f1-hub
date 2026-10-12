@@ -2,9 +2,9 @@
    highlights and mini-sector colour bars (2048 yellow, 2049 green,
    2051 purple). Owned by the race-center core agent. */
 import { useMemo } from "react";
-import { Timer } from "lucide-react";
 import type { DriverEntry, LapEntry, TimingRow } from "../../api/openf1model";
 import { useSettings } from "../../store/settings";
+import { MIcon, MSelect } from "../../design";
 import { acronymOf, formatLapTime, useDriverMap } from "./core-shared";
 import "./core.css";
 
@@ -53,25 +53,21 @@ export function LapTiming({ laps, timing, drivers, selected, onSelect }: Props) 
   return (
     <section className="rc-panel" aria-label={t("rc_lap_timing")}>
       <div className="rc-panel-head">
-        <h3><Timer aria-hidden="true" />{t("rc_lap_timing")}</h3>
+        <h3><MIcon name="timer" />{t("rc_lap_timing")}</h3>
       </div>
       <div style={{ padding: "12px 14px 0" }}>
-        <label className="rc-nd" htmlFor="rc-lap-driver" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em", fontSize: "0.68rem" }}>
-          {t("rc_select_driver")}
-        </label>
-        <select
-          id="rc-lap-driver"
-          className="rc-select"
-          value={selected ?? ""}
-          onChange={(e) => onSelect(e.target.value ? Number(e.target.value) : null)}
-        >
-          <option value="">—</option>
-          {options.map((num) => (
-            <option key={num} value={num}>
-              {acronymOf(driverMap, num)}{driverMap.get(num)?.fullName ? ` — ${driverMap.get(num)!.fullName}` : ""}
-            </option>
-          ))}
-        </select>
+        <MSelect
+          label={t("rc_select_driver")}
+          value={selected != null ? String(selected) : ""}
+          options={[
+            { value: "", label: "—" },
+            ...options.map((num) => ({
+              value: String(num),
+              label: `${acronymOf(driverMap, num)}${driverMap.get(num)?.fullName ? ` — ${driverMap.get(num)!.fullName}` : ""}`,
+            })),
+          ]}
+          onChange={(v) => onSelect(v ? Number(v) : null)}
+        />
         {selected != null && (
           <p className="small muted" style={{ margin: "8px 0 0", display: "flex", gap: 12 }}>
             <span><i className="rc-segbar" style={{ marginRight: 4 }}><i className="s2051" /></i>{t("rc_personal_best")}</span>

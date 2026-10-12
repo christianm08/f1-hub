@@ -2,11 +2,11 @@
    with live/upcoming/completed states and deep-link selection. OpenF1 has
    data from 2023. Owned by the race-center core agent. */
 import { useMemo, useState } from "react";
-import { CalendarClock, ChevronDown, History } from "lucide-react";
 import { normalizeSessionName, openf1, sessionState, type OFSession } from "../../api/openf1";
 import { useApi } from "../../hooks/useApi";
 import { useSettings } from "../../store/settings";
 import { Badge } from "../ui";
+import { MButton, MIcon } from "../../design";
 import { SeasonSelect } from "../SeasonSelect";
 import { fmtTime } from "./core-shared";
 import "./core.css";
@@ -108,16 +108,16 @@ export function SessionBrowser({ onSelect, liveSession, defaultYear }: Props) {
               {fmtTime(new Date(liveSession.date_start), lang)}
             </p>
           </div>
-          <button className="btn" onClick={() => onSelect(liveSession.session_key)}>
+          <MButton variant="filled" onClick={() => onSelect(liveSession.session_key)}>
             {t("rc_watch_live")}
-          </button>
+          </MButton>
         </div>
       )}
 
       {!liveSession && (
         <div className="rc-panel">
           <div className="rc-panel-body" style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <CalendarClock size={18} aria-hidden="true" style={{ color: "var(--text-3)", flex: "0 0 auto" }} />
+            <MIcon name="calendar_clock" size={20} style={{ color: "var(--md-sys-color-on-surface-variant)", flex: "0 0 auto" }} />
             <p className="small muted" style={{ margin: 0 }}>{t("rc_no_live_body")}</p>
           </div>
         </div>
@@ -125,7 +125,7 @@ export function SessionBrowser({ onSelect, liveSession, defaultYear }: Props) {
 
       <div className="rc-panel">
         <div className="rc-panel-head">
-          <h3><History aria-hidden="true" />{t("rc_choose_session")}</h3>
+          <h3><MIcon name="history" />{t("rc_choose_session")}</h3>
           <span style={{ marginLeft: "auto" }}>
             <SeasonSelect value={year} onChange={setYear} />
           </span>
@@ -133,7 +133,7 @@ export function SessionBrowser({ onSelect, liveSession, defaultYear }: Props) {
         <div className="rc-panel-body">
           {tooOld && (
             <p className="rc-note" style={{ margin: "0 0 10px" }}>
-              <CalendarClock aria-hidden="true" />{t("rc_openf1_note")}
+              <MIcon name="calendar_clock" />{t("rc_openf1_note")}
             </p>
           )}
           {status === "loading" && <p className="rc-nd">{t("loading")}</p>}
@@ -147,7 +147,7 @@ export function SessionBrowser({ onSelect, liveSession, defaultYear }: Props) {
                   <FlagIcon code={g.countryCode} />
                   <span>{g.name} {t("rc_meeting")}</span>
                   <span className="small muted" style={{ fontWeight: 400 }}>{g.location}</span>
-                  <ChevronDown size={16} className="chev" aria-hidden="true" />
+                  <MIcon name="keyboard_arrow_down" size={18} className="chev" />
                 </button>
                 {open && [...g.sessions].sort((a, b) => sessionRank(a.session_name) - sessionRank(b.session_name)).map((s) => {
                   const isLive = liveSession?.session_key === s.session_key;
