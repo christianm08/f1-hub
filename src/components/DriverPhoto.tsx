@@ -12,7 +12,7 @@
  * Source: Wikimedia Commons / Wikipedia (free-licensed portraits).
  */
 import { useEffect, useState } from "react";
-import { History, UserRound } from "lucide-react";
+import { MIcon } from "../design";
 import { getDriverPhoto } from "../api/photos";
 
 interface Props {
@@ -82,11 +82,11 @@ export function DriverPhoto({ driverId, wikiUrl, name, size = 44, tint, historic
         >
           {historic ? (
             <span className="dphoto-arch">
-              <History size={Math.round(size * 0.42)} strokeWidth={1.6} />
+              <MIcon name="history" size={Math.round(size * 0.42)} />
               <span className="dphoto-arch-t">n/d</span>
             </span>
           ) : (
-            <UserRound size={Math.round(size * 0.52)} strokeWidth={1.8} />
+            <MIcon name="person" size={Math.round(size * 0.52)} />
           )}
         </span>
       ) : (

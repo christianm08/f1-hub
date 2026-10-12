@@ -1,9 +1,9 @@
 /* Race Center core — pit timeline + stint/strategy view with official
    compound colours. Owned by the race-center core agent. */
 import { useMemo } from "react";
-import { ArrowRight, Layers, Wrench } from "lucide-react";
 import type { DriverEntry, PitView, StintView, TimingRow } from "../../api/openf1model";
 import { useSettings } from "../../store/settings";
+import { MIcon } from "../../design";
 import { acronymOf, compoundClass, compoundShort, fmtTime, useDriverMap } from "./core-shared";
 import "./core.css";
 
@@ -20,7 +20,7 @@ export function PitTimeline({ pits, drivers }: PitsProps) {
   return (
     <section className="rc-panel" aria-label={t("rc_pit_timeline")}>
       <div className="rc-panel-head">
-        <h3><Wrench aria-hidden="true" />{t("rc_pit_timeline")}</h3>
+        <h3><MIcon name="build" />{t("rc_pit_timeline")}</h3>
       </div>
       <div className="rc-tl-scroll">
         {ordered.length === 0 ? (
@@ -42,7 +42,7 @@ export function PitTimeline({ pits, drivers }: PitsProps) {
                           {compoundShort(p.prevCompound)}
                         </span>
                       )}
-                      <ArrowRight size={12} aria-hidden="true" style={{ color: "var(--text-3)" }} />
+                      <MIcon name="arrow_forward" size={12} style={{ color: "var(--md-sys-color-on-surface-variant)" }} />
                       {p.newCompound && (
                         <span className={`rc-strat-seg ${compoundClass(p.newCompound)}`} style={{ height: 18, padding: "0 7px", borderRadius: 5 }}>
                           {compoundShort(p.newCompound)}
@@ -94,7 +94,7 @@ export function StrategyView({ stints, timing, drivers, totalLaps }: StratProps)
   if (stints.length === 0) {
     return (
       <section className="rc-panel" aria-label={t("rc_strategy")}>
-        <div className="rc-panel-head"><h3><Layers aria-hidden="true" />{t("rc_strategy")}</h3></div>
+        <div className="rc-panel-head"><h3><MIcon name="layers" />{t("rc_strategy")}</h3></div>
         <p className="rc-nd" style={{ padding: "6px 14px" }}>{t("not_available")}</p>
       </section>
     );
@@ -103,7 +103,7 @@ export function StrategyView({ stints, timing, drivers, totalLaps }: StratProps)
   return (
     <section className="rc-panel" aria-label={t("rc_strategy")}>
       <div className="rc-panel-head">
-        <h3><Layers aria-hidden="true" />{t("rc_strategy")}</h3>
+        <h3><MIcon name="layers" />{t("rc_strategy")}</h3>
       </div>
       <div className="rc-panel-body">
         <div className="rc-legend" style={{ marginBottom: 10 }}>

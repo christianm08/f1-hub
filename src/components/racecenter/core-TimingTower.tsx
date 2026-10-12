@@ -2,11 +2,10 @@
    leader badge, PB (purple) / session-best (green) highlights. Owned by the
    race-center core agent. */
 import { memo } from "react";
-import { ChevronDown, ChevronUp, Timer } from "lucide-react";
 import type { DriverEntry, TimingRow } from "../../api/openf1model";
 import type { DictKey } from "../../i18n/dict";
 import { useSettings } from "../../store/settings";
-import { Skeleton } from "../ui";
+import { MIcon, MSkeleton } from "../../design";
 import { TYRE_LETTER, formatGap, formatLapTime, useIsMobile } from "./core-shared";
 import "./core.css";
 
@@ -26,10 +25,9 @@ function delta(row: TimingRow): { cls: "up" | "dn"; n: number } | null {
 }
 
 function DeltaIcon({ d }: { d: { cls: "up" | "dn"; n: number } }) {
-  const Icon = d.cls === "up" ? ChevronUp : ChevronDown;
   return (
     <span className={`rc-delta ${d.cls}`} aria-label={d.cls === "up" ? `+${d.n}` : `-${d.n}`}>
-      <Icon size={11} strokeWidth={3} aria-hidden="true" />
+      <MIcon name={d.cls === "up" ? "keyboard_arrow_up" : "keyboard_arrow_down"} size={11} />
       {d.n}
     </span>
   );
@@ -141,13 +139,13 @@ export function TimingTower({ timing, drivers, selected, onSelect, loading }: Pr
   return (
     <section className="rc-tower" aria-label={t("live_positions")}>
       <div className="rc-tower-head">
-        <h3><Timer aria-hidden="true" />{t("live_positions")}</h3>
+        <h3><MIcon name="timer" />{t("live_positions")}</h3>
         <span className="spacer" />
         <span className="rc-nd">{t("rc_tap_driver")}</span>
       </div>
       {loading ? (
         <div style={{ padding: 16, display: "grid", gap: 10 }}>
-          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} h={30} />)}
+          {Array.from({ length: 8 }).map((_, i) => <MSkeleton key={i} height={30} />)}
         </div>
       ) : timing.length === 0 ? (
         <p className="rc-nd" style={{ padding: "20px 16px" }}>{t("not_available")}</p>

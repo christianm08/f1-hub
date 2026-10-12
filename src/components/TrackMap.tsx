@@ -2,7 +2,7 @@
  * Geometry: bacinger/f1-circuits, MIT (c) 2019-2025 Tomislav Bacinger.
  * Rendered with currentColor so it adapts to dark/light mode automatically.
  */
-import { Route } from "lucide-react";
+import { MIcon } from "../design";
 import { findTrack } from "../data/circuits";
 
 interface TrackMapProps {
@@ -18,7 +18,7 @@ export function TrackMap({ circuitId, circuitName, className, strokeWidth = 4 }:
   if (!track) {
     return (
       <div className={`circuit-ph ${className ?? ""}`} role="img" aria-label={circuitName ?? "circuit"}>
-        <Route aria-hidden="true" />
+        <MIcon name="route" />
       </div>
     );
   }

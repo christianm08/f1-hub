@@ -1,14 +1,15 @@
 /* Shared UI primitives — adapters over the M3 design system (src/design/*).
-   API-compatible with the previous version: existing pages keep working
-   unchanged until they migrate to the M3 components directly.
+   API-compatible with the previous version: Live.tsx and racecenter/*
+   keep working unchanged while pages migrate to the M3 components directly.
    New code should import from "../design" instead. */
 import type { ReactNode } from "react";
 import { useSettings, type FavItem } from "../store/settings";
 import {
-  MSkeleton,
-  MErrorState as M3ErrorState,
+  MCard,
   MEmptyState as M3EmptyState,
+  MErrorState as M3ErrorState,
   MIconButton,
+  MSkeleton,
   CountdownCells as M3CountdownCells,
   useCountdown,
   ToastProvider,
@@ -24,13 +25,13 @@ export function Skeleton({ h = 20, w }: { h?: number; w?: string | number }) {
 
 export function SkeletonCard() {
   return (
-    <div className="card" aria-hidden="true">
+    <MCard variant="outlined" aria-hidden="true">
       <Skeleton h={18} w="60%" />
       <div style={{ height: 10 }} />
       <Skeleton h={14} />
       <div style={{ height: 8 }} />
       <Skeleton h={14} w="80%" />
-    </div>
+    </MCard>
   );
 }
 
@@ -46,38 +47,40 @@ export function ErrorState({ onRetry, message }: { onRetry: () => void; message?
   );
 }
 
-/** Accepts either an MIcon name (new) or a legacy ReactNode icon (old pages). */
+/** Accepts either an MIcon name (new) or a legacy ReactNode icon (e.g. Live.tsx). */
 export function EmptyState({ icon, title, body }: { icon?: ReactNode | MIconName; title: string; body?: string }) {
   if (typeof icon === "string") {
     return <M3EmptyState icon={icon as MIconName} title={title} body={body} />;
   }
-  // legacy path: custom icon node (e.g. lucide) — kept until pages migrate
+  // legacy path: custom icon node — rendered with M3 empty-state styling
   return (
-    <div className="state">
-      <div className="state-icon" aria-hidden="true">{icon}</div>
-      <h3>{title}</h3>
-      {body && <p>{body}</p>}
+    <div className="m3-empty-legacy" role="status">
+      {icon != null && <div className="m3-empty-legacy-icon" aria-hidden="true">{icon}</div>}
+      <h3 className="m3-empty-legacy-title">{title}</h3>
+      {body && <p className="m3-empty-legacy-body">{body}</p>}
     </div>
   );
 }
 
+/** Status pill (live/accent/done/warn/info). M3-styled; API unchanged. */
 export function Badge({ kind, children }: { kind?: "live" | "accent" | "done" | "warn" | "info"; children: ReactNode }) {
   return (
-    <span className={`badge${kind ? " " + kind : ""}`}>
-      {kind === "live" && <span className="dot" aria-hidden="true" />}
+    <span className={`m3-pill${kind ? ` m3-pill--${kind}` : ""}`}>
+      {kind === "live" && <span className="m3-pill-dot" aria-hidden="true" />}
       {children}
     </span>
   );
 }
 
+/** Page header: M3 headline + optional sub + right-side actions. API unchanged. */
 export function PageHeader({ title, sub, right }: { title: string; sub?: string; right?: ReactNode }) {
   return (
-    <div className="spread mb">
-      <div>
-        <h1 className="page-title">{title}</h1>
-        {sub && <p className="page-sub">{sub}</p>}
+    <div className="m3-page-head">
+      <div className="m3-page-head-text">
+        <h1 className="m3-page-title">{title}</h1>
+        {sub && <p className="m3-page-sub">{sub}</p>}
       </div>
-      {right}
+      {right != null && <div className="m3-page-head-right">{right}</div>}
     </div>
   );
 }
@@ -103,20 +106,18 @@ export function FavButton({ item }: { item: FavItem }) {
   const active = isFav(item.kind, item.id);
   const { push } = useToast();
   return (
-    <span className="fav-btn">
-      <MIconButton
-        icon="favorite"
-        label={active ? t("removed_fav") : t("added_fav")}
-        selected={active}
-        variant={active ? "tonal" : "standard"}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const added = toggleFav(item);
-          push(added ? t("added_fav") : t("removed_fav"));
-        }}
-      />
-    </span>
+    <MIconButton
+      icon="favorite"
+      label={active ? t("removed_fav") : t("added_fav")}
+      selected={active}
+      variant={active ? "tonal" : "standard"}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const added = toggleFav(item);
+        push(added ? t("added_fav") : t("removed_fav"));
+      }}
+    />
   );
 }
 

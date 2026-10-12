@@ -2,7 +2,7 @@
  * placeholder. Logos are never stretched: object-fit contain.
  */
 import { useState } from "react";
-import { Shield } from "lucide-react";
+import { MIcon } from "../design";
 import { teamLogo } from "../data/assets";
 
 interface Props {
@@ -32,7 +32,7 @@ export function TeamLogo({ constructorId, name, size = 40, tint, className }: Pr
           className="tlogo-ph-in"
           style={tint ? { background: `color-mix(in srgb, ${tint} 20%, var(--surface-2))`, color: tint } : undefined}
         >
-          <Shield size={Math.round(size * 0.5)} strokeWidth={1.8} />
+          <MIcon name="sports_motorsports" size={Math.round(size * 0.5)} />
         </span>
       </span>
     );

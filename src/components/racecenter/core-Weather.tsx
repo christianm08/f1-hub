@@ -1,10 +1,10 @@
 /* Race Center core — weather panel: current conditions + session evolution
    sparklines. Honest "n/d" when data is missing. Owned by the race-center
    core agent. */
-import { CloudRain, Droplets, Gauge, Navigation, Thermometer, Wind } from "lucide-react";
 import type { WeatherPoint } from "../../api/openf1model";
 import { useSettings } from "../../store/settings";
 import { Sparkline } from "../charts";
+import { MIcon } from "../../design";
 import { fmtTime } from "./core-shared";
 import "./core.css";
 
@@ -36,7 +36,7 @@ export function WeatherPanel({ latest, series, hasWeather }: Props) {
   return (
     <section className="rc-panel" aria-label={t("weather")}>
       <div className="rc-panel-head">
-        <h3><Thermometer aria-hidden="true" />{t("rc_weather_now")}</h3>
+        <h3><MIcon name="thermometer" />{t("rc_weather_now")}</h3>
       </div>
       <div className="rc-panel-body">
         {!hasWeather || !latest ? (
@@ -45,34 +45,34 @@ export function WeatherPanel({ latest, series, hasWeather }: Props) {
           <>
             <div className="rc-wx-grid">
               <div className="rc-wx-cell">
-                <div className="lbl"><Thermometer aria-hidden="true" />{t("air")}</div>
+                <div className="lbl"><MIcon name="thermometer" />{t("air")}</div>
                 <div className="val">{temp(latest.air)}</div>
               </div>
               <div className="rc-wx-cell">
-                <div className="lbl"><Gauge aria-hidden="true" />{t("track")}</div>
+                <div className="lbl"><MIcon name="speed" />{t("track")}</div>
                 <div className="val">{temp(latest.track)}</div>
               </div>
               <div className="rc-wx-cell">
-                <div className="lbl"><Droplets aria-hidden="true" />{t("humidity")}</div>
+                <div className="lbl"><MIcon name="water_drop" />{t("humidity")}</div>
                 <div className="val">{latest.humidity != null ? <>{latest.humidity.toFixed(0)}<small>%</small></> : "n/d"}</div>
               </div>
               <div className="rc-wx-cell">
-                <div className="lbl"><Gauge aria-hidden="true" />{t("rc_pressure")}</div>
+                <div className="lbl"><MIcon name="speed" />{t("rc_pressure")}</div>
                 <div className="val">{latest.pressure != null ? <>{latest.pressure.toFixed(0)}<small>hPa</small></> : "n/d"}</div>
               </div>
               <div className="rc-wx-cell">
-                <div className="lbl"><Wind aria-hidden="true" />{t("wind")}</div>
+                <div className="lbl"><MIcon name="air" />{t("wind")}</div>
                 <div className="val">{wind(latest.windSpeed)}</div>
               </div>
               <div className="rc-wx-cell">
-                <div className="lbl"><Navigation aria-hidden="true" />{t("rc_wind_dir")}</div>
+                <div className="lbl"><MIcon name="navigation" />{t("rc_wind_dir")}</div>
                 <div className="val">
                   {latest.windDir != null ? <>{compass(latest.windDir, lang)}<small>{latest.windDir.toFixed(0)}°</small></> : "n/d"}
                 </div>
               </div>
             </div>
             <p className="small" style={{ display: "flex", alignItems: "center", gap: 6, margin: "10px 0 0", color: latest.rain ? "var(--info)" : "var(--text-3)" }}>
-              <CloudRain aria-hidden="true" size={14} />
+              <MIcon name="rainy" size={14} />
               {latest.rain ? t("rc_rain_yes") : t("rc_rain_no")}
               <span className="rc-nd" style={{ marginLeft: "auto" }}>{fmtTime(new Date(latest.time), lang)}</span>
             </p>

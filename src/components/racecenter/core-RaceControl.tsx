@@ -2,10 +2,10 @@
    live auto-scroll (pauses when the user scrolls up). Owned by the
    race-center core agent. */
 import { useEffect, useRef, useState } from "react";
-import { Radio } from "lucide-react";
 import type { DriverEntry, RaceControlEvent, RcSeverity } from "../../api/openf1model";
 import type { DictKey } from "../../i18n/dict";
 import { useSettings } from "../../store/settings";
+import { MChip, MIcon } from "../../design";
 import { acronymOf, fmtTime, useDriverMap } from "./core-shared";
 import "./core.css";
 
@@ -51,15 +51,14 @@ export function RaceControlPanel({ events, drivers, live }: Props) {
   return (
     <section className="rc-panel" aria-label={t("rc_race_control")}>
       <div className="rc-panel-head">
-        <h3><Radio aria-hidden="true" />{t("rc_race_control")}</h3>
+        <h3><MIcon name="radio" />{t("rc_race_control")}</h3>
       </div>
       <div style={{ padding: "10px 14px 0" }}>
-        <div className="rc-chips" role="tablist" aria-label={t("rc_race_control")}>
+        <div className="rc-chips" role="group" aria-label={t("rc_race_control")}>
           {FILTERS.map((f) => (
-            <button key={f.id} role="tab" aria-selected={filter === f.id}
-              className={`rc-chip${filter === f.id ? " on" : ""}`} onClick={() => setFilter(f.id)}>
+            <MChip key={f.id} variant="filter" selected={filter === f.id} onClick={() => setFilter(f.id)}>
               {t(f.key)}
-            </button>
+            </MChip>
           ))}
         </div>
       </div>

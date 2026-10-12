@@ -3,7 +3,7 @@
  * placeholder. Presented as a premium element.
  */
 import { useState } from "react";
-import { CarFront } from "lucide-react";
+import { MIcon } from "../design";
 import { teamCar } from "../data/assets";
 
 interface Props {
@@ -24,7 +24,7 @@ export function CarImage({ constructorId, season, teamName, tint, className }: P
           className="carimg-ph-in"
           style={tint ? { color: tint } : undefined}
         >
-          <CarFront size={44} strokeWidth={1.4} />
+          <MIcon name="directions_car" size={44} />
           <small>{teamName}</small>
         </span>
       </div>

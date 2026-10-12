@@ -3,10 +3,10 @@
    core agent. */
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { ListOrdered } from "lucide-react";
 import type { DriverEntry, LapEntry, OvertakeEvent, PitView, RaceControlEvent, RcSeverity } from "../../api/openf1model";
 import type { DictKey } from "../../i18n/dict";
 import { useSettings } from "../../store/settings";
+import { MChip, MIcon } from "../../design";
 import { acronymOf, formatLapTime, fmtTime, useDriverMap } from "./core-shared";
 import "./core.css";
 
@@ -104,15 +104,14 @@ export function UnifiedTimeline({ raceControl, pits, overtakes, laps, drivers }:
   return (
     <section className="rc-panel" aria-label={t("rc_unified_timeline")}>
       <div className="rc-panel-head">
-        <h3><ListOrdered aria-hidden="true" />{t("rc_unified_timeline")}</h3>
+        <h3><MIcon name="format_list_numbered" />{t("rc_unified_timeline")}</h3>
       </div>
       <div style={{ padding: "10px 14px 0" }}>
-        <div className="rc-chips" role="tablist" aria-label={t("rc_unified_timeline")}>
+        <div className="rc-chips" role="group" aria-label={t("rc_unified_timeline")}>
           {FILTERS.map((f) => (
-            <button key={f.id} role="tab" aria-selected={filter === f.id}
-              className={`rc-chip${filter === f.id ? " on" : ""}`} onClick={() => setFilter(f.id)}>
+            <MChip key={f.id} variant="filter" selected={filter === f.id} onClick={() => setFilter(f.id)}>
               {t(f.key)}
-            </button>
+            </MChip>
           ))}
         </div>
       </div>
